@@ -15,7 +15,9 @@ import {
 } from '../domain/chat/di-tokens';
 import { IdbKeyvalStorageAdapter } from '../infrastructure/storage/idb-keyval.adapter';
 import { HeuristicModerationAdapter } from '../infrastructure/moderation/heuristic.adapter';
+import { NoOpModerationAdapter } from '../infrastructure/moderation/no-op.adapter';
 import { VercelAnalyticsAdapter } from '../infrastructure/analytics/vercel.adapter';
+import { FEATURE_MODERATION } from '../config/feature-flags';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -34,7 +36,12 @@ export const appConfig: ApplicationConfig = {
     // the real regex denylist; E6-S1 will layer redaction into
     // VercelAnalyticsAdapter.
     { provide: STORAGE_PORT, useClass: IdbKeyvalStorageAdapter },
-    { provide: MODERATION_PORT, useClass: HeuristicModerationAdapter },
+    {
+      provide: MODERATION_PORT,
+      useClass: FEATURE_MODERATION
+        ? HeuristicModerationAdapter
+        : NoOpModerationAdapter,
+    },
     { provide: ANALYTICS_PORT, useClass: VercelAnalyticsAdapter },
   ],
 };

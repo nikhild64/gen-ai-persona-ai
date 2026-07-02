@@ -155,13 +155,13 @@ development_status:
   epic-7: done
   e7-s1-max-turn-cap-refusal: done
   e7-s2-provider-429-in-character-surfacing: done
-  epic-7: done
   epic-7-retrospective: optional
 
   # --- Day 5 evening: In-Character Safety & Refusals — positions 25-26 ---
-  epic-8: backlog
-  e8-s1-refusal-rules-and-snapshot-test: ready-for-dev
-  e8-s2-heuristic-moderation-adapter: ready-for-dev
+  epic-8: done
+  e8-s1-refusal-rules-and-snapshot-test: done
+  e8-s2-heuristic-moderation-adapter: done
+  epic-8: done
   epic-8-retrospective: optional
 
   # --- Day 6: Ask-Both Mode — positions 27-30 (second biggest epic) ---
