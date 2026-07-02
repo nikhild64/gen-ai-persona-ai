@@ -2,9 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  OnDestroy,
+  Renderer2,
   inject,
   signal,
 } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 import type { Message, Thread } from '../../domain/types/message';
@@ -116,14 +119,13 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
         margin: 0 auto;
         padding: 0 1rem;
         gap: 1rem;
-        background: #fafaf9;
       }
       .banner {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 0.75rem 0;
-        border-bottom: 1px solid #d6d3d1;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
       }
       .banner h2 {
         margin: 0;
@@ -138,8 +140,9 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
         padding: 0.5rem 0;
       }
       .joint-greeting {
-        background: #f5f5f4;
-        border: 1px solid #d6d3d1;
+        background: rgba(255, 255, 255, 0.6);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(0, 0, 0, 0.06);
         border-radius: 12px;
         padding: 1rem 1.1rem;
       }
@@ -178,16 +181,18 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
         flex-direction: column;
         gap: 0.5rem;
         padding: 0.75rem 0 1rem;
-        border-top: 1px solid #d6d3d1;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
       }
       .input-area textarea {
         width: 100%;
         padding: 0.6rem 0.75rem;
-        border: 1px solid #d6d3d1;
+        border: 1px solid rgba(0, 0, 0, 0.12);
         border-radius: 8px;
         font: inherit;
         resize: vertical;
         min-height: 60px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(4px);
       }
       .input-controls {
         display: flex;
@@ -212,10 +217,12 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
     `,
   ],
 })
-export class AskBothComponent {
+export class AskBothComponent implements OnDestroy {
   readonly sequencer = inject(AskBothSequencerService);
   private readonly storage = inject(STORAGE_PORT);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly renderer = inject(Renderer2);
+  private readonly document = inject(DOCUMENT);
 
   readonly draft = signal('');
   readonly messages = signal<Message[]>([]);
@@ -229,7 +236,13 @@ export class AskBothComponent {
   readonly keepGoingLabel = PRODUCT_COPY.keepGoingButtonLabel;
 
   constructor() {
+    // Drive the mixed persona gradient defined in styles.scss.
+    this.renderer.setAttribute(this.document.body, 'data-mode', 'ask-both');
     void this.loadThread();
+  }
+
+  ngOnDestroy(): void {
+    this.renderer.removeAttribute(this.document.body, 'data-mode');
   }
 
   streamingLabel(): string {

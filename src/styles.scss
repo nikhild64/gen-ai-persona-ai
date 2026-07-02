@@ -83,3 +83,31 @@ body[data-persona="piyush"] {
   --surface-tint-top: #fbfcff;
   --surface-tint-bottom: #e6efff;
 }
+
+/* Ask-both mode — soft diagonal blend of both persona hues, echoing the
+   fact that the room hosts both voices. Amber leans top-left (Hitesh side),
+   blue leans bottom-right (Piyush side). Driven by body[data-mode] set
+   from AskBothComponent. */
+body[data-mode="ask-both"] {
+  --surface-tint-top: #fffcf1;
+  --surface-tint-bottom: #eff3ff;
+  background:
+    radial-gradient(
+      ellipse 70% 55% at 12% 8%,
+      rgba(253, 224, 138, 0.45) 0%,
+      rgba(253, 224, 138, 0) 65%
+    ),
+    radial-gradient(
+      ellipse 70% 55% at 88% 92%,
+      rgba(191, 219, 254, 0.55) 0%,
+      rgba(191, 219, 254, 0) 65%
+    ),
+    linear-gradient(
+      135deg,
+      var(--surface-tint-top) 0%,
+      #fdfaf3 45%,
+      #f4f7fe 55%,
+      var(--surface-tint-bottom) 100%
+    );
+  background-attachment: fixed;
+}
