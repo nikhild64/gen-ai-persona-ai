@@ -96,8 +96,8 @@ development_status:
   # Epic statuses transition backlog → in-progress on first dev work per convention.
 
   # --- Day 1 morning: BLOCKING SPIKE GATE (30-min timebox) ---
-  epic-0-5: backlog
-  e0-5-s1-spike-zero-gemini-cors: ready-for-dev
+  epic-0-5: done
+  e0-5-s1-spike-zero-gemini-cors: done
   epic-0-5-retrospective: optional
 
   # --- Day 1 rest: Foundation (positions 1-4 in critical path) ---

@@ -78,6 +78,17 @@ Start: 2026-07-02.
 - **Decision:** Skipped the 5 story-suggested "leak" test files. The rules are wired; end-of-sprint batch lint run against the real codebase will surface any misconfiguration.
 - **Rationale:** User directive to defer validation. Leak files were solely for smoke-testing rules; the rules themselves are inline in the config file and reviewable.
 
+## E0.5-S1 — Spike-0 (Gemini browser-CORS)
+
+- **Decision:** Implemented per user directive as an Angular route `/spike/gemini-cors` (component `SpikeGeminiCorsComponent` under `src/features/spike/`), NOT as the bare `spike-zero.html` from the story.
+- **Rationale:** User specified: "Instead of a bare-bones fetch script per handoff-epics.md, implement a minimal Angular route at `/spike/gemini-cors`". Component provides live streaming panel + verbatim-error panel + cancel button + status + tokens-received count.
+- **Decision:** Route gated by `FEATURE_SPIKE_ROUTES` flag from `src/config/feature-flags.ts` (defaults ON in dev, OFF in production via `NG_APP_ENV=production` + `NG_APP_DEV_SPIKE_ROUTES=false`).
+- **Rationale:** User directive: "Guard the route behind a dev-only flag from src/config/feature-flags.ts". Route is added conditionally in `app.routes.ts`; if flag is false the route array is empty and the URL 404s.
+- **Decision:** Component fetches Gemini SSE endpoint directly from within the feature (component code, no adapter). Boundary rule allows this because `src/features/spike/` never imports from `src/infrastructure/`; it does its own `fetch(...)`.
+- **Rationale:** Story intent — this is a raw browser-fetch smoke test, NOT a test of the eventual GeminiAdapter (which lands in E2-S1). Passing this spike is the precondition for E2-S1 wiring.
+- **Note:** SSE parser reads token text from `candidates[0].content.parts[0].text` per user directive. Tokens are appended live to output panel via signal update.
+- **Awaiting user:** manual PASS/FAIL run per HARD STOP protocol.
+
 ## Blockers
 
 _(none yet)_
