@@ -65,20 +65,22 @@ describe('PERSONA_REGISTRY (AD-17)', () => {
     expect(Object.keys(p).sort()).toEqual(expectedFields.sort());
   });
 
-  it('leaves E0-S3 skeleton placeholders empty until later stories populate', () => {
+  it('has all baseline persona-voice fields populated at end of sprint', () => {
     const p = PERSONA_REGISTRY.hitesh.prompt;
     expect(p.identityBlock.length).toBeGreaterThan(0);
     expect(p.voiceRules.length).toBeGreaterThan(0);
     expect(p.selfVerificationChecklist.length).toBeGreaterThan(0);
-    expect(p.fewShots).toEqual([]);
-    expect(p.askBothCollabExamples).toEqual([]);
-    expect(p.driftRefresh).toBe('');
-    expect(p.capRefusalTemplate).toBe('');
-    expect(p.quotaExhaustedTemplate).toBe('');
-    expect(p.offDomainTemplate).toBe('');
-    expect(p.politicalTemplate).toBe('');
-    expect(p.adultTemplate).toBe('');
-    expect(p.promptInjectionTemplate).toBe('');
+    // Populated across the sprint:
+    expect(p.fewShots.length).toBe(3); // E2-S2
+    expect(p.askBothCollabExamples.length).toBeGreaterThanOrEqual(3); // E8-S1
+    expect(p.driftRefresh.length).toBeGreaterThan(0); // E5-S3
+    expect(p.capRefusalTemplate.length).toBeGreaterThan(0); // E7-S1
+    expect(p.quotaExhaustedTemplate.length).toBeGreaterThan(0); // E7-S2
+    expect(p.offDomainTemplate.length).toBeGreaterThan(0); // E8-S1
+    expect(p.politicalTemplate.length).toBeGreaterThan(0);
+    expect(p.adultTemplate.length).toBeGreaterThan(0);
+    expect(p.promptInjectionTemplate.length).toBeGreaterThan(0);
+    expect(p.refusalRules.length).toBeGreaterThan(0);
   });
 
   it('exposes personaDisplayName helper', () => {

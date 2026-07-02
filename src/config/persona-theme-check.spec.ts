@@ -27,12 +27,12 @@ describe('persona-theme-check (AD-20 WCAG)', () => {
 });
 
 describe('persona-theme contrast for bubble palettes (E4-S2)', () => {
-  it('Hitesh bubble (amber-100) + ink-primary (stone-900) passes AA normal-text', () => {
-    expect(() => assertContrast('#FEF3C7', '#1C1917')).not.toThrow();
+  it('Hitesh bubble (amber-200) + ink-primary (stone-900) passes AA normal-text', () => {
+    expect(() => assertContrast('#FDE68A', '#1C1917')).not.toThrow();
   });
 
-  it('Piyush bubble (blue-50) + ink-primary (stone-900) passes AA normal-text', () => {
-    expect(() => assertContrast('#EFF6FF', '#1C1917')).not.toThrow();
+  it('Piyush bubble (blue-100) + ink-primary (stone-900) passes AA normal-text', () => {
+    expect(() => assertContrast('#DBEAFE', '#1C1917')).not.toThrow();
   });
 
   it('Hitesh active switcher (white on amber-600) passes AA large-text', () => {

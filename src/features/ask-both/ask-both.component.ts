@@ -46,12 +46,12 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
       <header class="banner">
         <h2>{{ bannerLabel }}</h2>
         <div class="banner-slots">
+          <app-key-status-badge (clicked)="openSettings()" />
           <app-mode-switcher
             activeMode="ask-both"
             [disabled]="sequencer.inFlight()"
             (switched)="onModeSwitched()"
           />
-          <app-key-status-badge (clicked)="openSettings()" />
         </div>
       </header>
 
@@ -137,6 +137,7 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
         border-bottom: 1px solid rgba(0, 0, 0, 0.08);
         gap: 0.75rem;
         flex-wrap: wrap;
+        min-height: 60px;
       }
       .banner-slots {
         display: flex;

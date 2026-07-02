@@ -100,14 +100,19 @@ describe('PromptAssembler solo mode', () => {
     expect(out.meta.hasSummary).toBe(true);
   });
 
-  it('throws not-yet-implemented for summarize / ask-both modes', () => {
-    const thread = threadFrom([]);
-    expect(() => assembler.compose('hitesh', thread, 'summarize')).toThrow(
-      /E5-S2/,
-    );
-    expect(() => assembler.compose('hitesh', thread, 'ask-both-a')).toThrow(
-      /E9-S2/,
-    );
+  it('composes a valid summarize prompt (E5-S2 real impl)', () => {
+    const thread = threadFrom([msg('user', 'first', 1), msg('assistant', 'reply', 2)]);
+    const out = assembler.compose('hitesh', thread, 'summarize');
+    expect(out.meta.mode).toBe('summarize');
+    expect(out.messages[0]?.role).toBe('system');
+    expect(out.messages[0]?.content).toContain('Compress');
+    expect(out.temperature).toBe(0.2);
+  });
+
+  it('composes a valid ask-both-a prompt (E9-S2 real impl)', () => {
+    const thread = threadFrom([msg('user', 'q', 1)]);
+    const out = assembler.compose('hitesh', thread, 'ask-both-a');
+    expect(out.meta.mode).toBe('ask-both-a');
   });
 
   it('assertNever fires runtime on an invented mode', () => {

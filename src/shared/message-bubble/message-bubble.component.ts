@@ -73,7 +73,6 @@ marked.setOptions({
       }
       .bubble.assistant {
         background: var(--persona-bubble-bg, #f5f5f4);
-        border-left: 3px solid var(--persona-accent, #0ea5e9);
         margin-right: auto;
       }
       .bubble.user {
@@ -85,7 +84,7 @@ marked.setOptions({
         opacity: 0.72;
       }
       .bubble.error {
-        border-left-color: #dc2626;
+        outline: 1px solid #dc2626;
       }
       .bubble-header {
         display: flex;

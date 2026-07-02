@@ -51,43 +51,47 @@ type ProviderOption = { label: string; value: ProviderId };
       </ng-template>
 
       <section class="row">
-        <label>
-          <span class="lbl">{{ providerLabel }}</span>
-          <p-select
-            [options]="providerOptions"
-            [ngModel]="provider()"
-            (ngModelChange)="provider.set($event)"
-            optionLabel="label"
-            optionValue="value"
-            appendTo="body"
-          ></p-select>
+        <label for="settings-provider" class="lbl">
+          {{ providerLabel }}
         </label>
+        <p-select
+          inputId="settings-provider"
+          [options]="providerOptions"
+          [ngModel]="provider()"
+          (ngModelChange)="provider.set($event)"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body"
+        ></p-select>
       </section>
 
       <section class="row">
-        <label>
-          <span class="lbl">{{ keyLabel }}</span>
-          <div class="key-input">
-            <input
-              pInputText
-              spellcheck="false"
-              autocomplete="off"
-              [type]="revealed() ? 'text' : 'password'"
-              [placeholder]="keyPlaceholder()"
-              [ngModel]="keyInput()"
-              (ngModelChange)="keyInput.set($event)"
-            />
-            <button
-              type="button"
-              class="eye"
-              [attr.aria-label]="revealed() ? 'Hide key' : 'Show key'"
-              (click)="revealed.set(!revealed())"
-            >
-              {{ revealed() ? '🙈' : '👁' }}
-            </button>
-          </div>
-          <span class="hint">{{ keyHint() }}</span>
+        <label for="settings-key" class="lbl">
+          {{ keyLabel }}
         </label>
+        <div class="key-input">
+          <input
+            id="settings-key"
+            pInputText
+            spellcheck="false"
+            autocomplete="off"
+            [type]="revealed() ? 'text' : 'password'"
+            [placeholder]="keyPlaceholder()"
+            [ngModel]="keyInput()"
+            [ngModelOptions]="{ standalone: true }"
+            (ngModelChange)="keyInput.set($event)"
+            (keydown.enter)="onSave()"
+          />
+          <button
+            type="button"
+            class="eye"
+            [attr.aria-label]="revealed() ? 'Hide key' : 'Show key'"
+            (click)="revealed.set(!revealed())"
+          >
+            {{ revealed() ? '🙈' : '👁' }}
+          </button>
+        </div>
+        <span class="hint">{{ keyHint() }}</span>
       </section>
 
       <section class="status-row">
@@ -95,7 +99,7 @@ type ProviderOption = { label: string; value: ProviderId };
         <span class="status">{{ statusLabel() }}</span>
       </section>
 
-      <ng-template pTemplate="footer">
+      <section class="action-row">
         <p-button
           [label]="clearLabel"
           severity="secondary"
@@ -107,7 +111,7 @@ type ProviderOption = { label: string; value: ProviderId };
           [disabled]="!keyInput().trim()"
           (onClick)="onSave()"
         ></p-button>
-      </ng-template>
+      </section>
     </p-dialog>
 
     @if (justSaved()) {
@@ -168,6 +172,12 @@ type ProviderOption = { label: string; value: ProviderId };
         font-size: 13px;
         color: #57534e;
         margin-top: 0.75rem;
+      }
+      .action-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-top: 1.25rem;
       }
       .dot {
         width: 10px;

@@ -13,7 +13,8 @@ function makeSseStream(events: string[]): ReadableStream<Uint8Array> {
   });
 }
 
-const validKey = 'AIzaSyDaGmWKa4JsXZ-HjGw7ISLan_Ps6U0uAisM';
+// Google API-key format: `AIza` + 35 base64-url-ish chars = 39 total.
+const validKey = 'AIzaSyDaGmWKa4JsXZ-HjGw7ISLan_Ps6U0uAis';
 
 describe('GeminiAdapter static contract', () => {
   it('exposes AD-3 PROVIDER_ID and AD-11 KEY_PATTERN', () => {

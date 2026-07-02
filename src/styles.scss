@@ -80,8 +80,40 @@ body[data-persona="hitesh"] {
   --surface-tint-bottom: #fff4d6;
 }
 body[data-persona="piyush"] {
-  --surface-tint-top: #fbfcff;
-  --surface-tint-bottom: #e6efff;
+  --surface-tint-top: #fcfdff;
+  --surface-tint-bottom: #f0f5ff;
+}
+
+/* Persona-themed dialog chrome. `<p-dialog>` is appended to <body>, which
+   carries [data-persona] in solo chat routes, so --persona-accent cascades
+   into the dialog naturally. The primary (unsuffixed) action button and a
+   thin top accent bar pick up the persona colour; secondary / danger buttons
+   are left alone so intent stays clear. */
+.p-dialog {
+  border-top: 4px solid var(--persona-accent, #94a3b8);
+  transition: border-color 250ms ease-out;
+}
+.p-dialog
+  .p-button:not(.p-button-secondary):not(.p-button-danger):not(
+    .p-button-outlined
+  ):not(.p-button-text) {
+  background: var(--persona-accent, #2563eb);
+  border-color: var(--persona-accent, #2563eb);
+  color: #fff;
+}
+.p-dialog
+  .p-button:not(.p-button-secondary):not(.p-button-danger):not(
+    .p-button-outlined
+  ):not(.p-button-text):hover:not(:disabled) {
+  background: color-mix(in oklab, var(--persona-accent, #2563eb) 85%, black);
+  border-color: color-mix(in oklab, var(--persona-accent, #2563eb) 85%, black);
+}
+.p-dialog input:focus,
+.p-dialog .p-inputtext:focus,
+.p-dialog .p-select:focus-within {
+  border-color: var(--persona-accent, #2563eb) !important;
+  box-shadow: 0 0 0 3px
+    color-mix(in oklab, var(--persona-accent, #2563eb) 25%, transparent) !important;
 }
 
 /* Ask-both mode — soft diagonal blend of both persona hues, echoing the

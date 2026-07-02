@@ -193,6 +193,7 @@ export default tseslint.config(
       'src/config/prompt-format.ts',
       'src/config/regex-patterns.ts',
       'src/config/model-params.ts',
+      'src/infrastructure/providers/provider.registry.ts', // canonical PROVIDER_REGISTRY declaration
       'src/personas/persona.registry.ts',
       'src/personas/hitesh.prompt.ts',
       'src/personas/piyush.prompt.ts',
@@ -204,10 +205,14 @@ export default tseslint.config(
   },
 
   // ─── Storage-adapter exemption (AD-6): file that IS the port impl ────
+  //     plus the last-active-solo persona tracker in chat/mode surfaces
+  //     which persists a non-sensitive UI hint in sessionStorage.
   {
     files: [
       'src/infrastructure/storage/idb-keyval.adapter.ts',
       'src/domain/key-vault/key-vault.service.ts',
+      'src/features/chat/chat.component.ts',
+      'src/features/mode-switcher/mode-switcher.component.ts',
     ],
     rules: {
       'no-restricted-globals': 'off',
@@ -230,6 +235,8 @@ export default tseslint.config(
       '@typescript-eslint/no-unused-vars': 'off',
       'no-restricted-syntax': 'off',
       'no-restricted-globals': 'off',
+      'no-restricted-imports': 'off',
+      'boundaries/element-types': 'off',
     },
   },
 

@@ -19,9 +19,9 @@ class InMemoryStorage implements StoragePort {
 describe('StoragePort', () => {
   it('a mock class implements the interface and round-trips values', async () => {
     const storage: StoragePort = new InMemoryStorage();
-    await storage.set<number>('chat:count:v1', 3);
-    expect(await storage.get<number>('chat:count:v1')).toBe(3);
-    await storage.delete('chat:count:v1');
-    expect(await storage.get<number>('chat:count:v1')).toBeUndefined();
+    await storage.set<number>('settings:v1', 3);
+    expect(await storage.get<number>('settings:v1')).toBe(3);
+    await storage.delete('settings:v1');
+    expect(await storage.get<number>('settings:v1')).toBeUndefined();
   });
 });
