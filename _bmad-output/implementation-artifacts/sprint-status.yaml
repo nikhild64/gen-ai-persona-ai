@@ -127,15 +127,14 @@ development_status:
   e4-s1-persona-switcher-and-routing: done
   e4-s2-persona-theming-transition: done
   e4-s3-in-flight-disable-stall-cancel: done
-  epic-4: done
   epic-4-retrospective: optional
 
   # --- Day 4 morning: Landing & Persona Selection — positions 15-16 ---
   # NOTE: Epic 1 is intentionally deferred past Epic 4 per handoff-epics.md
   #       "landing can slip until later; critical path hits /chat/hitesh directly"
-  epic-1: backlog
-  e1-s1-landing-with-persona-cards: ready-for-dev
-  e1-s2-app-footer-shared: ready-for-dev
+  epic-1: done
+  e1-s1-landing-with-persona-cards: done
+  e1-s2-app-footer-shared: done
   epic-1-retrospective: optional
 
   # --- Day 4 afternoon: Long-Conversation Memory — positions 17-19 ---

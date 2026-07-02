@@ -20,7 +20,12 @@ const spikeRoutes: Routes = FEATURE_SPIKE_ROUTES
   : [];
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'chat/hitesh', pathMatch: 'full' },
+  {
+    path: '',
+    pathMatch: 'full',
+    loadChildren: () =>
+      import('../features/landing/landing.routes').then((m) => m.LANDING_ROUTES),
+  },
   {
     path: 'chat',
     loadChildren: () =>
