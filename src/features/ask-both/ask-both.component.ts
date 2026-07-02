@@ -16,6 +16,8 @@ import { PRODUCT_COPY } from '../../config/product-copy';
 import { MessageBubbleComponent } from '../../shared/message-bubble/message-bubble.component';
 import { StreamingIndicatorComponent } from '../../shared/streaming-indicator/streaming-indicator.component';
 import { ModeSwitcherComponent } from '../mode-switcher/mode-switcher.component';
+import { KeyStatusBadgeComponent } from '../settings/key-status-badge.component';
+import { SettingsModalComponent } from '../settings/settings-modal.component';
 import { AskBothSequencerService } from './ask-both-sequencer.service';
 
 /**
@@ -35,18 +37,25 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
     MessageBubbleComponent,
     StreamingIndicatorComponent,
     ModeSwitcherComponent,
+    KeyStatusBadgeComponent,
+    SettingsModalComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="room" data-mode="ask-both">
       <header class="banner">
         <h2>{{ bannerLabel }}</h2>
-        <app-mode-switcher
-          activeMode="ask-both"
-          [disabled]="sequencer.inFlight()"
-          (switched)="onModeSwitched()"
-        />
+        <div class="banner-slots">
+          <app-mode-switcher
+            activeMode="ask-both"
+            [disabled]="sequencer.inFlight()"
+            (switched)="onModeSwitched()"
+          />
+          <app-key-status-badge (clicked)="openSettings()" />
+        </div>
       </header>
+
+      <app-settings-modal [(open)]="settingsOpen" />
 
       <div class="message-list">
         @if (messages().length === 0) {
@@ -126,6 +135,15 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
         justify-content: space-between;
         padding: 0.75rem 0;
         border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+      .banner-slots {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
       }
       .banner h2 {
         margin: 0;
@@ -226,6 +244,7 @@ export class AskBothComponent implements OnDestroy {
 
   readonly draft = signal('');
   readonly messages = signal<Message[]>([]);
+  readonly settingsOpen = signal(false);
   readonly bridgeMessage = this.sequencer.bridgeAnnouncement;
   readonly canKeepGoing = this.sequencer.canKeepGoing;
 
@@ -279,6 +298,10 @@ export class AskBothComponent implements OnDestroy {
 
   onModeSwitched(): void {
     /* mode-switcher performs the navigation itself. */
+  }
+
+  openSettings(): void {
+    this.settingsOpen.set(true);
   }
 
   private async loadThread(): Promise<void> {
