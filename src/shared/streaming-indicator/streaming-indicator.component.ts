@@ -2,24 +2,41 @@ import {
   ChangeDetectionStrategy,
   Component,
   input,
+  output,
 } from '@angular/core';
 
+import { PRODUCT_COPY } from '../../config/product-copy';
+
 /**
- * DESIGN.md.Components.streaming-indicator — full-width × 32px indicator that
- * renders while an in-flight stream has not yet produced its first token. The
- * 3-dot pulse is disabled under `prefers-reduced-motion` via CSS media query.
+ * DESIGN.md.Components.streaming-indicator — 3-dot pulse while waiting for
+ * the first token; morphs into a warning-tinted "Slow connection" stall card
+ * with a Cancel button when `stalled` is true (per UX-DR16 + FR-9). Pulse
+ * disabled under `prefers-reduced-motion` via CSS media query.
  */
 @Component({
   selector: 'app-streaming-indicator',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    @if (!stalled()) {
     <div class="indicator" role="status" aria-live="polite">
       <span class="dot"></span>
       <span class="dot"></span>
       <span class="dot"></span>
       <span class="label">{{ label() }}</span>
     </div>
+    } @else {
+    <div class="stall-card" role="status" aria-live="polite">
+      <p class="stall-body">{{ stallBody }}</p>
+      <button
+        type="button"
+        class="stall-cancel"
+        (click)="cancelClicked.emit()"
+      >
+        {{ cancelLabel }}
+      </button>
+    </div>
+    }
   `,
   styles: [
     `
@@ -71,9 +88,37 @@ import {
           opacity: 0.7;
         }
       }
+      .stall-card {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.65rem 0.9rem;
+        background: #fef9c3;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        color: #713f12;
+      }
+      .stall-body {
+        margin: 0;
+        flex: 1 1 auto;
+        font-size: 14px;
+      }
+      .stall-cancel {
+        background: #b45309;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 0.4rem 0.8rem;
+        cursor: pointer;
+        font-weight: 600;
+      }
     `,
   ],
 })
 export class StreamingIndicatorComponent {
   readonly label = input<string>('Thinking…');
+  readonly stalled = input<boolean>(false);
+  readonly stallBody = PRODUCT_COPY.streamStallPromptBody;
+  readonly cancelLabel = PRODUCT_COPY.streamStallCancelLabel;
+  readonly cancelClicked = output<void>();
 }

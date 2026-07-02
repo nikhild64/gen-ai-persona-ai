@@ -86,7 +86,11 @@ import { PersonaSwitcherComponent } from '../persona-switcher/persona-switcher.c
         } @if (streamingBubble(); as streaming) {
         <app-message-bubble [message]="streaming" />
         } @if (showStreamingIndicator()) {
-        <app-streaming-indicator [label]="streamingLabel()" />
+        <app-streaming-indicator
+          [label]="streamingLabel()"
+          [stalled]="orchestrator.streamStalled()"
+          (cancelClicked)="onCancel()"
+        />
         }
       </div>
 
@@ -272,7 +276,10 @@ export class ChatComponent {
   });
 
   readonly showStreamingIndicator = computed(
-    () => this.orchestrator.inFlightStream() && !this.orchestrator.accumulatedText(),
+    () =>
+      (this.orchestrator.inFlightStream() &&
+        !this.orchestrator.accumulatedText()) ||
+      this.orchestrator.streamStalled(),
   );
 
   readonly streamingLabel = computed(

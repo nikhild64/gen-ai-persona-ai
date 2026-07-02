@@ -123,10 +123,11 @@ development_status:
   epic-3-retrospective: optional
 
   # --- Day 3 afternoon: Persona Switcher — positions 12-14 ---
-  epic-4: in-progress
+  epic-4: done
   e4-s1-persona-switcher-and-routing: done
   e4-s2-persona-theming-transition: done
-  e4-s3-in-flight-disable-stall-cancel: ready-for-dev
+  e4-s3-in-flight-disable-stall-cancel: done
+  epic-4: done
   epic-4-retrospective: optional
 
   # --- Day 4 morning: Landing & Persona Selection — positions 15-16 ---
