@@ -32,6 +32,10 @@
     </div>
   </header>
 
+  <aside class="chat-disclaimer" role="note" aria-live="polite">
+    {{ chatDisclaimer() }}
+  </aside>
+
   <app-settings-modal
     [(open)]="settingsOpen"
     [(autoOpenMode)]="settingsAutoOpen"

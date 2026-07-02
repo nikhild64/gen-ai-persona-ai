@@ -57,6 +57,16 @@
   flex-wrap: wrap;
   justify-content: flex-end;
 }
+.chat-disclaimer {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #57534e;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+}
 .gear {
   display: inline-flex;
   align-items: center;

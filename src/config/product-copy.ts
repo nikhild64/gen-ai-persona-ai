@@ -25,12 +25,12 @@ export const PRODUCT_COPY = {
     'Seven AI parody personas — pick one, or blend any two in Ask Both mode.',
   landingCtaLabel: 'Start chatting',
   landingDisclaimerBand:
-    'AI parody personas — not affiliated with or endorsed by the real individuals or their estates. Educational research project.',
+    'AI parody personas — not affiliated with or endorsed by the real individuals or their estates. Educational research project exploring LLM-based persona modeling. All persona content is derived from publicly available materials and used under fair use for non-commercial educational purposes. Takedown requests honored immediately.',
   continueHint: 'Bring your own key to continue.',
 
   // ─── FOOTER (AD-22 disclaimer + takedown affordance, every route) ────────
   footerDisclaimer:
-    'AI parody personas — not affiliated with or endorsed by the real individuals or their estates. Educational research project exploring LLM-based persona modeling.',
+    'AI parody personas — not affiliated with or endorsed by the real individuals or their estates. Educational research project exploring LLM-based persona modeling. All persona content is derived from publicly available materials and used under fair use for non-commercial educational purposes. Takedown requests honored immediately.',
   takedownContact: 'Contact for takedown / concerns',
   takedownEmail: 'contact@example.com',
   takedownSubject: 'Council — takedown / feedback',

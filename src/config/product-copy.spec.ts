@@ -11,6 +11,8 @@ describe('product-copy (AD-22 chrome separation)', () => {
 
   it('exposes footer disclaimer + takedown contact per AD-22', () => {
     expect(PRODUCT_COPY.footerDisclaimer).toMatch(/parody/i);
+    expect(PRODUCT_COPY.footerDisclaimer).toMatch(/fair use/i);
+    expect(PRODUCT_COPY.footerDisclaimer).toMatch(/Takedown requests honored/i);
     expect(PRODUCT_COPY.takedownEmail).toContain('@');
   });
 

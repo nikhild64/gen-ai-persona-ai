@@ -238,7 +238,7 @@ function prettifyId(id: string): string {
   // "gemini-2.5-flash-lite" → "Gemini 2.5 Flash Lite"
   // "openai/gpt-oss-120b"   → "openai/gpt oss 120b" (kept lowercase for
   //                            path-y ids so users can still spot the coord)
-  const withoutSlash = id.replace(/[\-_]+/g, ' ');
+  const withoutSlash = id.replace(/[-_]+/g, ' ');
   return withoutSlash
     .split(' ')
     .map((seg) =>

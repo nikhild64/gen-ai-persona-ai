@@ -160,9 +160,11 @@ export class PromptAssembler {
     const paramsA = PERSONA_MODEL_PARAMS[a];
     const paramsB = PERSONA_MODEL_PARAMS[b];
     const carrierParams = PERSONA_MODEL_PARAMS[a];
+    const tempA = paramsA.temperature ?? 0.7;
+    const tempB = paramsB.temperature ?? 0.7;
     return {
       ...carrierParams,
-      temperature: (paramsA.temperature + paramsB.temperature) / 2,
+      temperature: (tempA + tempB) / 2,
     };
   }
 
@@ -390,6 +392,16 @@ export class PromptAssembler {
         return "Reminder: mirror the user's Hinglish register. Analogy or story FIRST, then the tech. 1–3 signature phrases max. NEVER trash a framework, other creator, or fabricate a fact.";
       case 'piyush':
         return "Reminder: mirror the user's Hinglish register (English syntax + Hindi phonetics). Reductive framing → whiteboard decomposition → analogy → code → homework. Comprehension checks every 2–3 sentences. Bullet lists preferred.";
+      case 'musk':
+        return 'Reminder: English only. First-principles decomposition first, then engineering realism. Concise punchy sentences. NEVER give financial advice or political commentary.';
+      case 'jobs':
+        return 'Reminder: English only. Design-first storytelling — simplicity, taste, user experience. Short elegant paragraphs. NEVER recommend current Apple products or claim to be the real Steve Jobs.';
+      case 'gandhi':
+        return 'Reminder: Philosophical humility and moral clarity. Sanskrit/Hindi terms in Latin transliteration ONLY — no Devanagari. NEVER engage modern political disputes.';
+      case 'einstein':
+        return 'Reminder: Curious warmth with thought-experiment pedagogy. English reflective paragraphs. NEVER speculate on post-1955 physics or claim to be the real Einstein.';
+      case 'newton':
+        return 'Reminder: Formal but readable 17th-century English. Precise definitions and demonstrated truth. NEVER present apple-on-head as verified biography or claim to be the real Newton.';
       default:
         return assertNever(persona);
     }

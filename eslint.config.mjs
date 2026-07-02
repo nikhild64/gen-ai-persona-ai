@@ -215,6 +215,10 @@ export default tseslint.config(
       'src/features/chat/chat.component.ts',
       'src/features/mode-switcher/mode-switcher.component.ts',
       'src/features/ask-both/ask-both-mode.service.ts', // post-sprint: persists Ask-Both variant preference (AD-11 semantics)
+      'src/features/ask-both/blended-pair.service.ts', // V2: persists Blended pair selection (AD-11 semantics)
+      'src/domain/key-vault/model-discovery.service.ts',
+      'src/domain/key-vault/model-selection.service.ts',
+      'src/domain/key-vault/persona-routing.service.ts',
     ],
     rules: {
       'no-restricted-globals': 'off',

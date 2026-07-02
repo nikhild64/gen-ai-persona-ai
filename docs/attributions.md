@@ -2,56 +2,95 @@
 
 ## Avatar imagery
 
-- `public/images/hitesh.png` — used with cohort-authorized permission per
-  `docs/creator-permissions.md`. _Original source URL:_ **_fill in_**.
-- `public/images/piyush.png` — same. _Original source URL:_ **_fill in_**.
+| File | Persona | License / note |
+|---|---|---|
+| `public/images/hitesh.png` | Hitesh Choudhary | Cohort-authorized per `docs/creator-permissions.md`. _Original source URL: fill in._ |
+| `public/images/piyush.png` | Piyush Garg | Same. _Original source URL: fill in._ |
+| `public/images/musk.png` | Elon Musk | **Placeholder** — solid-color 96×96 PNG generated locally (Wikimedia download blocked in CI). Replace with a properly licensed portrait before production; attribute source here. |
+| `public/images/jobs.png` | Steve Jobs | **Placeholder** — same as above. |
+| `public/images/gandhi.png` | Mahatma Gandhi | **Placeholder** — same. Recommended replacement: Wikimedia Commons public-domain portrait. |
+| `public/images/einstein.png` | Albert Einstein | **Placeholder** — same. Recommended: Wikimedia Commons (many PD portraits). |
+| `public/images/newton.png` | Isaac Newton | **Placeholder** — same. Recommended: Wikimedia Commons historical portrait. |
 
-If either creator asks the image be removed or replaced, follow the
-`docs/creator-permissions.md` takedown flow.
+If any rights-holder requests removal or replacement, follow the takedown flow in
+`docs/creator-permissions.md`.
+
+---
+
+## Persona voice research (V2)
+
+Full research docs with bibliography:
+
+- `_bmad-output/implementation-artifacts/v2-multi-persona/research/persona-musk.md`
+- `persona-jobs.md`, `persona-gandhi.md`, `persona-einstein.md`, `persona-newton.md`
+
+### Elon Musk — key sources
+
+- TED2013: <https://www.ted.com/talks/elon_musk_the_future_we_re_building_and_boring>
+- Lex Fridman podcast interviews (public transcripts)
+- Tesla / SpaceX public earnings-call excerpts
+- Walter Isaacson, *Elon Musk* (2023) — publicly quoted excerpts only
+
+### Steve Jobs — key sources
+
+- Stanford 2005 commencement address (public transcript)
+- Apple WWDC / keynote transcripts (publicly available)
+- Walter Isaacson, *Steve Jobs* (2011) — publicly quoted excerpts
+
+### Mahatma Gandhi — key sources
+
+- *The Story of My Experiments with Truth* (public domain)
+- *Collected Works of Mahatma Gandhi* (publicly available)
+- Mahatma.org reference material
+
+### Albert Einstein — key sources
+
+- *Ideas and Opinions* (Einstein essays)
+- Princeton University archives — public letter excerpts
+- Wikimedia Commons quote collections (cross-checked against primary sources)
+
+### Isaac Newton — key sources
+
+- *Philosophiæ Naturalis Principia Mathematica* — modern English translation (PD)
+- *Opticks* (public domain)
+- The Newton Project — <https://www.newtonproject.ox.ac.uk/>
+
+### Hitesh & Piyush (v1)
+
+- `_bmad-output/planning-artifacts/research/domain-hitesh-choudhary-piyush-garg-personas-research-2026-07-02.md`
+- Few-shots in `src/personas/hitesh.prompt.ts` + `piyush.prompt.ts` carry
+  `// source:` comments.
+
+---
 
 ## Icon set
 
-- **PrimeIcons** (via `primeicons` npm package) — MIT licensed. Used for
-  the settings gear, close, and check icons throughout the UI. Source:
+- **PrimeIcons** (via `primeicons` npm package) — MIT licensed. Source:
   <https://primeng.org/icons>.
 
 ## UI components
 
-- **PrimeNG 21.1.9** — MIT licensed. Modal / select / button primitives.
-  Source: <https://primeng.org>.
+- **PrimeNG 21.1.9** — MIT licensed. Source: <https://primeng.org>.
 - **Angular 21 LTS** — MIT licensed. Source: <https://angular.dev>.
 
 ## Markdown renderer
 
-- **`marked@18`** — MIT licensed. Renders assistant markdown safely with
-  GFM enabled. Source: <https://marked.js.org>.
+- **`marked@18`** — MIT licensed. Source: <https://marked.js.org>.
 
 ## Storage
 
-- **`idb-keyval@6`** — MIT licensed. Tiny IndexedDB wrapper for
-  `IdbKeyvalStorageAdapter`. Source: <https://github.com/jakearchibald/idb-keyval>.
+- **`idb-keyval@6`** — MIT licensed. Source:
+  <https://github.com/jakearchibald/idb-keyval>.
 
 ## Analytics
 
 - **`@vercel/analytics`** + **`@vercel/speed-insights`** — MIT licensed.
-  Beacon and LCP/TTFT measurement.
 
 ## Syntax highlighting
 
-- **Deferred** — see `docs/performance.md`. `<app-code-block>` variant
-  selection is wired but no highlighter library is bundled yet.
+- **Deferred** — see `docs/performance.md`.
 
 ## Fonts
 
 - System UI stack (`system-ui, -apple-system, "Segoe UI", Roboto, Arial`).
   No third-party font shipped.
-
-## Persona voice content
-
-- **Verbatim few-shots** in `src/personas/hitesh.prompt.ts` +
-  `src/personas/piyush.prompt.ts` are sourced from `research/domain-hitesh-choudhary-piyush-garg-personas-research-2026-07-02.md`
-  §C.3. Each entry has a `// source:` comment with the line range.
-- **Voice rules + identity blocks** are paraphrased from the same research
-  and Addendum §C.2/§C.3.
-- **Refusal templates + Ask-Both collaboration examples** are from
-  Addendum §E.1 / §E.2 / §E.3.

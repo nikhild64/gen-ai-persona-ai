@@ -28,6 +28,7 @@ import {
 import type { StorageKey } from '../../config/storage-keys';
 import { CHAT_STORAGE_KEYS } from '../../config/storage-keys';
 import { PRODUCT_COPY } from '../../config/product-copy';
+import { personaChatDisclaimer } from '../../config/persona-disclaimers';
 import {
   chatInputLabel,
   sendButtonLabel,
@@ -105,6 +106,10 @@ export class ChatComponent {
   readonly personaName = computed(() => personaDisplayName(this.activePersona()));
   readonly personaTagline = computed(
     () => PERSONA_REGISTRY[this.activePersona()].tagline,
+  );
+
+  readonly chatDisclaimer = computed(() =>
+    personaChatDisclaimer(this.activePersona()),
   );
 
   readonly inputPlaceholder = computed(
