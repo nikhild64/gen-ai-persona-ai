@@ -35,6 +35,15 @@
   border: 2px solid var(--persona-accent, #d6d3d1);
   background: #f5f5f4;
 }
+.era-badge {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--persona-accent, #78716c);
+  margin-bottom: 0.25rem;
+}
 .body h2 {
   margin: 0 0 0.35rem;
   font-size: 22px;

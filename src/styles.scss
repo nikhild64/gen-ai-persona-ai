@@ -1,4 +1,4 @@
-/* Global styles — chai-code-personas */
+/* Global styles — Council */
 
 /* PrimeIcons: icon font used across PrimeNG components */
 @import "primeicons/primeicons.css";
@@ -82,6 +82,26 @@ body[data-persona="hitesh"] {
 body[data-persona="piyush"] {
   --surface-tint-top: #fcfdff;
   --surface-tint-bottom: #f0f5ff;
+}
+body[data-persona="musk"] {
+  --surface-tint-top: #fefefe;
+  --surface-tint-bottom: #fee2e2;
+}
+body[data-persona="jobs"] {
+  --surface-tint-top: #fafafa;
+  --surface-tint-bottom: #f3f4f6;
+}
+body[data-persona="gandhi"] {
+  --surface-tint-top: #fffef7;
+  --surface-tint-bottom: #ffedd5;
+}
+body[data-persona="einstein"] {
+  --surface-tint-top: #fffef5;
+  --surface-tint-bottom: #fef3c7;
+}
+body[data-persona="newton"] {
+  --surface-tint-top: #fffef8;
+  --surface-tint-bottom: #fef3c7;
 }
 
 /* Persona-themed dialog chrome. `<p-dialog>` is appended to <body>, which

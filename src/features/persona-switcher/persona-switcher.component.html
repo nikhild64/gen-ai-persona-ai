@@ -1,32 +1,62 @@
-<div
-  class="track"
-  role="tablist"
-  [attr.aria-label]="ariaLabel()"
-  [attr.aria-disabled]="disabled() || null"
->
-  @for (p of personas; track p) {
+<div class="combobox" [class.open]="open()" [class.disabled]="disabled()">
   <button
     type="button"
-    role="tab"
-    class="segment"
-    [attr.aria-selected]="p === activePersona()"
-    [attr.aria-disabled]="disabled() || null"
-    [attr.data-persona]="p"
-    [attr.tabindex]="p === activePersona() ? 0 : -1"
+    class="trigger"
+    role="combobox"
+    [attr.aria-expanded]="open()"
+    [attr.aria-controls]="listboxId"
+    [attr.aria-label]="ariaLabel()"
     [attr.title]="disabled() ? disabledTooltip() : null"
-    [class.active]="p === activePersona()"
-    [class.disabled]="disabled()"
     [disabled]="disabled()"
-    (click)="onSelect(p)"
+    (click)="toggleOpen()"
   >
     <img
-      [src]="'/images/' + p + '.png'"
+      [src]="'/images/' + activePersona() + '.png'"
       alt=""
-      width="18"
-      height="18"
+      width="22"
+      height="22"
       class="avatar"
     />
-    <span>{{ display(p) }}</span>
+    <span class="label">{{ fullName(activePersona()) }}</span>
+    <span class="chevron" aria-hidden="true">▾</span>
   </button>
+
+  @if (open() && !disabled()) {
+  <div class="panel">
+    <input
+      #filterInput
+      type="text"
+      class="filter"
+      placeholder="Filter personas…"
+      [value]="filter()"
+      (input)="onFilterInput($any($event.target).value)"
+      aria-label="Filter persona list"
+    />
+    <ul
+      [id]="listboxId"
+      class="listbox"
+      role="listbox"
+      [attr.aria-activedescendant]="
+        'persona-opt-' + filteredPersonas()[activeIndex()]
+      "
+    >
+      @for (p of filteredPersonas(); track p; let i = $index) {
+      <li
+        [id]="'persona-opt-' + p"
+        role="option"
+        class="option"
+        [class.active]="p === activePersona()"
+        [class.highlight]="i === activeIndex()"
+        [attr.aria-selected]="p === activePersona()"
+        [attr.data-persona]="p"
+        (click)="onSelect(p)"
+      >
+        <img [src]="'/images/' + p + '.png'" alt="" width="20" height="20" />
+        <span class="name">{{ fullName(p) }}</span>
+        <span class="era">{{ registry[p].era }}</span>
+      </li>
+      }
+    </ul>
+  </div>
   }
 </div>

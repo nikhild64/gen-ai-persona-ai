@@ -20,24 +20,20 @@ const providerKeyPrefixHint = (p: ProviderId): string =>
 
 export const PRODUCT_COPY = {
   // ─── LANDING ─────────────────────────────────────────────────────────────
-  landingHeroTitle: 'Chat with Hitesh and Piyush.',
+  landingHeroTitle: 'Council — advisors from across time.',
   landingHeroSubheader:
-    'Two personas from the ChaiCode GenAI cohort — pick one, or ask both.',
-  landingHiteshTagline:
-    'Chai aur Code. Story sunata hun — phir tech samajhte hain saath mein.',
-  landingPiyushTagline:
-    'I build devs, not just apps. Dekho — chalo build karte hain.',
+    'Seven AI parody personas — pick one, or blend any two in Ask Both mode.',
   landingCtaLabel: 'Start chatting',
   landingDisclaimerBand:
-    'Parody personas — not affiliated with or endorsed by the real creators. This is a ChaiCode GenAI cohort project.',
+    'AI parody personas — not affiliated with or endorsed by the real individuals or their estates. Educational research project.',
   continueHint: 'Bring your own key to continue.',
 
   // ─── FOOTER (AD-22 disclaimer + takedown affordance, every route) ────────
   footerDisclaimer:
-    'AI parody personas of Hitesh Choudhary and Piyush Garg. Built for the ChaiCode GenAI cohort. Not affiliated with the creators.',
+    'AI parody personas — not affiliated with or endorsed by the real individuals or their estates. Educational research project exploring LLM-based persona modeling.',
   takedownContact: 'Contact for takedown / concerns',
   takedownEmail: 'contact@example.com',
-  takedownSubject: 'Chai Code Personas — takedown / feedback',
+  takedownSubject: 'Council — takedown / feedback',
 
   // ─── SETTINGS ────────────────────────────────────────────────────────────
   settingsTitle: 'Settings',
@@ -54,7 +50,7 @@ export const PRODUCT_COPY = {
   keyStatusNoKeyLabel: 'No key saved',
   keySavedToast: 'API key saved for this browser session.',
   settingsAutoOpenHeader:
-    'Chai chalega? Paste an API key to start chatting.',
+    'Paste an API key to start chatting with Council.',
   keyPrivacyDisclaimer:
     'Your key stays in this browser session only. Never sent to our servers, never persisted to disk, cleared when you close the tab.',
   clearSessionMenuLabel: 'Clear chat history',
@@ -65,7 +61,8 @@ export const PRODUCT_COPY = {
   streamingIndicatorAskBothA: 'Hitesh is typing…',
   streamingIndicatorAskBothB: 'Piyush is responding to Hitesh…',
   streamingIndicatorAskBothParallel: 'Hitesh and Piyush are both typing…',
-  streamingIndicatorAskBothBlended: 'Hitesh + Piyush are speaking as one…',
+  streamingIndicatorAskBothBlended: (pairLabel: string): string =>
+    `${pairLabel} are speaking as one…`,
   streamStallPromptBody:
     'Nothing has streamed for 30 seconds. This might be a slow provider — wait a bit more, or cancel and retry.',
   streamStallCancelLabel: 'Cancel',
@@ -94,22 +91,19 @@ export const PRODUCT_COPY = {
   },
   askBothVariantTooltip:
     'One blended answer — 1 LLM call (Sequential is 2, Parallel is 2).',
-  askBothBlendedAttribution: 'Hitesh + Piyush',
+  askBothBlendedAttribution: (pairLabel: string): string => pairLabel,
 
   // ─── ASK-BOTH ROOM ───────────────────────────────────────────────────────
-  askBothBannerLabel: 'You are in Ask-Both mode — Hitesh answers first, then Piyush.',
-  /**
-   * AD-22 DOCUMENTED EXCEPTION: this joint greeting is persona-voiced despite
-   * living in product-copy. Kept here because it is the ONLY message with no
-   * single-persona `persona` attribution (it comes from "the room"). Source:
-   * Addendum §D.3, byte-identical.
-   */
+  askBothBannerLabel:
+    'Blended mode — pick two personas below; one fused answer per turn.',
   askBothGreeting:
-    'Haanji! Welcome back. Aap Ask-Both mode mein ho — same sawaal poocho, dono jawab denge. Hitesh pehle bolega, phir Piyush uska take dekh ke apna angle add karega. Chai le lo, aur try karo — ek deep question daalo, dekhte hain kya nikalta hai.',
-  askBothGreetingHint: 'Dono se poocho — kya doubt hai?',
+    'Welcome to Ask Both — choose Persona A and Persona B, then ask one question. You will get a single fused answer blending both voices.',
+  askBothGreetingHint: 'Try different pairs — Hitesh + Piyush, Musk + Jobs, Gandhi + Einstein…',
   askBothBridgeAnnouncement:
-    "Piyush is now responding to Hitesh's take.",
-  askBothInputPlaceholder: 'Dono se poocho — kya doubt hai?',
+    'The second persona is now responding.',
+  askBothInputPlaceholder: 'Ask your chosen pair — type your question…',
+  askBothPairLabelA: 'Persona A',
+  askBothPairLabelB: 'Persona B',
 
   // ─── KEEP-GOING / CAP / RATE LIMIT ───────────────────────────────────────
   keepGoingButtonLabel: 'Keep going',

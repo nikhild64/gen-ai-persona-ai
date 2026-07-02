@@ -19,6 +19,7 @@ import { ActivatedRoute } from '@angular/router';
 import { ChatOrchestrator } from '../../domain/chat/chat-orchestrator.service';
 import { STORAGE_PORT } from '../../domain/chat/di-tokens';
 import type { PersonaId } from '../../domain/types/persona';
+import { isPersonaId } from '../../domain/types/persona';
 import type { Message, Thread } from '../../domain/types/message';
 import {
   PERSONA_REGISTRY,
@@ -102,12 +103,9 @@ export class ChatComponent {
   readonly activePersona = signal<PersonaId>('hitesh');
 
   readonly personaName = computed(() => personaDisplayName(this.activePersona()));
-  readonly personaTagline = computed(() => {
-    const p = this.activePersona();
-    return p === 'hitesh'
-      ? PRODUCT_COPY.landingHiteshTagline
-      : PRODUCT_COPY.landingPiyushTagline;
-  });
+  readonly personaTagline = computed(
+    () => PERSONA_REGISTRY[this.activePersona()].tagline,
+  );
 
   readonly inputPlaceholder = computed(
     () => PERSONA_REGISTRY[this.activePersona()].inputPlaceholder,
@@ -152,10 +150,12 @@ export class ChatComponent {
     // Route reuse: `data` observable updates when navigation swaps persona on
     // the same ChatComponent instance (Angular re-uses components across
     // /chat/hitesh ↔ /chat/piyush by default).
-    this.route.data
+    this.route.paramMap
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((data) => {
-        const persona = (data?.['persona'] as PersonaId | undefined) ?? 'hitesh';
+      .subscribe((params) => {
+        const slug = params.get('persona');
+        const persona: PersonaId =
+          slug && isPersonaId(slug) ? slug : 'hitesh';
         if (persona !== this.activePersona()) {
           this.orchestrator.cancelInFlight();
         }

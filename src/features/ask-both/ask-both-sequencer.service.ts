@@ -26,7 +26,7 @@ import {
   ASK_BOTH_KEEP_GOING_SYSTEM_NOTE_TEMPLATE,
 } from '../../config/prompt-format';
 import { PERSONA_REGISTRY, personaDisplayName } from '../../personas/persona.registry';
-import blendedComposition from '../../personas/blended.prompt';
+import { buildBlendedComposition } from '../../personas/blended.prompt';
 import { PromptAssembler } from '../../domain/prompts/prompt-assembler.service';
 import { KeyVaultService } from '../../domain/key-vault/key-vault.service';
 import { PersonaRoutingService } from '../../domain/key-vault/persona-routing.service';
@@ -38,8 +38,9 @@ import {
   ANALYTICS_PORT,
 } from '../../domain/chat/di-tokens';
 import { PRODUCT_COPY } from '../../config/product-copy';
-import { hasBlendedSignatureLegacy } from '../../config/regex-patterns';
+import { hasBlendedSignature } from '../../config/regex-patterns';
 import { AskBothModeService } from './ask-both-mode.service';
+import { BlendedPairService } from './blended-pair.service';
 
 /**
  * Sequencer-local injection token letting tests swap the provider-registry
@@ -108,6 +109,7 @@ export class AskBothSequencerService {
   private readonly personaRouting = inject(PersonaRoutingService);
   private readonly modelSelection = inject(ModelSelectionService);
   private readonly modeService = inject(AskBothModeService);
+  private readonly blendedPair = inject(BlendedPairService);
   private readonly adapterFactory = inject(ASK_BOTH_ADAPTER_FACTORY);
   private controller: AbortController | null = null;
   private lastUserMessage: string | null = null;
@@ -303,7 +305,9 @@ export class AskBothSequencerService {
     this.currentPersona.set(null);
     this.currentText.set('');
 
-    const providerId = this.personaRouting.getProviderFor('hitesh');
+    const { a, b } = this.blendedPair.getPair();
+    const blendedComposition = buildBlendedComposition(a, b);
+    const providerId = this.personaRouting.getProviderFor(a);
     const key = this.keyVault.getKeyForProvider(providerId);
     if (!key) {
       return;
@@ -314,11 +318,9 @@ export class AskBothSequencerService {
       AdapterClass as unknown as new () => ProviderPort
     )();
 
-    const composed = this.assembler.compose(
-      'hitesh',
-      thread,
-      'ask-both-blended',
-    );
+    const composed = this.assembler.compose(a, thread, 'ask-both-blended', {
+      blendedPair: { a, b },
+    });
     const prompt = {
       ...composed,
       model: this.modelSelection.getModelFor(providerId),
@@ -386,7 +388,7 @@ export class AskBothSequencerService {
       });
 
       // AC-10 regex smoke-test â€” miss fires `persona_regex_miss{persona:'blended'}`.
-      if (!hasBlendedSignatureLegacy(finalText)) {
+      if (!hasBlendedSignature(finalText, a, b)) {
         this.analytics.emit({
           name: 'persona_regex_miss',
           payload: { persona: 'blended' },

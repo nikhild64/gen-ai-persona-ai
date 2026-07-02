@@ -1,7 +1,4 @@
-/* AD-17 persona-theme tokens. THREE scope blocks — :root default, Hitesh,
-   Piyush. Values from DESIGN.md Colors.Persona-theme-tokens. Only the 5
-   `THEME_VARS` from src/config/theme-vars.ts may appear as `--persona-*`
-   custom properties; Stylelint (E0-S4) enforces. */
+/* AD-17 persona-theme tokens — Council (7 personas). */
 
 :root {
   --persona-accent: #78716c;
@@ -24,5 +21,45 @@
   --persona-bubble-bg: #dbeafe;
   --persona-avatar-url: url('/images/piyush.png');
   --persona-code-block-emphasis: foregrounded;
+  --persona-input-placeholder-style: normal;
+}
+
+[data-persona='musk'] {
+  --persona-accent: #dc2626;
+  --persona-bubble-bg: #fecaca;
+  --persona-avatar-url: url('/images/musk.png');
+  --persona-code-block-emphasis: foregrounded;
+  --persona-input-placeholder-style: normal;
+}
+
+[data-persona='jobs'] {
+  --persona-accent: #6b7280;
+  --persona-bubble-bg: #f5f5f7;
+  --persona-avatar-url: url('/images/jobs.png');
+  --persona-code-block-emphasis: default;
+  --persona-input-placeholder-style: normal;
+}
+
+[data-persona='gandhi'] {
+  --persona-accent: #ea580c;
+  --persona-bubble-bg: #fef3c7;
+  --persona-avatar-url: url('/images/gandhi.png');
+  --persona-code-block-emphasis: default;
+  --persona-input-placeholder-style: normal;
+}
+
+[data-persona='einstein'] {
+  --persona-accent: #ca8a04;
+  --persona-bubble-bg: #fef9c3;
+  --persona-avatar-url: url('/images/einstein.png');
+  --persona-code-block-emphasis: default;
+  --persona-input-placeholder-style: normal;
+}
+
+[data-persona='newton'] {
+  --persona-accent: #b45309;
+  --persona-bubble-bg: #fef9c3;
+  --persona-avatar-url: url('/images/newton.png');
+  --persona-code-block-emphasis: default;
   --persona-input-placeholder-style: normal;
 }

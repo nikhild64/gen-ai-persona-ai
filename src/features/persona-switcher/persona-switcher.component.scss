@@ -1,48 +1,135 @@
 :host {
   display: inline-block;
+  position: relative;
 }
-.track {
-  display: inline-flex;
-  background: #f5f5f4;
-  border: 1px solid #d6d3d1;
-  border-radius: 999px;
-  padding: 4px;
-  gap: 2px;
-  min-height: 36px;
+
+.combobox {
+  position: relative;
+  min-width: 12rem;
 }
-.segment {
+
+.trigger {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.35rem 0.75rem;
-  border-radius: 999px;
-  background: transparent;
-  border: none;
-  color: #57534e;
-  font-weight: 500;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.35rem 0.65rem;
+  border: 1px solid #d6d3d1;
+  border-radius: 0.5rem;
+  background: #fafaf9;
   cursor: pointer;
-  min-width: 44px;
-  transition: background 0.15s ease, color 0.15s ease;
+  font-weight: 500;
+  color: #292524;
 }
-.segment:hover:not(.active):not(.disabled) {
-  background: #e7e5e4;
-}
-.segment.active {
-  background: var(--switcher-accent, #292524);
-  color: white;
-}
-.segment.active[data-persona='hitesh'] {
-  --switcher-accent: #d97706;
-}
-.segment.active[data-persona='piyush'] {
-  --switcher-accent: #2563eb;
-}
-.segment.disabled {
+
+.trigger:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+.label {
+  flex: 1;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chevron {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: #fff;
+  border: 1px solid #d6d3d1;
+  border-radius: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.filter {
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 1px solid #e7e5e4;
+  padding: 0.5rem 0.65rem;
+  font: inherit;
+}
+
+.listbox {
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  cursor: pointer;
+}
+
+.option.highlight,
+.option:hover {
+  background: #f5f5f4;
+}
+
+.option.active {
+  font-weight: 600;
+}
+
+.option .name {
+  flex: 1;
+}
+
+.option .era {
+  font-size: 0.7rem;
+  color: #78716c;
+}
+
 .avatar {
   border-radius: 50%;
   object-fit: cover;
-  background: #d6d3d1;
+  background: #e7e5e4;
+}
+
+.combobox.disabled .panel {
+  display: none;
+}
+
+.option[data-persona='hitesh'].active {
+  color: #d97706;
+}
+
+.option[data-persona='piyush'].active {
+  color: #2563eb;
+}
+
+.option[data-persona='musk'].active {
+  color: #dc2626;
+}
+
+.option[data-persona='jobs'].active {
+  color: #6b7280;
+}
+
+.option[data-persona='gandhi'].active {
+  color: #ea580c;
+}
+
+.option[data-persona='einstein'].active {
+  color: #ca8a04;
+}
+
+.option[data-persona='newton'].active {
+  color: #b45309;
 }

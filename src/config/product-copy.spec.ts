@@ -4,7 +4,7 @@ import { PRODUCT_COPY } from './product-copy';
 
 describe('product-copy (AD-22 chrome separation)', () => {
   it('exports the landing hero, disclaimer, and CTA strings', () => {
-    expect(PRODUCT_COPY.landingHeroTitle.length).toBeGreaterThan(0);
+    expect(PRODUCT_COPY.landingHeroTitle).toMatch(/Council/i);
     expect(PRODUCT_COPY.landingDisclaimerBand).toMatch(/parody/i);
     expect(PRODUCT_COPY.landingCtaLabel).toMatch(/chat/i);
   });
@@ -14,16 +14,15 @@ describe('product-copy (AD-22 chrome separation)', () => {
     expect(PRODUCT_COPY.takedownEmail).toContain('@');
   });
 
-  it('carries the settings auto-open header exactly per AD-22 documented exception', () => {
+  it('carries the settings auto-open header for Council', () => {
     expect(PRODUCT_COPY.settingsAutoOpenHeader).toBe(
-      'Chai chalega? Paste an API key to start chatting.',
+      'Paste an API key to start chatting with Council.',
     );
   });
 
-  it('carries the askBothGreeting BYTE-IDENTICAL to Addendum §D.3', () => {
-    expect(PRODUCT_COPY.askBothGreeting).toBe(
-      'Haanji! Welcome back. Aap Ask-Both mode mein ho — same sawaal poocho, dono jawab denge. Hitesh pehle bolega, phir Piyush uska take dekh ke apna angle add karega. Chai le lo, aur try karo — ek deep question daalo, dekhte hain kya nikalta hai.',
-    );
+  it('carries the generic askBothGreeting for blended pair mode', () => {
+    expect(PRODUCT_COPY.askBothGreeting).toMatch(/Ask Both/i);
+    expect(PRODUCT_COPY.askBothGreeting).toMatch(/fused/i);
   });
 
   it('renders provider-parameterised helpers', () => {
@@ -44,16 +43,16 @@ describe('product-copy (AD-22 chrome separation)', () => {
     expect(PRODUCT_COPY.askBothVariantTooltip).toContain('Parallel is 2');
   });
 
-  it('AC-4: blended attribution label surfaces both mentors', () => {
-    expect(PRODUCT_COPY.askBothBlendedAttribution).toContain('Hitesh');
-    expect(PRODUCT_COPY.askBothBlendedAttribution).toContain('Piyush');
+  it('AC-4: blended attribution helper accepts pair label', () => {
+    expect(PRODUCT_COPY.askBothBlendedAttribution('Musk + Jobs')).toBe(
+      'Musk + Jobs',
+    );
   });
 
   it('exposes a blended-specific streaming indicator label', () => {
-    expect(PRODUCT_COPY.streamingIndicatorAskBothBlended.length).toBeGreaterThan(
-      0,
-    );
-    expect(PRODUCT_COPY.streamingIndicatorAskBothBlended).toContain('Hitesh');
-    expect(PRODUCT_COPY.streamingIndicatorAskBothBlended).toContain('Piyush');
+    const label = PRODUCT_COPY.streamingIndicatorAskBothBlended('Hitesh + Piyush');
+    expect(label.length).toBeGreaterThan(0);
+    expect(label).toContain('Hitesh');
+    expect(label).toContain('Piyush');
   });
 });

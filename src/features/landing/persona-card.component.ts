@@ -7,15 +7,13 @@ import {
 import { RouterLink } from '@angular/router';
 
 import type { PersonaId } from '../../domain/types/persona';
-import { personaDisplayName } from '../../personas/persona.registry';
+import {
+  PERSONA_REGISTRY,
+  personaDisplayName,
+} from '../../personas/persona.registry';
 import { PRODUCT_COPY } from '../../config/product-copy';
 import { personaCardLabel } from '../../config/aria-labels';
 
-/**
- * FR-1 persona card — one of two equal-weight tiles on the landing page.
- * `[attr.data-persona]` scopes the CTA button colour to that persona per
- * AD-17. Full card is a single click target per UX-DR1 (RouterLink on <a>).
- */
 @Component({
   selector: 'app-persona-card',
   standalone: true,
@@ -29,10 +27,10 @@ export class PersonaCardComponent {
   readonly ctaLabel = PRODUCT_COPY.landingCtaLabel;
 
   readonly displayName = computed(() => personaDisplayName(this.persona()));
-  readonly tagline = computed(() =>
-    this.persona() === 'hitesh'
-      ? PRODUCT_COPY.landingHiteshTagline
-      : PRODUCT_COPY.landingPiyushTagline,
+  readonly fullName = computed(
+    () => PERSONA_REGISTRY[this.persona()].fullDisplayName,
   );
+  readonly tagline = computed(() => PERSONA_REGISTRY[this.persona()].tagline);
+  readonly era = computed(() => PERSONA_REGISTRY[this.persona()].era);
   readonly ariaLabel = computed(() => personaCardLabel(this.persona()));
 }

@@ -171,9 +171,8 @@ describe('PromptAssembler ask-both-blended mode (post-sprint)', () => {
     const thread = threadFrom([msg('user', 'q', 1)]);
     const out = assembler.compose('hitesh', thread, 'ask-both-blended');
     const system = out.messages[0]?.content ?? '';
-    expect(system).toContain('SCRIPT: Roman/Latin transliteration for ALL content');
-    expect(system).toContain('NEVER emit');
-    expect(system).toContain('Devanagari');
+    expect(system).toContain('SCRIPT: Roman/Latin transliteration');
+    expect(system).toContain('NEVER emit Devanagari');
     // Pedagogical Devanagari (in the "write X not Y" clause) is allowed
     // inside the identityBlock and the identity block only — same policy
     // as the Piyush persona post-mid-sprint-fix. The instruction

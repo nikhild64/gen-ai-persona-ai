@@ -6,6 +6,7 @@ import {
   OnDestroy,
   Renderer2,
   ViewChild,
+  computed,
   effect,
   inject,
   signal,
@@ -14,9 +15,16 @@ import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
+import type { PersonaId } from '../../domain/types/persona';
+import { PERSONA_IDS } from '../../domain/types/persona';
 import type { Message, Thread } from '../../domain/types/message';
 import { STORAGE_PORT } from '../../domain/chat/di-tokens';
 import { PRODUCT_COPY } from '../../config/product-copy';
+import { buildBlendedComposition } from '../../personas/blended.prompt';
+import {
+  PERSONA_REGISTRY,
+  personaDisplayName,
+} from '../../personas/persona.registry';
 import { MessageBubbleComponent } from '../../shared/message-bubble/message-bubble.component';
 import { StreamingIndicatorComponent } from '../../shared/streaming-indicator/streaming-indicator.component';
 import { ModeSwitcherComponent } from '../mode-switcher/mode-switcher.component';
@@ -25,17 +33,8 @@ import { SettingsModalComponent } from '../settings/settings-modal.component';
 import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.component';
 import { AskBothSequencerService } from './ask-both-sequencer.service';
 import { AskBothModeService } from './ask-both-mode.service';
-import { AskBothModeToggleComponent } from './ask-both-mode-toggle.component';
+import { BlendedPairService } from './blended-pair.service';
 
-/**
- * FR-26/FR-27/FR-30 Ask-Both surface. The container carries
- * `[data-mode="ask-both"]` per AD-17 to switch chrome to neutral. Message
- * bubbles carry `[data-persona]` individually (per E4-S2 HostBinding), so
- * Hitesh and Piyush retain their own theming inside a neutral room.
- *
- * E9-S1 lands the shell + joint greeting. E9-S2 wired the sequencer service.
- * E9-S3 adds keep-going + bridge announcement. E9-S4 layers parallel mode.
- */
 @Component({
   selector: 'app-ask-both',
   standalone: true,
@@ -44,7 +43,6 @@ import { AskBothModeToggleComponent } from './ask-both-mode-toggle.component';
     MessageBubbleComponent,
     StreamingIndicatorComponent,
     ModeSwitcherComponent,
-    AskBothModeToggleComponent,
     KeyStatusBadgeComponent,
     SettingsModalComponent,
     SettingsMenuEntryComponent,
@@ -56,6 +54,7 @@ import { AskBothModeToggleComponent } from './ask-both-mode-toggle.component';
 export class AskBothComponent implements OnDestroy {
   readonly sequencer = inject(AskBothSequencerService);
   readonly modeService = inject(AskBothModeService);
+  readonly blendedPair = inject(BlendedPairService);
   private readonly storage = inject(STORAGE_PORT);
   private readonly destroyRef = inject(DestroyRef);
   private readonly renderer = inject(Renderer2);
@@ -67,6 +66,8 @@ export class AskBothComponent implements OnDestroy {
   readonly bridgeMessage = this.sequencer.bridgeAnnouncement;
   readonly canKeepGoing = this.sequencer.canKeepGoing;
 
+  readonly personaOptions = PERSONA_IDS;
+
   @ViewChild('messageList') messageListEl?: ElementRef<HTMLDivElement>;
 
   readonly bannerLabel = PRODUCT_COPY.askBothBannerLabel;
@@ -74,23 +75,24 @@ export class AskBothComponent implements OnDestroy {
   readonly askBothGreetingHint = PRODUCT_COPY.askBothGreetingHint;
   readonly inputPlaceholder = PRODUCT_COPY.askBothInputPlaceholder;
   readonly keepGoingLabel = PRODUCT_COPY.keepGoingButtonLabel;
+  readonly pairLabelA = PRODUCT_COPY.askBothPairLabelA;
+  readonly pairLabelB = PRODUCT_COPY.askBothPairLabelB;
+
+  readonly pairAttribution = computed(() =>
+    buildBlendedComposition(
+      this.blendedPair.personaA(),
+      this.blendedPair.personaB(),
+    ).attributionLabel,
+  );
 
   constructor() {
-    // Drive the mixed persona gradient defined in styles.scss.
     this.renderer.setAttribute(this.document.body, 'data-mode', 'ask-both');
     void this.loadThread();
 
-    // Incremental refresh: sequencer fires threadUpdated$ after every write
-    // (user message, Hitesh's completion, Piyush's completion, keep-going
-    // completions). Reload immediately so each persona's message settles
-    // into the list as soon as it's persisted instead of all appearing at
-    // the end.
     this.sequencer.threadUpdated$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => void this.reloadThread());
 
-    // Auto-scroll to bottom on new messages / streaming updates. rAF defers
-    // the scroll until after Angular flushes the DOM update.
     effect(() => {
       this.messages();
       this.sequencer.currentStreaming();
@@ -106,13 +108,29 @@ export class AskBothComponent implements OnDestroy {
     this.renderer.removeAttribute(this.document.body, 'data-mode');
   }
 
+  personaLabel(p: PersonaId): string {
+    return personaDisplayName(p);
+  }
+
+  personaFullName(p: PersonaId): string {
+    return PERSONA_REGISTRY[p].fullDisplayName;
+  }
+
+  onPersonaAChange(value: string): void {
+    if (this.isPersonaId(value)) {
+      this.blendedPair.setPersonaA(value);
+    }
+  }
+
+  onPersonaBChange(value: string): void {
+    if (this.isPersonaId(value)) {
+      this.blendedPair.setPersonaB(value);
+    }
+  }
+
   streamingLabel(): string {
-    // Blended dispatches keep `activePersona` null (there is no single
-    // persona owner). Consult the active variant first so the label reads
-    // "Hitesh + Piyush are speaking as one…" instead of the generic
-    // "Preparing…" fallback.
     if (this.modeService.get() === 'blended') {
-      return PRODUCT_COPY.streamingIndicatorAskBothBlended;
+      return PRODUCT_COPY.streamingIndicatorAskBothBlended(this.pairAttribution());
     }
     const persona = this.sequencer.activePersona();
     if (persona === 'hitesh') return PRODUCT_COPY.streamingIndicatorAskBothA;
@@ -123,10 +141,6 @@ export class AskBothComponent implements OnDestroy {
   onSend(): void {
     const text = this.draft().trim();
     if (!text || this.sequencer.inFlight()) return;
-    // Optimistic local push so the user's own message lands immediately —
-    // sequencer's own storage-write will fire threadUpdated$ shortly after
-    // and reconcile with the authoritative persisted version (matching id
-    // isn't required; reloadThread replaces the whole list).
     this.messages.update((m) => [
       ...m,
       {
@@ -164,6 +178,10 @@ export class AskBothComponent implements OnDestroy {
 
   openSettings(): void {
     this.settingsOpen.set(true);
+  }
+
+  private isPersonaId(value: string): value is PersonaId {
+    return (this.personaOptions as readonly string[]).includes(value);
   }
 
   private async loadThread(): Promise<void> {

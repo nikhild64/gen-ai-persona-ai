@@ -9,7 +9,7 @@ import type {
 } from '../types/message';
 import type { OutboundPrompt, PromptMode } from './types';
 import { PERSONA_REGISTRY } from '../../personas/persona.registry';
-import blendedComposition from '../../personas/blended.prompt';
+import { buildBlendedComposition } from '../../personas/blended.prompt';
 import { PERSONA_MODEL_PARAMS } from '../../config/model-params';
 import {
   VERBATIM_TAIL_LENGTH,
@@ -53,7 +53,11 @@ export class PromptAssembler {
     persona: PersonaId,
     thread: Thread,
     mode: PromptMode,
-    options?: { systemNote?: string; driftRefreshTurn?: number },
+    options?: {
+      systemNote?: string;
+      driftRefreshTurn?: number;
+      blendedPair?: { a: PersonaId; b: PersonaId };
+    },
   ): OutboundPrompt {
     const params = PERSONA_MODEL_PARAMS[persona];
 
@@ -71,8 +75,11 @@ export class PromptAssembler {
           params,
           options?.systemNote,
         );
-      case 'ask-both-blended':
-        return this.composeAskBothBlended(thread, params);
+      case 'ask-both-blended': {
+        const pair = options?.blendedPair ?? { a: 'hitesh' as PersonaId, b: 'piyush' as PersonaId };
+        const blendedParams = this.blendedModelParams(pair.a, pair.b);
+        return this.composeAskBothBlended(thread, blendedParams, pair);
+      }
       case 'summarize':
         return this.composeSummary(persona, thread, params);
       default:
@@ -146,11 +153,25 @@ export class PromptAssembler {
    * is a user message (initial Blended send per AC-3), that message goes
    * through verbatim.
    */
+  private blendedModelParams(
+    a: PersonaId,
+    b: PersonaId,
+  ): (typeof PERSONA_MODEL_PARAMS)[PersonaId] {
+    const paramsA = PERSONA_MODEL_PARAMS[a];
+    const paramsB = PERSONA_MODEL_PARAMS[b];
+    const carrierParams = PERSONA_MODEL_PARAMS[a];
+    return {
+      ...carrierParams,
+      temperature: (paramsA.temperature + paramsB.temperature) / 2,
+    };
+  }
+
   private composeAskBothBlended(
     thread: Thread,
     params: (typeof PERSONA_MODEL_PARAMS)[PersonaId],
+    pair: { a: PersonaId; b: PersonaId },
   ): OutboundPrompt {
-    const systemContent = this.buildBlendedSystemBlock(thread);
+    const systemContent = this.buildBlendedSystemBlock(thread, pair);
     const lastMessage = thread.messages[thread.messages.length - 1];
     const currentUserText =
       lastMessage && lastMessage.role === 'user'
@@ -380,7 +401,11 @@ export class PromptAssembler {
    * from `blendedComposition` instead of the persona registry. The output
    * is folded into a single `role:'system'` message per AC-3.
    */
-  private buildBlendedSystemBlock(thread: Thread): string {
+  private buildBlendedSystemBlock(
+    thread: Thread,
+    pair: { a: PersonaId; b: PersonaId },
+  ): string {
+    const blendedComposition = buildBlendedComposition(pair.a, pair.b);
     const parts: string[] = [];
 
     parts.push(RESPONSE_LENGTH_DIRECTIVE);

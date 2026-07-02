@@ -1,6 +1,6 @@
 :host {
   display: block;
-  max-width: 900px;
+  max-width: 960px;
   margin: 0 auto;
   padding: 2rem 1.25rem 3rem;
 }
@@ -17,15 +17,34 @@
   color: #57534e;
   font-size: 16px;
 }
+.category {
+  margin-bottom: 2rem;
+}
+.category-title {
+  font-size: 1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #78716c;
+  margin: 0 0 0.75rem;
+}
 .cards {
   display: grid;
   gap: 1rem;
   grid-template-columns: 1fr;
 }
-@media (min-width: 720px) {
+@media (min-width: 640px) {
   .cards {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
   }
+}
+@media (min-width: 960px) {
+  .cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+.ask-both-section {
+  margin: 1rem 0 2rem;
 }
 .disclaimer-band {
   margin-top: 2rem;

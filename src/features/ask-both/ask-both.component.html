@@ -2,7 +2,6 @@
   <header class="banner">
     <h2>{{ bannerLabel }}</h2>
     <div class="banner-slots">
-
       <app-key-status-badge
         [askBoth]="true"
         (clicked)="openSettings()"
@@ -14,6 +13,36 @@
       />
     </div>
   </header>
+
+  <div class="pair-picker" aria-label="Blended persona pair">
+    <label>
+      {{ pairLabelA }}
+      <select
+        [value]="blendedPair.personaA()"
+        [disabled]="sequencer.inFlight()"
+        (change)="onPersonaAChange($any($event.target).value)"
+      >
+        @for (p of personaOptions; track p) {
+        <option [value]="p">{{ personaFullName(p) }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      {{ pairLabelB }}
+      <select
+        [value]="blendedPair.personaB()"
+        [disabled]="sequencer.inFlight()"
+        (change)="onPersonaBChange($any($event.target).value)"
+      >
+        @for (p of personaOptions; track p) {
+        <option [value]="p" [disabled]="p === blendedPair.personaA()">
+          {{ personaFullName(p) }}
+        </option>
+        }
+      </select>
+    </label>
+    <p class="pair-hint">Active pair: {{ pairAttribution() }}</p>
+  </div>
 
   <app-settings-modal [(open)]="settingsOpen" />
 
