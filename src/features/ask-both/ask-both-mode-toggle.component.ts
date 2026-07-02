@@ -34,77 +34,8 @@ import { askBothVariantToggleLabel } from '../../config/aria-labels';
   selector: 'app-ask-both-mode-toggle',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div
-      class="track"
-      role="tablist"
-      [attr.aria-label]="ariaLabel()"
-      [attr.aria-disabled]="disabled() || null"
-      [title]="tooltip"
-    >
-      @for (v of variants; track v) {
-      <button
-        type="button"
-        role="tab"
-        class="segment"
-        [attr.aria-selected]="v === active()"
-        [attr.tabindex]="v === active() ? 0 : -1"
-        [attr.title]="tooltip"
-        [class.active]="v === active()"
-        [class.disabled]="disabled()"
-        [disabled]="disabled()"
-        (click)="onSelect(v)"
-        (keydown)="onKeyDown($event)"
-      >
-        {{ label(v) }}
-      </button>
-      }
-    </div>
-  `,
-  styles: [
-    `
-      :host {
-        display: inline-block;
-      }
-      .track {
-        display: inline-flex;
-        background: #f5f5f4;
-        border: 1px solid #d6d3d1;
-        border-radius: 999px;
-        padding: 4px;
-        gap: 2px;
-        min-height: 36px;
-      }
-      .segment {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.35rem 0.85rem;
-        border-radius: 999px;
-        background: transparent;
-        border: none;
-        color: #57534e;
-        font-weight: 500;
-        cursor: pointer;
-        min-width: 44px;
-        font-size: 13px;
-      }
-      .segment.active {
-        background: #1c1917;
-        color: white;
-      }
-      .segment:hover:not(.active):not(.disabled) {
-        background: #e7e5e4;
-      }
-      .segment:focus-visible {
-        outline: 2px solid #4c1d95;
-        outline-offset: 2px;
-      }
-      .segment.disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-      }
-    `,
-  ],
+  templateUrl: './ask-both-mode-toggle.component.html',
+  styleUrls: ['./ask-both-mode-toggle.component.scss'],
 })
 export class AskBothModeToggleComponent {
   readonly disabled = input<boolean>(false);

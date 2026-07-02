@@ -1,0 +1,121 @@
+:host {
+  display: block;
+}
+.room {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  height: calc(100vh - 3rem);
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  gap: 1rem;
+}
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  min-height: 60px;
+}
+.banner-slots {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.banner h2 {
+  margin: 0;
+  font-size: 18px;
+  color: #292524;
+}
+.message-list {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 0.5rem 0;
+}
+.joint-greeting {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+}
+.joint-greeting .body {
+  margin: 0 0 0.5rem;
+  line-height: 1.55;
+  color: #1c1917;
+}
+.joint-greeting .hint {
+  margin: 0;
+  color: #57534e;
+  font-size: 13px;
+}
+.bridge {
+  text-align: center;
+  color: #78716c;
+  font-size: 13px;
+  font-style: italic;
+}
+.keep-going-btn {
+  align-self: center;
+  background: transparent;
+  border: 1px solid #292524;
+  color: #292524;
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.keep-going-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.input-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem 0 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+.input-area textarea {
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  font: inherit;
+  resize: vertical;
+  min-height: 60px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(4px);
+}
+.input-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.menu-entry-slot {
+  margin-left: auto;
+}
+.send-btn,
+.cancel-btn {
+  padding: 0.55rem 1.1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid #292524;
+}
+.send-btn {
+  background: #292524;
+  color: white;
+}
+.cancel-btn {
+  background: transparent;
+  color: #292524;
+}

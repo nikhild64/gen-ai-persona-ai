@@ -1,0 +1,77 @@
+<section class="room" data-mode="ask-both">
+  <header class="banner">
+    <h2>{{ bannerLabel }}</h2>
+    <div class="banner-slots">
+
+      <app-key-status-badge
+        [askBoth]="true"
+        (clicked)="openSettings()"
+      />
+      <app-mode-switcher
+        activeMode="ask-both"
+        [disabled]="sequencer.inFlight()"
+        (switched)="onModeSwitched()"
+      />
+    </div>
+  </header>
+
+  <app-settings-modal [(open)]="settingsOpen" />
+
+  <div class="message-list" #messageList>
+    @if (messages().length === 0) {
+    <div class="joint-greeting" role="note">
+      <p class="body">{{ askBothGreeting }}</p>
+      <p class="hint">{{ askBothGreetingHint }}</p>
+    </div>
+    }
+    @for (msg of messages(); track msg.id) {
+    <app-message-bubble [message]="msg" />
+    } @if (sequencer.currentStreaming(); as streaming) {
+    <app-message-bubble [message]="streaming" />
+    } @if (bridgeMessage(); as bridge) {
+    <div class="bridge" role="note">{{ bridge }}</div>
+    } @if (sequencer.inFlight() && !sequencer.currentStreaming()) {
+    <app-streaming-indicator [label]="streamingLabel()" />
+    } @if (canKeepGoing()) {
+    <button
+      type="button"
+      class="keep-going-btn"
+      (click)="onKeepGoing()"
+      [disabled]="sequencer.inFlight()"
+    >
+      {{ keepGoingLabel }}
+    </button>
+    }
+  </div>
+
+  <form class="input-area" (ngSubmit)="onSend()">
+    <textarea
+      rows="2"
+      [placeholder]="inputPlaceholder"
+      [disabled]="sequencer.inFlight()"
+      [(ngModel)]="draft"
+      name="draft"
+      (keydown)="onKeyDown($event)"
+    ></textarea>
+    <div class="input-controls">
+      @if (sequencer.inFlight()) {
+      <button
+        type="button"
+        class="cancel-btn"
+        (click)="sequencer.cancel()"
+      >
+        Cancel
+      </button>
+      } @else {
+      <button
+        type="submit"
+        class="send-btn"
+        [disabled]="!draft().trim()"
+      >
+        Ask both
+      </button>
+      }
+      <app-settings-menu-entry class="menu-entry-slot" />
+    </div>
+  </form>
+</section>
