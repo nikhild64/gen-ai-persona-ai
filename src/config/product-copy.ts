@@ -26,7 +26,7 @@ export const PRODUCT_COPY = {
   landingHiteshTagline:
     'Chai aur Code. Story sunata hun — phir tech samajhte hain saath mein.',
   landingPiyushTagline:
-    'I build devs, not just apps. देखो — chalo build karte hain.',
+    'I build devs, not just apps. Dekho — chalo build karte hain.',
   landingCtaLabel: 'Start chatting',
   landingDisclaimerBand:
     'Parody personas — not affiliated with or endorsed by the real creators. This is a ChaiCode GenAI cohort project.',
@@ -105,7 +105,7 @@ export const PRODUCT_COPY = {
   capReachedInputHint:
     'You have hit the 40-message cap for this thread. Start a new session to continue.',
   retryAfterHint: (seconds: number): string =>
-    `Try again in about ${seconds}s, or paste a fresh API key in Settings.`,
+    `Rate limited by the provider. Try again in about ${seconds}s, or paste a fresh API key in Settings.`,
 } as const;
 
 export type ProductCopyKey = keyof typeof PRODUCT_COPY;

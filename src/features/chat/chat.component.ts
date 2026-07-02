@@ -85,7 +85,10 @@ import { Router } from '@angular/router';
             [activePersona]="activePersona()"
             [disabled]="orchestrator.inFlightStream()"
           />
-          <app-key-status-badge (clicked)="openSettings()" />
+          <app-key-status-badge
+            [persona]="activePersona()"
+            (clicked)="openSettings()"
+          />
           <app-mode-switcher
             activeMode="solo"
             [disabled]="orchestrator.inFlightStream()"
@@ -128,7 +131,10 @@ import { Router } from '@angular/router';
         @if (orchestrator.capReached()) {
         <p class="cap-hint">{{ capReachedHint }}</p>
         } @if (retryHint(); as hint) {
-        <p class="retry-hint">{{ hint }}</p>
+        <div class="retry-hint" role="alert">
+          <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+          <span>{{ hint }}</span>
+        </div>
         }
         <div class="input-controls">
           @if (orchestrator.inFlightStream()) {
@@ -162,7 +168,7 @@ import { Router } from '@angular/router';
         display: grid;
         grid-template-rows: auto 1fr auto;
         height: calc(100vh - 3rem);
-        max-width: 960px;
+        max-width: 1024px;
         margin: 0 auto;
         padding: 0 1rem;
         gap: 1rem;
@@ -302,14 +308,27 @@ import { Router } from '@angular/router';
         color: #b45309;
         font-size: 13px;
       }
-      .cap-hint,
-      .retry-hint {
+      .cap-hint {
         margin: 0;
         color: #57534e;
         font-size: 12px;
       }
       .retry-hint {
-        color: #b45309;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0;
+        padding: 0.55rem 0.75rem;
+        background: rgba(254, 243, 199, 0.85);
+        border: 1px solid rgba(217, 119, 6, 0.5);
+        border-radius: 8px;
+        color: #92400e;
+        font-size: 13px;
+        font-weight: 500;
+      }
+      .retry-hint .pi {
+        font-size: 15px;
+        flex-shrink: 0;
       }
     `,
   ],

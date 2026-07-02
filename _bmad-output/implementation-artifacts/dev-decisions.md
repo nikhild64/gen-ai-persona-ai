@@ -118,6 +118,23 @@ Start: 2026-07-02.
 - **Decision:** `app.routes.ts` default redirect goes to `/chat/hitesh` for the E2-S4 slice so the UI is browsable. E1-S1 will replace with the landing page.
 - **Rationale:** Grader-testable-now beats grader-testable-later.
 
+## Mid-sprint fix (post-dev, pre-submission) — Piyush Devanagari → Latin transliteration
+
+- **Trigger:** Manual testing after autonomous dev completed. User observed: "for hitesh the responses are good, in English written in Hinglish; for Piyush it returns in pure Hindi in between." Piyush's persona prompt files were teaching the model to emit long stretches of Devanagari script, contradicting the voice-rule intent ("English syntax + Hindi phonetics/transliteration").
+- **Root cause:** Few-shots + templates + `askBothCollabExamples` + `driftRefresh` + `selfIdentificationResponse` + `hardcodedGreeting` + `inputPlaceholder` all authored in mixed Devanagari + Latin during E2-S2 / E5-S3 / E7-S1..S2 / E8-S1..S2. LLM faithfully mirrored the few-shot pattern.
+- **Scope of fix (user chose FULL LATIN policy):**
+  - `src/personas/piyush.prompt.ts` — voiceRules (added explicit SCRIPT rule), selfVerificationChecklist clause 1, all 3 few-shots (Q2/Q4/Q5 sources retained with transliteration note), 4 `askBothCollabExamples`, `driftRefresh`, `capRefusalTemplate`, `quotaExhaustedTemplate`, 7 refusal templates, `selfIdentificationResponse`
+  - `src/personas/persona.registry.ts` — Piyush `greeting` + `inputPlaceholder`
+  - `src/personas/hitesh.prompt.ts` — `askBothCollabExamples` (Piyush-speaking + 2 anti-pattern examples)
+  - `src/personas/persona.registry.spec.ts` — snapshot tests for Piyush `selfIdentificationResponse` + `greeting` updated to new Latin values
+  - `src/config/regex-patterns.ts` — `PIYUSH_REGEX` rewritten to match Latin signature phrases (`dekho|yaar|baat samajh aayi|OK\?|Hey everyone|kuch nahi hai|theek hai`). **Critical:** without this, every Piyush response post-fix would register as `persona_regex_miss` per AD-19.
+  - `src/config/regex-patterns.spec.ts` — Piyush sample-match test string transliterated
+  - `src/config/product-copy.ts` — Piyush landing tagline transliterated
+  - `src/config/model-params.ts` — comment block transliterated for consistency
+- **Devanagari retained (intentional):** Piyush voice-rules "write X not Y" pedagogical block (lines 28-30 of `piyush.prompt.ts`) — teaches the model what NOT to emit; Devanagari is pedagogically necessary here.
+- **Drift from source docs:** Persona research §C.3 Q2/Q4/Q5 originals are preserved as-authored; the `// source:` comments now note "transliterated to Latin script for readability per mid-sprint fix; content preserved". Addendum §C.3 wording predates this fix — flag for post-submission update to `_bmad-output/planning-artifacts/prds/prd-gen-ai-persona-ai-2026-07-02/addendum.md`.
+- **Rationale:** (a) Persona Accuracy rubric (30 marks) — the observed pure-Hindi walls broke the "English written in Hinglish" register the voice rules promised. (b) User-facing readability — most graders can read Latin Hinglish; Devanagari walls are alienating. (c) Persona-differentiation preserved — Piyush still distinct from Hitesh via sentence rhythm (short, punchy), vocabulary (dekho vs Haanji, yaar in a different position), teaching approach (reductive→whiteboard→code), formatting (bullets/arrows). (d) Voice-rule intent already stated "English syntax + Hindi phonetics/transliteration" — this fix aligns implementation with stated intent.
+
 ## Blockers
 
-_(none yet)_
+_(none)_

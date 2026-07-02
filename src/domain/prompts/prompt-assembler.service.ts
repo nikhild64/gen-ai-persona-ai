@@ -19,6 +19,24 @@ import { estimateTokens } from '../context/token-estimator';
 import { assistantMessageCount } from '../context/turn-counting';
 
 /**
+ * Prepended to every solo / ask-both / keep-going system prompt so the
+ * model self-shapes to a chat-friendly length. Sits above the persona
+ * identity block on purpose — it's a hard constraint the persona voice
+ * must respect. The corresponding `maxOutputTokens` in
+ * `PERSONA_MODEL_PARAMS` is the safety ceiling; this directive is what
+ * actually shapes the response.
+ */
+const RESPONSE_LENGTH_DIRECTIVE = [
+  '# ---- RESPONSE LENGTH ----',
+  'Keep every answer short and chat-friendly:',
+  '  • Aim for 3-6 short sentences total, or a compact bullet list.',
+  '  • One brief analogy or code snippet is fine; skip long ones.',
+  '  • If the topic truly needs more depth, offer to expand instead of dumping it.',
+  '  • No wall-of-text explanations. No repeating the question back verbatim.',
+  '  • Preserve persona voice inside this length budget.',
+].join('\n');
+
+/**
  * AD-8 — the sole prompt composer. Every LLM call in Solo, Ask-Both, Rolling
  * Summary, and Drift Refresh flows funnels through here. Feature code never
  * hand-rolls prompt strings; ESLint from E0-S4 backs this up.
@@ -230,6 +248,11 @@ export class PromptAssembler {
     const p = PERSONA_REGISTRY[persona].prompt;
     const parts: string[] = [];
 
+    // Response-length directive first so it colours the whole persona block.
+    // Enforced above `maxOutputTokens` so the model self-shapes instead of
+    // getting truncated mid-sentence.
+    parts.push(RESPONSE_LENGTH_DIRECTIVE);
+    parts.push('\n---\n');
     parts.push(p.identityBlock);
     parts.push('\n---\n');
     parts.push(p.voiceRules);

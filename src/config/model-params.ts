@@ -14,21 +14,25 @@ export const PERSONA_MODEL_PARAMS: Record<PersonaId, PersonaModelParams> = {
     modelName: 'gemini-2.5-flash',
     temperature: 0.75,
     topP: 0.95,
-    maxOutputTokens: 1200,
+    // Trimmed from 1200 → 500. Chat-UX-first: users read short bursts, not
+    // essays. The prompt-assembler also injects a "keep it short" directive
+    // so the model self-limits before hitting this ceiling.
+    maxOutputTokens: 500,
     frequencyPenalty: 0.2,
     presencePenalty: 0.3,
   },
   /*
    * INTENTIONAL: Piyush's low frequency + presence penalty is a feature, not
-   * a bug. His repetition of `देखो`, `यार`, `OK?` is a signature-phrase
+   * a bug. His repetition of `dekho`, `yaar`, `OK?` is a signature-phrase
    * behaviour we want preserved — penalising it would flatten the persona.
+   * (Mid-sprint fix: transliterated from Devanagari to Latin for readability.)
    * Reference: Addendum §B.4.
    */
   piyush: {
     modelName: 'openai/gpt-oss-120b',
     temperature: 0.55,
     topP: 0.9,
-    maxOutputTokens: 1000,
+    maxOutputTokens: 500,
     frequencyPenalty: 0.05,
     presencePenalty: 0.1,
   },

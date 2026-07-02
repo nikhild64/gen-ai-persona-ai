@@ -8,7 +8,7 @@ describe('regex-patterns (AD-19)', () => {
   });
 
   it('matches a Piyush sample string', () => {
-    expect(PIYUSH_REGEX.test('देखो actually कुछ नहीं है यार')).toBe(true);
+    expect(PIYUSH_REGEX.test('Dekho actually kuch nahi hai yaar')).toBe(true);
   });
 
   it('misses a fully-English neutral sentence', () => {

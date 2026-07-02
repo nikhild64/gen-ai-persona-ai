@@ -5,7 +5,8 @@ import type { PersonaId } from '../types/persona';
 import type { StorageKey } from '../../config/storage-keys';
 import type { ProviderId } from '../../config/provider-registry';
 import { ASK_BOTH_SUMMARY_PROVIDER_ID } from '../../config/provider-registry';
-import { PERSONA_REGISTRY } from '../../personas/persona.registry';
+import { PersonaRoutingService } from '../key-vault/persona-routing.service';
+import { ModelSelectionService } from '../key-vault/model-selection.service';
 import {
   VERBATIM_TAIL_LENGTH,
   SUMMARY_REFRESH_CADENCE,
@@ -33,6 +34,8 @@ export class ContextManager {
   private readonly analytics = inject(ANALYTICS_PORT);
   private readonly assembler = inject(PromptAssembler);
   private readonly keyVault = inject(KeyVaultService);
+  private readonly personaRouting = inject(PersonaRoutingService);
+  private readonly modelSelection = inject(ModelSelectionService);
 
   async onTurnComplete(threadKey: StorageKey): Promise<void> {
     if (!FEATURE_ROLLING_SUMMARY) return;
@@ -62,11 +65,19 @@ export class ContextManager {
     const providerId: ProviderId =
       thread.scope === 'ask-both'
         ? ASK_BOTH_SUMMARY_PROVIDER_ID
-        : PERSONA_REGISTRY[persona].providerId;
+        : this.personaRouting.getProviderFor(persona);
     const key = this.keyVault.getKeyForProvider(providerId);
     if (!key) return;
 
-    const summaryPrompt = this.assembler.compose(persona, thread, 'summarize');
+    const composedSummary = this.assembler.compose(
+      persona,
+      thread,
+      'summarize',
+    );
+    const summaryPrompt = {
+      ...composedSummary,
+      model: this.modelSelection.getModelFor(providerId),
+    };
     const AdapterClass = getProviderAdapter(providerId);
     const adapter = new (AdapterClass as unknown as new () => ProviderPort)();
     const controller = new AbortController();

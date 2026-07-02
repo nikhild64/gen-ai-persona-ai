@@ -32,6 +32,7 @@ import {
 import { PromptAssembler } from '../prompts/prompt-assembler.service';
 import { KeyVaultService } from '../key-vault/key-vault.service';
 import { PersonaRoutingService } from '../key-vault/persona-routing.service';
+import { ModelSelectionService } from '../key-vault/model-selection.service';
 import { ContextManager } from '../context/context-manager.service';
 import type { ProviderId } from '../../config/provider-registry';
 import type {
@@ -87,6 +88,7 @@ export class ChatOrchestrator {
   private readonly assembler = inject(PromptAssembler);
   private readonly keyVault = inject(KeyVaultService);
   private readonly personaRouting = inject(PersonaRoutingService);
+  private readonly modelSelection = inject(ModelSelectionService);
   private readonly contextManager = inject(ContextManager);
   private readonly adapterFactory = inject(ADAPTER_FACTORY);
 
@@ -180,7 +182,7 @@ export class ChatOrchestrator {
     await this.storage.set(this.threadKeyFor(persona), thread);
 
     // Step 3 — compose prompt
-    const prompt = this.assembler.compose(persona, thread, 'solo');
+    const composed = this.assembler.compose(persona, thread, 'solo');
 
     // Step 4 — key lookup (respect user's persona → provider override)
     const providerId = this.personaRouting.getProviderFor(persona);
@@ -189,6 +191,16 @@ export class ChatOrchestrator {
       this.keyMissing$.next(persona);
       return;
     }
+
+    // Persona params carry a persona-tied default model that assumes the
+    // persona's default provider. Override with the user-selected model for
+    // this provider (falls back to PROVIDER_DEFAULT_MODELS when the user
+    // hasn't picked one) so cross-provider routing + model selection both
+    // work.
+    const prompt = {
+      ...composed,
+      model: this.modelSelection.getModelFor(providerId),
+    };
 
     // Step 5-7 — abort controller + stream
     const AdapterClass = this.adapterFactory(providerId);
@@ -369,7 +381,10 @@ export class ChatOrchestrator {
       thread.updatedAt = msg.timestamp;
       await this.storage.set(this.threadKeyFor(persona), thread);
       this.accumulatedText.set(msg.content);
-      this.retryAfterSec.set(chunk.meta?.retryAfterSec ?? null);
+      // Always publish a retry-after so the UI banner is visible; providers
+      // often omit the Retry-After header on 429 for free tiers. 30s is a
+      // reasonable default hold.
+      this.retryAfterSec.set(chunk.meta?.retryAfterSec ?? 30);
       this.analytics.emit({
         name: 'provider_429_surfaced',
         payload: {

@@ -7,6 +7,7 @@ import {
   model,
   output,
   signal,
+  untracked,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Dialog } from 'primeng/dialog';
@@ -17,6 +18,9 @@ import { Button } from 'primeng/button';
 import type { ProviderId } from '../../config/provider-registry';
 import { KeyVaultService } from '../../domain/key-vault/key-vault.service';
 import { PersonaRoutingService } from '../../domain/key-vault/persona-routing.service';
+import { ModelSelectionService } from '../../domain/key-vault/model-selection.service';
+import { ModelDiscoveryService } from '../../domain/key-vault/model-discovery.service';
+import { AVAILABLE_MODELS } from '../../config/available-models';
 import { ANALYTICS_PORT } from '../../domain/chat/di-tokens';
 import { PRODUCT_COPY } from '../../config/product-copy';
 import { modalDismissLabel } from '../../config/aria-labels';
@@ -54,7 +58,8 @@ type ProviderOption = { label: string; value: ProviderId };
       [modal]="true"
       [closable]="true"
       [dismissableMask]="false"
-      [style]="{ width: '560px' }"
+      [style]="{ width: '560px', 'max-height': '90vh' }"
+      [contentStyle]="{ 'max-height': '65vh', 'overflow-y': 'auto' }"
       (onHide)="onHide()"
     >
       <ng-template pTemplate="header">
@@ -139,6 +144,50 @@ type ProviderOption = { label: string; value: ProviderId };
         </div>
         <span class="hint">{{ slot.hint }}</span>
 
+        <div class="model-row">
+          <span class="model-lbl">Model</span>
+          <p-select
+            [options]="modelOptionsFor(slot.id)"
+            [ngModel]="selectedModel()[slot.id]"
+            (ngModelChange)="setModel(slot.id, $event)"
+            [ngModelOptions]="{ standalone: true }"
+            optionLabel="label"
+            optionValue="value"
+            appendTo="body"
+          ></p-select>
+          <button
+            type="button"
+            class="refresh-btn"
+            [attr.aria-label]="'Refresh ' + slot.label + ' model list'"
+            [disabled]="!isSaved(slot.id) || discoveryLoading(slot.id)"
+            [title]="
+              !isSaved(slot.id)
+                ? 'Save a key to fetch live models'
+                : 'Refresh model list from ' + slot.label
+            "
+            (click)="onRefreshModels(slot.id)"
+          >
+            <i
+              class="pi"
+              [class.pi-refresh]="!discoveryLoading(slot.id)"
+              [class.pi-spin]="discoveryLoading(slot.id)"
+              [class.pi-spinner]="discoveryLoading(slot.id)"
+              aria-hidden="true"
+            ></i>
+          </button>
+        </div>
+        <div class="hint-row">
+          @if (modelHintFor(slot.id); as h) {
+          <span class="hint">{{ h }}</span>
+          }
+          <span class="hint auto-saved">Auto-saved on change</span>
+        </div>
+        @if (discoveryError(slot.id); as err) {
+        <span class="hint error">Live fetch failed: {{ err }}. Showing bundled list.</span>
+        } @else if (isLive(slot.id)) {
+        <span class="hint live">Live from provider</span>
+        }
+
         <div class="slot-actions">
           <p-button
             [label]="clearLabel"
@@ -155,13 +204,15 @@ type ProviderOption = { label: string; value: ProviderId };
       </section>
       }
 
-      <div class="footer-actions">
-        <p-button label="Done" (onClick)="onDone()"></p-button>
-      </div>
+      <ng-template pTemplate="footer">
+        <div class="footer-actions">
+          <p-button label="Done" (onClick)="onDone()"></p-button>
+        </div>
+      </ng-template>
     </p-dialog>
 
     @if (justSaved()) {
-    <div class="toast" role="status">{{ savedToast }}</div>
+    <div class="toast" role="status">{{ toastMessage() }}</div>
     }
   `,
   styles: [
@@ -290,6 +341,63 @@ type ProviderOption = { label: string; value: ProviderId };
         font-size: 12px;
         margin-top: 0.35rem;
       }
+      .model-row {
+        display: grid;
+        grid-template-columns: 60px 1fr auto;
+        align-items: center;
+        gap: 0.6rem;
+        margin-top: 0.75rem;
+      }
+      .model-lbl {
+        font-size: 12px;
+        font-weight: 600;
+        color: #57534e;
+      }
+      .refresh-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 38px;
+        min-height: 38px;
+        background: transparent;
+        border: 1px solid rgba(0, 0, 0, 0.12);
+        border-radius: 6px;
+        cursor: pointer;
+        color: #57534e;
+        transition:
+          background 0.15s ease,
+          border-color 0.15s ease,
+          color 0.15s ease;
+      }
+      .refresh-btn:hover:not(:disabled) {
+        background: rgba(0, 0, 0, 0.04);
+        border-color: rgba(0, 0, 0, 0.2);
+        color: #292524;
+      }
+      .refresh-btn:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+      }
+      .refresh-btn .pi {
+        font-size: 14px;
+      }
+      .hint.error {
+        color: #b45309;
+      }
+      .hint.live {
+        color: #15803d;
+      }
+      .hint-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .hint.auto-saved {
+        color: #78716c;
+        font-style: italic;
+      }
       .slot-actions {
         display: flex;
         justify-content: flex-end;
@@ -299,9 +407,6 @@ type ProviderOption = { label: string; value: ProviderId };
       .footer-actions {
         display: flex;
         justify-content: flex-end;
-        margin-top: 1rem;
-        padding-top: 0.85rem;
-        border-top: 1px solid rgba(0, 0, 0, 0.06);
       }
       .lbl {
         font-weight: 600;
@@ -348,6 +453,8 @@ export class SettingsModalComponent {
 
   private readonly keyVault = inject(KeyVaultService);
   private readonly personaRouting = inject(PersonaRoutingService);
+  private readonly modelSelection = inject(ModelSelectionService);
+  private readonly modelDiscovery = inject(ModelDiscoveryService);
   private readonly analytics = inject(ANALYTICS_PORT);
 
   readonly title = PRODUCT_COPY.settingsTitle;
@@ -358,10 +465,12 @@ export class SettingsModalComponent {
   readonly modalDismissLabel = modalDismissLabel;
 
   readonly justSaved = signal(false);
+  readonly toastMessage = signal<string>(PRODUCT_COPY.keySavedToast);
   private savedDuringSession = false;
 
   readonly personas: PersonaId[] = ['hitesh', 'piyush'];
   readonly routing = this.personaRouting.routing;
+  readonly selectedModel = this.modelSelection.selection;
 
   readonly inputs = signal<Record<ProviderId, string>>({
     gemini: '',
@@ -390,12 +499,22 @@ export class SettingsModalComponent {
 
   constructor() {
     // Reset input drafts + reveal flags (but keep saved keys) whenever the
-    // modal opens so the field is fresh.
+    // modal opens so the field is fresh. Force-refresh live models on every
+    // open so the dropdowns never show stale entries — the static baseline
+    // renders instantly and the live list swaps in once the fetch resolves.
+    //
+    // CRITICAL: `refreshAll` synchronously reads _state inside the discovery
+    // service before its first await, and each successful fetch writes
+    // _state. Without `untracked`, those reads become effect deps and the
+    // subsequent writes retrigger the effect — an unbounded fetch loop.
     effect(() => {
       if (this.open()) {
         this.inputs.set({ gemini: '', groq: '' });
         this.revealed.set({ gemini: false, groq: false });
         this.savedDuringSession = false;
+        untracked(() => {
+          void this.modelDiscovery.refreshAll(true);
+        });
       }
     });
   }
@@ -422,6 +541,63 @@ export class SettingsModalComponent {
 
   setRoute(persona: PersonaId, provider: ProviderId): void {
     this.personaRouting.setProviderFor(persona, provider);
+    this.flashToast(
+      `${personaDisplayName(persona)} routed to ${provider === 'gemini' ? 'Gemini' : 'Groq'}`,
+    );
+  }
+
+  setModel(provider: ProviderId, modelId: string): void {
+    this.modelSelection.setModelFor(provider, modelId);
+    const label =
+      AVAILABLE_MODELS[provider].find((m) => m.id === modelId)?.label ??
+      modelId;
+    this.flashToast(`Model set to ${label}`);
+  }
+
+  private flashToast(message: string): void {
+    this.toastMessage.set(message);
+    this.justSaved.set(true);
+    setTimeout(() => this.justSaved.set(false), 1800);
+  }
+
+  onRefreshModels(provider: ProviderId): void {
+    void this.modelDiscovery.refresh(provider, /* force */ true);
+  }
+
+  discoveryLoading(provider: ProviderId): boolean {
+    return this.modelDiscovery.state()[provider].loading;
+  }
+
+  discoveryError(provider: ProviderId): string | null {
+    return this.modelDiscovery.state()[provider].error;
+  }
+
+  isLive(provider: ProviderId): boolean {
+    const live = this.modelDiscovery.state()[provider].models;
+    return live !== null && live.length > 0;
+  }
+
+  private modelsFor(provider: ProviderId) {
+    const live = this.modelDiscovery.state()[provider].models;
+    // Same guard as ModelDiscoveryService.getModelsFor — treat an empty
+    // live array as "fetch happened but nothing usable" and fall back to
+    // the curated static list rather than surfacing a blank dropdown.
+    return live && live.length > 0 ? live : AVAILABLE_MODELS[provider];
+  }
+
+  modelOptionsFor(
+    provider: ProviderId,
+  ): { label: string; value: string }[] {
+    return this.modelsFor(provider).map((m) => ({
+      label: m.label,
+      value: m.id,
+    }));
+  }
+
+  modelHintFor(provider: ProviderId): string | null {
+    const current = this.selectedModel()[provider];
+    return this.modelsFor(provider).find((m) => m.id === current)?.hint ??
+      null;
   }
 
   onSave(id: ProviderId): void {
@@ -433,8 +609,7 @@ export class SettingsModalComponent {
       payload: { provider: id },
     });
     this.setInput(id, '');
-    this.justSaved.set(true);
-    setTimeout(() => this.justSaved.set(false), 2000);
+    this.flashToast(PRODUCT_COPY.keySavedToast);
     this.savedDuringSession = true;
     // Notify the caller so a queued message can re-dispatch. We deliberately
     // do NOT close the dialog — user may want to configure the other key or

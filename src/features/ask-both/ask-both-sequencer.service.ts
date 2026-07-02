@@ -6,6 +6,7 @@ import {
   type Signal,
   type WritableSignal,
 } from '@angular/core';
+import { Subject } from 'rxjs';
 
 import type { PersonaId } from '../../domain/types/persona';
 import type {
@@ -24,6 +25,7 @@ import { PERSONA_REGISTRY, personaDisplayName } from '../../personas/persona.reg
 import { PromptAssembler } from '../../domain/prompts/prompt-assembler.service';
 import { KeyVaultService } from '../../domain/key-vault/key-vault.service';
 import { PersonaRoutingService } from '../../domain/key-vault/persona-routing.service';
+import { ModelSelectionService } from '../../domain/key-vault/model-selection.service';
 import { getProviderAdapter } from '../../infrastructure/providers/provider.registry';
 import {
   STORAGE_PORT,
@@ -45,6 +47,11 @@ export class AskBothSequencerService {
   readonly currentText: WritableSignal<string> = signal('');
   readonly bridgeAnnouncement: WritableSignal<string | null> = signal(null);
   readonly keepGoingUsed: WritableSignal<number> = signal(0);
+
+  /** Fires after every write to the ask-both thread in IDB so the component
+   *  can incrementally refresh its `messages()` signal instead of waiting
+   *  for the full `askBoth()` promise to resolve. */
+  readonly threadUpdated$: Subject<void> = new Subject<void>();
 
   readonly canKeepGoing: Signal<boolean> = computed(
     () =>
@@ -77,6 +84,7 @@ export class AskBothSequencerService {
   private readonly assembler = inject(PromptAssembler);
   private readonly keyVault = inject(KeyVaultService);
   private readonly personaRouting = inject(PersonaRoutingService);
+  private readonly modelSelection = inject(ModelSelectionService);
   private controller: AbortController | null = null;
   private lastUserMessage: string | null = null;
 
@@ -109,6 +117,7 @@ export class AskBothSequencerService {
     thread.messages.push(userMsg);
     thread.updatedAt = userMsg.timestamp;
     await this.storage.set('chat:ask-both:v1', thread);
+    this.threadUpdated$.next();
     this.lastUserMessage = userText;
     this.keepGoingUsed.set(0);
     this.bridgeAnnouncement.set(null);
@@ -173,6 +182,8 @@ export class AskBothSequencerService {
       if (refreshed) {
         thread = refreshed;
         this.bridgeAnnouncement.set(PRODUCT_COPY.askBothBridgeAnnouncement);
+        await this.pause(700);
+        this.bridgeAnnouncement.set(null);
         await this.streamPersona(
           'piyush',
           thread,
@@ -205,14 +216,17 @@ export class AskBothSequencerService {
     );
     if (hiteshResult.errored) return; // FR-27: Persona A error blocks Persona B
 
-    // AD-20 bridge announcement (E9-S3): announce the transition to Piyush.
+    // AD-20 bridge announcement + brief visual pause so the eye can settle
+    // on Hitesh's completed message before Piyush's typing bubble appears.
     this.bridgeAnnouncement.set(PRODUCT_COPY.askBothBridgeAnnouncement);
+    await this.pause(700);
 
     // Persona B — Piyush (invoked even on Hitesh in-character refusal).
     const systemNote = ASK_BOTH_SYSTEM_NOTE_TEMPLATE(
       personaDisplayName('hitesh'),
       hiteshResult.text,
     );
+    this.bridgeAnnouncement.set(null);
     await this.streamPersona('piyush', thread, 'ask-both-b', systemNote);
   }
 
@@ -248,7 +262,15 @@ export class AskBothSequencerService {
       AdapterClass as unknown as new () => ProviderPort
     )();
 
-    const prompt = this.assembler.compose(persona, thread, mode, { systemNote });
+    const composed = this.assembler.compose(persona, thread, mode, {
+      systemNote,
+    });
+    // See ChatOrchestrator: pick the user-selected model for this provider
+    // (falls back to PROVIDER_DEFAULT_MODELS when the user hasn't chosen).
+    const prompt = {
+      ...composed,
+      model: this.modelSelection.getModelFor(providerId),
+    };
     let accumulated = '';
     let errored = false;
     let doneChunk: ChatChunk | null = null;
@@ -299,10 +321,22 @@ export class AskBothSequencerService {
       thread.messages.push(msg);
       thread.updatedAt = msg.timestamp;
       await this.storage.set('chat:ask-both:v1', thread);
+      // Notify listeners so the UI can promote the persisted message into
+      // its messages() list before the next persona's stream begins — avoids
+      // the "message jumped in" feel where multiple bubbles appeared at end.
+      this.threadUpdated$.next();
+      // Blank the live streaming bubble so it doesn't briefly show the
+      // just-finished text alongside its now-persisted twin.
+      this.currentText.set('');
       return { text: finalText, errored: false };
     }
 
     return { text: accumulated, errored };
+  }
+
+  /** Small pacing delay + bridge visible so the eye can rest between voices. */
+  private async pause(ms: number): Promise<void> {
+    await new Promise<void>((resolve) => setTimeout(resolve, ms));
   }
 
   private pickRefusalTemplate(

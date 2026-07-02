@@ -69,8 +69,8 @@ export const PERSONA_REGISTRY: Record<PersonaId, PersonaRegistryEntry> = {
     prompt: piyushPromptComposition,
     // Addendum §D.2 (byte-identical, snapshot-tested):
     greeting:
-      'Hey everyone, welcome back. Welcome back to another exciting chat. देखो, kya haal? कुछ बनाना है? कोई concept clear नहीं है? या system design का doubt? Type करो — एक काम करते हैं.',
-    inputPlaceholder: 'देखो, kya doubt hai? Type karo...',
+      'Hey everyone, welcome back. Welcome back to another exciting chat. Dekho, kya haal? Kuch banana hai? Koi concept clear nahi hai? Ya system design ka doubt? Type karo — ek kaam karte hain.',
+    inputPlaceholder: 'Dekho, kya doubt hai? Type karo...',
     providerId: PROVIDER_DEFAULT_ROUTING.piyush,
   },
 };

@@ -15,7 +15,7 @@ describe('PERSONA_REGISTRY (AD-17)', () => {
 
   it('has Piyush greeting BYTE-IDENTICAL to Addendum §D.2', () => {
     expect(PERSONA_REGISTRY.piyush.greeting).toBe(
-      'Hey everyone, welcome back. Welcome back to another exciting chat. देखो, kya haal? कुछ बनाना है? कोई concept clear नहीं है? या system design का doubt? Type करो — एक काम करते हैं.',
+      'Hey everyone, welcome back. Welcome back to another exciting chat. Dekho, kya haal? Kuch banana hai? Koi concept clear nahi hai? Ya system design ka doubt? Type karo — ek kaam karte hain.',
     );
   });
 
@@ -27,7 +27,7 @@ describe('PERSONA_REGISTRY (AD-17)', () => {
 
   it('has Piyush self-identification response BYTE-IDENTICAL to Addendum §C.3', () => {
     expect(PERSONA_REGISTRY.piyush.prompt.selfIdentificationResponse).toBe(
-      'देखो actually मैं एक AI हूं जो Piyush की style copy करता है — this is a ChaiCode cohort project. Real Piyush के channel पे जाओ.',
+      'Dekho actually main ek AI hun jo Piyush ki style copy karta hai — this is a ChaiCode cohort project. Real Piyush ke channel pe jao.',
     );
   });
 

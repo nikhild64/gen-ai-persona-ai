@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import type { Message, Thread } from '../../domain/types/message';
 import { STORAGE_PORT } from '../../domain/chat/di-tokens';
@@ -51,7 +52,10 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
       <header class="banner">
         <h2>{{ bannerLabel }}</h2>
         <div class="banner-slots">
-          <app-key-status-badge (clicked)="openSettings()" />
+          <app-key-status-badge
+            [askBoth]="true"
+            (clicked)="openSettings()"
+          />
           <app-mode-switcher
             activeMode="ask-both"
             [disabled]="sequencer.inFlight()"
@@ -273,6 +277,15 @@ export class AskBothComponent implements OnDestroy {
     this.renderer.setAttribute(this.document.body, 'data-mode', 'ask-both');
     void this.loadThread();
 
+    // Incremental refresh: sequencer fires threadUpdated$ after every write
+    // (user message, Hitesh's completion, Piyush's completion, keep-going
+    // completions). Reload immediately so each persona's message settles
+    // into the list as soon as it's persisted instead of all appearing at
+    // the end.
+    this.sequencer.threadUpdated$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => void this.reloadThread());
+
     // Auto-scroll to bottom on new messages / streaming updates. rAF defers
     // the scroll until after Angular flushes the DOM update.
     effect(() => {
@@ -300,6 +313,19 @@ export class AskBothComponent implements OnDestroy {
   onSend(): void {
     const text = this.draft().trim();
     if (!text || this.sequencer.inFlight()) return;
+    // Optimistic local push so the user's own message lands immediately —
+    // sequencer's own storage-write will fire threadUpdated$ shortly after
+    // and reconcile with the authoritative persisted version (matching id
+    // isn't required; reloadThread replaces the whole list).
+    this.messages.update((m) => [
+      ...m,
+      {
+        id: this.uuid(),
+        role: 'user',
+        content: text,
+        timestamp: Date.now(),
+      },
+    ]);
     this.draft.set('');
     this.sequencer
       .askBoth(text)
@@ -338,5 +364,11 @@ export class AskBothComponent implements OnDestroy {
   private async reloadThread(): Promise<void> {
     const t = await this.storage.get<Thread>('chat:ask-both:v1');
     if (t) this.messages.set([...t.messages]);
+  }
+
+  private uuid(): string {
+    return typeof crypto !== 'undefined' && 'randomUUID' in crypto
+      ? crypto.randomUUID()
+      : Math.random().toString(36).slice(2);
   }
 }
