@@ -1,0 +1,73 @@
+# See https://docs.github.com/get-started/getting-started-with-git/ignoring-files for more about ignoring files.
+
+# =============================================================================
+# Angular / Node build output
+# =============================================================================
+/dist
+/tmp
+/out-tsc
+/bazel-out
+/node_modules
+/.angular/cache
+.sass-cache/
+/connect.lock
+/coverage
+/libpeerconnection.log
+testem.log
+/typings
+__screenshots__/
+
+# =============================================================================
+# Package manager lockfiles — Bun ONLY per user directive
+# =============================================================================
+# Track bun.lockb (Bun is our canonical package manager)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+npm-debug.log
+yarn-error.log
+
+# =============================================================================
+# Vercel
+# =============================================================================
+.vercel/
+.env
+.env.*.local
+.env.local
+
+# =============================================================================
+# IDEs and editors
+# =============================================================================
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+
+# Visual Studio Code
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/mcp.json
+.history/*
+
+# =============================================================================
+# System files
+# =============================================================================
+.DS_Store
+Thumbs.db
+
+# =============================================================================
+# BMad tooling internals — do NOT track scaffolding tools
+# =============================================================================
+_bmad/
+.agents/
+
+# BMad output — planning artifacts are historical reference (kept out of repo)
+# but IMPLEMENTATION artifacts (sprint-status, stories, dev-decisions) are
+# tracked because they ARE the working sprint plan.
+_bmad-output/planning-artifacts/

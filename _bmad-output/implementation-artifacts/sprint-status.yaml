@@ -1,0 +1,514 @@
+# generated: 2026-07-02
+# last_updated: 2026-07-02 (story contexts batch-created 2026-07-02 — 37/37 ready-for-dev)
+# project: gen-ai-persona-ai
+# project_key: NOKEY
+# tracking_system: file-system
+# story_location: _bmad-output/implementation-artifacts/stories
+#
+# SPRINT METADATA
+# ===============
+# sprint_name: Sprint 1 — Chai Code Personas Full-Project Sprint
+# sprint_number: 1
+# sprint_start: 2026-07-02
+# sprint_end_target: 2026-07-08  (7 solo-dev days; earliest submission 2026-07-07 EOD if pace holds)
+# developer: Nikhildhawan (solo)
+# total_stories: 37  (36 regular + 1 Spike gate)
+# epics_in_scope: 13  (Epic 0 through Epic 12 including Epic 0.5 Spike gate)
+# story_sizing: 1 solo-dev-day per story  (per handoff-epics.md sizing hint)
+# adoption:
+#   - critical_path: adopted VERBATIM from stories/index.md (37-story execution order)
+#   - day_by_day: adopted VERBATIM from sprint-plan-hint.md (7 days + optional buffer)
+#   - scope_cut_order: adopted VERBATIM from sprint-plan-hint.md §"Buffer day" (3 candidates)
+# critical_path_epics: "0 → 0.5 (gate) → 2 → 3 → 4 → 1 → 5 → 6 → 7 → 8 → 9 → 10 → 11 → 12"
+# note: Epic 7 is omitted from epics.md line-18 critical_path string (documentation gap flagged
+#       in implementation-readiness-report §Gaps); stories/index.md correctly places E7-S1/E7-S2
+#       at positions 23-24 between E6-S3 and E8-S1. This file uses the stories/index.md order.
+#
+# STATUS DEFINITIONS
+# ==================
+# Epic Status:
+#   - backlog: Epic not yet started
+#   - in-progress: Epic actively being worked on
+#   - done: All stories in epic completed
+#
+# Epic Status Transitions:
+#   - backlog → in-progress: Automatically when first story is created (via create-story)
+#   - in-progress → done: Manually when all stories reach 'done' status
+#
+# Story Status:
+#   - backlog: Story only exists in epic file
+#   - ready-for-dev: Story file created in stories folder
+#   - in-progress: Developer actively working on implementation
+#   - review: Ready for code review (via Dev's code-review workflow)
+#   - done: Story completed
+#
+# Retrospective Status:
+#   - optional: Can be completed but not required
+#   - done: Retrospective has been completed
+#
+# Action Item Status:
+#   - open: Committed during a retrospective, not yet addressed
+#   - in-progress: Actively being worked on
+#   - done: Completed
+#
+# WORKFLOW NOTES
+# ==============
+# - Epic transitions to 'in-progress' automatically when first story is created
+# - Stories can be worked in parallel if team capacity allows (single-dev sprint = mostly sequential)
+# - Developer typically creates next story after previous one is 'done' to incorporate learnings
+# - Dev moves story to 'review', then runs code-review (fresh context, different LLM recommended)
+# - Retrospective appends its action items to action_items; sprint-status surfaces open ones
+# - Epic 0.5 (Spike) is a BLOCKING GATE on Epic 2 — must resolve pass/fail on Day 1 morning
+# - Scope-cut candidates (see scope_cut_priority below) are pre-approved cut order if timeline slips
+#
+# DEPENDENCY CONVENTION
+# =====================
+# dependency_chain[key].blocked_by lists upstream stories that MUST reach 'done' (or 'review'
+# for pipeline-parallel work) before this story can start. Epic-level dependencies from each
+# epic file's frontmatter are decomposed to the story granularity used here.
+
+generated: 2026-07-02
+last_updated: 2026-07-02  # autonomous dev run: E0-S1 in-progress
+project: gen-ai-persona-ai
+project_key: NOKEY
+tracking_system: file-system
+story_location: _bmad-output/implementation-artifacts/stories
+
+sprint_metadata:
+  sprint_name: Sprint 1 — Chai Code Personas Full-Project Sprint
+  sprint_number: 1
+  sprint_start: 2026-07-02
+  sprint_end_target: 2026-07-08
+  earliest_submission_target: 2026-07-07
+  developer: Nikhildhawan
+  developer_capacity: 1 solo developer, ~5-7 days total
+  total_stories: 37
+  epics_in_scope: 13
+  story_sizing: 1 solo-dev-day per story
+  submission_timeline: yes  (entire project shipped in Sprint 1)
+  critical_path_source: stories/index.md (37-story execution order)
+  day_by_day_source: sprint-plan-hint.md (7-day sequencing)
+  spike_gate: E0.5-S1 blocks Epic 2 (Day 1 morning, 30-min timebox, 45-min halt-and-decide rule)
+
+development_status:
+  # All 37 stories batch-contexted 2026-07-02. Every story file lives at
+  # _bmad-output/implementation-artifacts/stories/<story_key>.md.
+  # Epic statuses transition backlog → in-progress on first dev work per convention.
+
+  # --- Day 1 morning: BLOCKING SPIKE GATE (30-min timebox) ---
+  epic-0-5: backlog
+  e0-5-s1-spike-zero-gemini-cors: ready-for-dev
+  epic-0-5-retrospective: optional
+
+  # --- Day 1 rest: Foundation (positions 1-4 in critical path) ---
+  epic-0: in-progress
+  e0-s1-scaffold-angular-primeng: done
+  e0-s2-port-interfaces-domain-types: ready-for-dev
+  e0-s3-config-constants-and-registries: ready-for-dev
+  e0-s4-eslint-stylelint-and-tests: ready-for-dev
+  epic-0-retrospective: optional
+
+  # --- Day 2: Persona-Faithful Chat Engine (Solo) — positions 6-9 ---
+  epic-2: backlog
+  e2-s1-provider-adapters-and-registry: ready-for-dev
+  e2-s2-prompt-assembler-solo: ready-for-dev
+  e2-s3-chat-orchestrator-abort-regex: ready-for-dev
+  e2-s4-chat-component-and-shared-ui: ready-for-dev
+  epic-2-retrospective: optional
+
+  # --- Day 3 morning: Chat History — positions 10-11 ---
+  epic-3: backlog
+  e3-s1-idb-storage-adapter: ready-for-dev
+  e3-s2-start-new-session-modal: ready-for-dev
+  epic-3-retrospective: optional
+
+  # --- Day 3 afternoon: Persona Switcher — positions 12-14 ---
+  epic-4: backlog
+  e4-s1-persona-switcher-and-routing: ready-for-dev
+  e4-s2-persona-theming-transition: ready-for-dev
+  e4-s3-in-flight-disable-stall-cancel: ready-for-dev
+  epic-4-retrospective: optional
+
+  # --- Day 4 morning: Landing & Persona Selection — positions 15-16 ---
+  # NOTE: Epic 1 is intentionally deferred past Epic 4 per handoff-epics.md
+  #       "landing can slip until later; critical path hits /chat/hitesh directly"
+  epic-1: backlog
+  e1-s1-landing-with-persona-cards: ready-for-dev
+  e1-s2-app-footer-shared: ready-for-dev
+  epic-1-retrospective: optional
+
+  # --- Day 4 afternoon: Long-Conversation Memory — positions 17-19 ---
+  epic-5: backlog
+  e5-s1-verbatim-tail-and-counters: ready-for-dev
+  e5-s2-rolling-summary-hybrid-trigger: ready-for-dev
+  e5-s3-drift-refresh-block-injection: ready-for-dev
+  epic-5-retrospective: optional
+
+  # --- Day 5 morning: BYO-Key Mode — positions 20-22 ---
+  epic-6: backlog
+  e6-s1-key-vault-and-redaction-registry: ready-for-dev
+  e6-s2-settings-modal-with-key-input: ready-for-dev
+  e6-s3-auto-open-and-key-status-badge: ready-for-dev
+  epic-6-retrospective: optional
+
+  # --- Day 5 afternoon: Client-Side Guardrails — positions 23-24 ---
+  epic-7: backlog
+  e7-s1-max-turn-cap-refusal: ready-for-dev
+  e7-s2-provider-429-in-character-surfacing: ready-for-dev
+  epic-7-retrospective: optional
+
+  # --- Day 5 evening: In-Character Safety & Refusals — positions 25-26 ---
+  epic-8: backlog
+  e8-s1-refusal-rules-and-snapshot-test: ready-for-dev
+  e8-s2-heuristic-moderation-adapter: ready-for-dev
+  epic-8-retrospective: optional
+
+  # --- Day 6: Ask-Both Mode — positions 27-30 (second biggest epic) ---
+  epic-9: backlog
+  e9-s1-mode-switcher-and-joint-greeting: ready-for-dev
+  e9-s2-ask-both-sequencer-sequential: ready-for-dev
+  e9-s3-ask-both-ui-and-keep-going: ready-for-dev
+  e9-s4-parallel-mode-and-aria-bridge: ready-for-dev       # SCOPE-CUT CANDIDATE #1
+  epic-9-retrospective: optional
+
+  # --- Day 7 morning: Feature Flags & Kill-Switches — position 31 ---
+  epic-10: backlog
+  e10-s1-feature-flag-consumption: ready-for-dev
+  epic-10-retrospective: optional
+
+  # --- Day 7 midday+afternoon: Eval Infrastructure & Golden Set — positions 32-34 ---
+  epic-11: backlog
+  e11-s1-golden-set-rubric-and-runner: ready-for-dev
+  e11-s2-drift-curve-attribution-ask-both-slice: ready-for-dev  # PARTIAL SCOPE-CUT CANDIDATE #2 (blind-attribution portion only)
+  e11-s3-performance-budget-headless-check: ready-for-dev
+  epic-11-retrospective: optional
+
+  # --- Day 7 evening: Submission Deliverables — positions 35-37 ---
+  epic-12: backlog
+  e12-s1-readme-license-and-core-docs: ready-for-dev
+  e12-s2-persona-prompt-context-docs: ready-for-dev
+  e12-s3-sample-conversations-evaluation-deploy: ready-for-dev  # PARTIAL SCOPE-CUT CANDIDATE #3 (live-captures portion only)
+  epic-12-retrospective: optional
+
+# =============================================================================
+# DEPENDENCY CHAIN
+# =============================================================================
+# For each story, which upstream stories MUST reach 'done' before this can start.
+# Format: story_key: [upstream_keys...]
+# Sourced from each epic file's frontmatter `depends_on` + story-level dep-notes.
+# Empty list ([]) means no upstream story dependency (can start Day 1).
+
+dependency_chain:
+  # Epic 0.5 Spike (blocking gate)
+  e0-5-s1-spike-zero-gemini-cors:
+    blocked_by: [e0-s1-scaffold-angular-primeng]  # needs package.json + npm install working
+    blocks: [e2-s1-provider-adapters-and-registry]  # BLOCKING GATE — outcome decides Hitesh provider wiring
+    critical_path_position: 5
+    day: "Day 1 morning"
+    timebox_minutes: 30
+    halt_at_minutes: 45
+
+  # Epic 0 Foundation
+  e0-s1-scaffold-angular-primeng:
+    blocked_by: []
+    blocks: [e0-s2-port-interfaces-domain-types, e0-5-s1-spike-zero-gemini-cors, e12-s1-readme-license-and-core-docs]
+    critical_path_position: 1
+    day: "Day 1"
+  e0-s2-port-interfaces-domain-types:
+    blocked_by: [e0-s1-scaffold-angular-primeng]
+    blocks: [e0-s3-config-constants-and-registries, e2-s1-provider-adapters-and-registry, e2-s2-prompt-assembler-solo, e3-s1-idb-storage-adapter, e8-s2-heuristic-moderation-adapter]
+    critical_path_position: 2
+    day: "Day 1"
+  e0-s3-config-constants-and-registries:
+    blocked_by: [e0-s2-port-interfaces-domain-types]
+    blocks: [e0-s4-eslint-stylelint-and-tests, e2-s1-provider-adapters-and-registry, e2-s2-prompt-assembler-solo, e2-s4-chat-component-and-shared-ui, e3-s1-idb-storage-adapter, e4-s1-persona-switcher-and-routing, e4-s2-persona-theming-transition, e5-s1-verbatim-tail-and-counters, e6-s1-key-vault-and-redaction-registry, e6-s2-settings-modal-with-key-input, e8-s1-refusal-rules-and-snapshot-test, e9-s1-mode-switcher-and-joint-greeting, e10-s1-feature-flag-consumption, e11-s1-golden-set-rubric-and-runner, e1-s1-landing-with-persona-cards, e1-s2-app-footer-shared, e12-s2-persona-prompt-context-docs]
+    critical_path_position: 3
+    day: "Day 1"
+  e0-s4-eslint-stylelint-and-tests:
+    blocked_by: [e0-s3-config-constants-and-registries]
+    blocks: [e2-s1-provider-adapters-and-registry, e2-s2-prompt-assembler-solo, e4-s2-persona-theming-transition]
+    critical_path_position: 4
+    day: "Day 1"
+
+  # Epic 2 Chat Engine (Solo)
+  e2-s1-provider-adapters-and-registry:
+    blocked_by: [e0-s3-config-constants-and-registries, e0-s4-eslint-stylelint-and-tests, e0-5-s1-spike-zero-gemini-cors]
+    blocks: [e2-s3-chat-orchestrator-abort-regex, e7-s2-provider-429-in-character-surfacing, e9-s2-ask-both-sequencer-sequential, e11-s1-golden-set-rubric-and-runner]
+    critical_path_position: 6
+    day: "Day 2"
+  e2-s2-prompt-assembler-solo:
+    blocked_by: [e0-s3-config-constants-and-registries, e0-s4-eslint-stylelint-and-tests]
+    blocks: [e2-s3-chat-orchestrator-abort-regex, e5-s3-drift-refresh-block-injection, e9-s2-ask-both-sequencer-sequential, e12-s2-persona-prompt-context-docs]
+    critical_path_position: 7
+    day: "Day 2"
+  e2-s3-chat-orchestrator-abort-regex:
+    blocked_by: [e2-s1-provider-adapters-and-registry, e2-s2-prompt-assembler-solo]
+    blocks: [e2-s4-chat-component-and-shared-ui, e4-s3-in-flight-disable-stall-cancel, e5-s1-verbatim-tail-and-counters, e6-s1-key-vault-and-redaction-registry, e6-s3-auto-open-and-key-status-badge, e7-s1-max-turn-cap-refusal, e7-s2-provider-429-in-character-surfacing, e8-s2-heuristic-moderation-adapter, e9-s2-ask-both-sequencer-sequential]
+    critical_path_position: 8
+    day: "Day 2"
+  e2-s4-chat-component-and-shared-ui:
+    blocked_by: [e2-s3-chat-orchestrator-abort-regex, e0-s3-config-constants-and-registries]
+    blocks: [e3-s1-idb-storage-adapter, e4-s1-persona-switcher-and-routing]
+    critical_path_position: 9
+    day: "Day 2"
+
+  # Epic 3 Chat History
+  e3-s1-idb-storage-adapter:
+    blocked_by: [e0-s2-port-interfaces-domain-types, e0-s3-config-constants-and-registries, e2-s4-chat-component-and-shared-ui]
+    blocks: [e3-s2-start-new-session-modal, e4-s1-persona-switcher-and-routing, e5-s2-rolling-summary-hybrid-trigger, e9-s1-mode-switcher-and-joint-greeting]
+    critical_path_position: 10
+    day: "Day 3 morning"
+  e3-s2-start-new-session-modal:
+    blocked_by: [e3-s1-idb-storage-adapter]
+    blocks: []
+    critical_path_position: 11
+    day: "Day 3 morning"
+
+  # Epic 4 Persona Switcher
+  e4-s1-persona-switcher-and-routing:
+    blocked_by: [e0-s3-config-constants-and-registries, e2-s4-chat-component-and-shared-ui, e3-s1-idb-storage-adapter]
+    blocks: [e4-s2-persona-theming-transition, e4-s3-in-flight-disable-stall-cancel, e1-s1-landing-with-persona-cards, e9-s1-mode-switcher-and-joint-greeting]
+    critical_path_position: 12
+    day: "Day 3 afternoon"
+  e4-s2-persona-theming-transition:
+    blocked_by: [e4-s1-persona-switcher-and-routing, e0-s3-config-constants-and-registries, e0-s4-eslint-stylelint-and-tests]
+    blocks: [e1-s1-landing-with-persona-cards, e9-s3-ask-both-ui-and-keep-going]
+    critical_path_position: 13
+    day: "Day 3 afternoon"
+  e4-s3-in-flight-disable-stall-cancel:
+    blocked_by: [e4-s1-persona-switcher-and-routing, e2-s3-chat-orchestrator-abort-regex]
+    blocks: []
+    critical_path_position: 14
+    day: "Day 3 afternoon"
+
+  # Epic 1 Landing
+  e1-s1-landing-with-persona-cards:
+    blocked_by: [e0-s3-config-constants-and-registries, e4-s2-persona-theming-transition]
+    blocks: []
+    critical_path_position: 15
+    day: "Day 4 morning"
+  e1-s2-app-footer-shared:
+    blocked_by: [e0-s3-config-constants-and-registries]
+    blocks: []
+    critical_path_position: 16
+    day: "Day 4 morning"
+
+  # Epic 5 Long-Conversation Memory
+  e5-s1-verbatim-tail-and-counters:
+    blocked_by: [e0-s3-config-constants-and-registries, e2-s3-chat-orchestrator-abort-regex]
+    blocks: [e5-s2-rolling-summary-hybrid-trigger, e5-s3-drift-refresh-block-injection, e7-s1-max-turn-cap-refusal]
+    critical_path_position: 17
+    day: "Day 4 afternoon"
+  e5-s2-rolling-summary-hybrid-trigger:
+    blocked_by: [e5-s1-verbatim-tail-and-counters, e3-s1-idb-storage-adapter]
+    blocks: [e9-s2-ask-both-sequencer-sequential, e10-s1-feature-flag-consumption, e11-s2-drift-curve-attribution-ask-both-slice]
+    critical_path_position: 18
+    day: "Day 4 afternoon"
+  e5-s3-drift-refresh-block-injection:
+    blocked_by: [e5-s1-verbatim-tail-and-counters, e2-s2-prompt-assembler-solo]
+    blocks: [e11-s2-drift-curve-attribution-ask-both-slice, e12-s2-persona-prompt-context-docs]
+    critical_path_position: 19
+    day: "Day 4 afternoon"
+
+  # Epic 6 BYO-Key Mode
+  e6-s1-key-vault-and-redaction-registry:
+    blocked_by: [e0-s3-config-constants-and-registries, e2-s3-chat-orchestrator-abort-regex]
+    blocks: [e6-s2-settings-modal-with-key-input]
+    critical_path_position: 20
+    day: "Day 5 morning"
+  e6-s2-settings-modal-with-key-input:
+    blocked_by: [e6-s1-key-vault-and-redaction-registry, e0-s3-config-constants-and-registries]
+    blocks: [e6-s3-auto-open-and-key-status-badge, e10-s1-feature-flag-consumption]
+    critical_path_position: 21
+    day: "Day 5 morning"
+  e6-s3-auto-open-and-key-status-badge:
+    blocked_by: [e6-s2-settings-modal-with-key-input, e2-s3-chat-orchestrator-abort-regex]
+    blocks: []
+    critical_path_position: 22
+    day: "Day 5 morning"
+
+  # Epic 7 Client-Side Guardrails
+  e7-s1-max-turn-cap-refusal:
+    blocked_by: [e5-s1-verbatim-tail-and-counters, e2-s3-chat-orchestrator-abort-regex]
+    blocks: []
+    critical_path_position: 23
+    day: "Day 5 afternoon"
+  e7-s2-provider-429-in-character-surfacing:
+    blocked_by: [e2-s1-provider-adapters-and-registry, e2-s3-chat-orchestrator-abort-regex]
+    blocks: []
+    critical_path_position: 24
+    day: "Day 5 afternoon"
+
+  # Epic 8 In-Character Safety & Refusals
+  e8-s1-refusal-rules-and-snapshot-test:
+    blocked_by: [e0-s3-config-constants-and-registries]
+    blocks: []
+    critical_path_position: 25
+    day: "Day 5 evening"
+  e8-s2-heuristic-moderation-adapter:
+    blocked_by: [e0-s2-port-interfaces-domain-types, e2-s3-chat-orchestrator-abort-regex]
+    blocks: [e9-s2-ask-both-sequencer-sequential, e10-s1-feature-flag-consumption]
+    critical_path_position: 26
+    day: "Day 5 evening"
+
+  # Epic 9 Ask-Both Mode
+  e9-s1-mode-switcher-and-joint-greeting:
+    blocked_by: [e0-s3-config-constants-and-registries, e4-s1-persona-switcher-and-routing, e3-s1-idb-storage-adapter]
+    blocks: [e9-s2-ask-both-sequencer-sequential, e10-s1-feature-flag-consumption]
+    critical_path_position: 27
+    day: "Day 6"
+  e9-s2-ask-both-sequencer-sequential:
+    blocked_by: [e9-s1-mode-switcher-and-joint-greeting, e2-s1-provider-adapters-and-registry, e2-s2-prompt-assembler-solo, e2-s3-chat-orchestrator-abort-regex, e5-s2-rolling-summary-hybrid-trigger, e8-s2-heuristic-moderation-adapter]
+    blocks: [e9-s3-ask-both-ui-and-keep-going, e10-s1-feature-flag-consumption]
+    critical_path_position: 28
+    day: "Day 6"
+  e9-s3-ask-both-ui-and-keep-going:
+    blocked_by: [e9-s2-ask-both-sequencer-sequential, e4-s2-persona-theming-transition]
+    blocks: [e9-s4-parallel-mode-and-aria-bridge, e11-s2-drift-curve-attribution-ask-both-slice]
+    critical_path_position: 29
+    day: "Day 6"
+  e9-s4-parallel-mode-and-aria-bridge:
+    blocked_by: [e9-s3-ask-both-ui-and-keep-going]
+    blocks: [e10-s1-feature-flag-consumption]
+    critical_path_position: 30
+    day: "Day 6"
+    scope_cut_priority: 1  # FIRST CUT — Sequential works standalone
+
+  # Epic 10 Feature Flags
+  e10-s1-feature-flag-consumption:
+    blocked_by: [e0-s3-config-constants-and-registries, e5-s2-rolling-summary-hybrid-trigger, e6-s2-settings-modal-with-key-input, e8-s2-heuristic-moderation-adapter, e9-s1-mode-switcher-and-joint-greeting, e9-s2-ask-both-sequencer-sequential, e9-s4-parallel-mode-and-aria-bridge]
+    blocks: []
+    critical_path_position: 31
+    day: "Day 7 morning"
+
+  # Epic 11 Eval Infrastructure & Golden Set
+  e11-s1-golden-set-rubric-and-runner:
+    blocked_by: [e0-s3-config-constants-and-registries, e2-s1-provider-adapters-and-registry]
+    blocks: [e11-s2-drift-curve-attribution-ask-both-slice, e11-s3-performance-budget-headless-check, e12-s3-sample-conversations-evaluation-deploy]
+    critical_path_position: 32
+    day: "Day 7 midday"
+  e11-s2-drift-curve-attribution-ask-both-slice:
+    blocked_by: [e11-s1-golden-set-rubric-and-runner, e5-s3-drift-refresh-block-injection, e9-s3-ask-both-ui-and-keep-going]
+    blocks: [e12-s3-sample-conversations-evaluation-deploy]
+    critical_path_position: 33
+    day: "Day 7 afternoon"
+    scope_cut_priority: 2  # PARTIAL — cut blind-attribution setup; drift-curve + Ask-Both slice STAY
+  e11-s3-performance-budget-headless-check:
+    blocked_by: [e11-s1-golden-set-rubric-and-runner]
+    blocks: [e12-s3-sample-conversations-evaluation-deploy]
+    critical_path_position: 34
+    day: "Day 7 afternoon"
+
+  # Epic 12 Submission Deliverables
+  e12-s1-readme-license-and-core-docs:
+    blocked_by: [e0-s1-scaffold-angular-primeng]  # repo must exist; otherwise parallelizable with E11
+    blocks: [e12-s3-sample-conversations-evaluation-deploy]
+    critical_path_position: 35
+    day: "Day 7 evening"
+  e12-s2-persona-prompt-context-docs:
+    blocked_by: [e0-s3-config-constants-and-registries, e2-s2-prompt-assembler-solo, e5-s3-drift-refresh-block-injection]
+    blocks: [e12-s3-sample-conversations-evaluation-deploy]
+    critical_path_position: 36
+    day: "Day 7 evening"
+  e12-s3-sample-conversations-evaluation-deploy:
+    blocked_by: [e11-s1-golden-set-rubric-and-runner, e11-s2-drift-curve-attribution-ask-both-slice, e11-s3-performance-budget-headless-check, e12-s1-readme-license-and-core-docs, e12-s2-persona-prompt-context-docs]
+    blocks: []
+    critical_path_position: 37
+    day: "Day 7 evening"
+    scope_cut_priority: 3  # PARTIAL — cut live-captures portion; stub with research §C.3 verbatim few-shots + pending note
+
+# =============================================================================
+# SCOPE-CUT PRIORITY ORDER
+# =============================================================================
+# Pre-approved cut order if the 7-day timeline slips. Cut in this exact sequence.
+# Sourced verbatim from sprint-plan-hint.md §"Buffer day". Do NOT cut anything
+# marked never_cut without explicit re-planning.
+
+scope_cut_priority:
+  - order: 1
+    story: e9-s4-parallel-mode-and-aria-bridge
+    story_id: E9-S4
+    scope: full
+    rationale: "Sequential Ask-Both works standalone. Parallel is a Plan-B flag branch (FR-31) that Sequential does not depend on. If Sequential feels shaky at demo, flip FEATURE_ASK_BOTH_MODE=false separately per sprint-plan-hint.md line 98."
+    trade_off: "Loses FR-31 (Parallel-mode fallback) + Ask-Both aria-announcer bridge announcement per AD-20. Log the cut in .memlog.md."
+    when_to_trigger: "If Day 6 slips past midnight."
+
+  - order: 2
+    story: e11-s2-drift-curve-attribution-ask-both-slice
+    story_id: E11-S2
+    scope: partial
+    keep: [drift-curve script, Ask-Both slice script]
+    cut: [blind-attribution setup document + evaluator recruit form]
+    rationale: "Golden-Set eval (E11-S1) + drift-curve + Ask-Both slice cover the rubric-visible SM-1/SM-2/SM-7 targets. Blind attribution is a Persona Accuracy triangulation — nice-to-have per PRD §8.C but not rubric-critical."
+    trade_off: "Notes missing dimension in EVALUATION.md. SM-1 still measurable via Golden Set."
+    when_to_trigger: "If Day 7 midday + afternoon runs long."
+
+  - order: 3
+    story: e12-s3-sample-conversations-evaluation-deploy
+    story_id: E12-S3
+    scope: partial
+    keep: [EVALUATION.md grader crib sheet, Vercel deploy verification, docs/sample-conversations.md stubs pointing to research §C.3 verbatim few-shots]
+    cut: [live-captured multi-turn conversations per persona, live-captured Ask-Both exchange]
+    rationale: "Verbatim few-shots from research §C.3 (already in the repo per E12-S2) demonstrate persona fidelity. Live captures add narrative color but grader can chat live via deployed URL to verify."
+    trade_off: "docs/sample-conversations.md includes a 'live-captures pending' note. Grader picks up the slack by chatting on the live site."
+    when_to_trigger: "If Day 7 evening runs past midnight and submission deadline is 2026-07-08 midnight."
+
+never_cut:
+  - epic-0
+  - e0-s1-scaffold-angular-primeng
+  - e0-s2-port-interfaces-domain-types
+  - e0-s3-config-constants-and-registries
+  - e0-s4-eslint-stylelint-and-tests
+  - reason_epic_0: "Cuts break ESLint boundary enforcement — cascading cross-cutting refactors later."
+  - epic-2
+  - e2-s1-provider-adapters-and-registry
+  - e2-s2-prompt-assembler-solo
+  - e2-s3-chat-orchestrator-abort-regex
+  - e2-s4-chat-component-and-shared-ui
+  - reason_epic_2: "No product without the chat engine end-to-end path."
+  - epic-6
+  - e6-s1-key-vault-and-redaction-registry
+  - e6-s2-settings-modal-with-key-input
+  - e6-s3-auto-open-and-key-status-badge
+  - reason_epic_6: "No chat without BYO-Key entry. AD-11 realizes superseded FR-17."
+  - e12-s1-readme-license-and-core-docs
+  - reason_e12_s1: "SM-5 rubric-required: README + LICENSE + docs/creator-permissions.md. Binary yes/no on submission."
+
+# =============================================================================
+# DEFERRED READINESS GAPS (from implementation-readiness-report §Gaps)
+# =============================================================================
+# Six minor observations from readiness check. Gaps #1 and #3 are ~10-minute
+# doc edits before Epic 0 starts. Gaps #2, #4, #5, #6 are addressed inline at
+# dev-story time. None blocks Epic 0.
+
+deferred_readiness_gaps:
+  gap_1_story_count_doc_nit:
+    scope: "epics.md line 43 + line 218 report 35 stories; actual is 37 (matches stories/index.md)"
+    recommended_action: "Patch epics.md story-count strings pre-Epic-0 (~10-min edit)"
+    blocks_sprint: false
+  gap_2_promptmode_enum_phrasing:
+    scope: "E5-S2 and E9-S2 story text conflates 'enum arm declared' (Epic 0) vs 'assembler case handled' (Epic 5/9)"
+    recommended_action: "Address inline when creating E5-S2 and E9-S2 story files via bmad-create-story"
+    blocks_sprint: false
+  gap_3_few_shots_population_ac:
+    scope: "6 verbatim few-shots from research §C.3 aren't explicitly assigned as an AC to E2-S2 or E8-S1"
+    recommended_action: "Add one AC line to E2-S2 pre-Epic-0 OR address inline at dev-story time via PRD FR-5 compliance"
+    blocks_sprint: false
+  gap_4_promptcomposition_incremental_growth:
+    scope: "PromptComposition type grows across E0-S3, E5-S3, E7-S1, E7-S2, E8-S1, E8-S2 — 5+ separate touches on persona.registry.ts"
+    recommended_action: "Address inline; optionally refactor E0-S3 to declare full shape upfront with empty placeholders"
+    blocks_sprint: false
+  gap_5_ui_story_cross_cutting_ac_flexibility:
+    scope: "E4-S2, E4-S3, E9-S3, E9-S4 selectively include AD-20/21/22 per cross-cutting-AC-checklist.md §Format flexibility clause"
+    recommended_action: "Architecturally endorsed. Rely on developer to consult cross-cutting-AC-checklist.md during each UI story."
+    blocks_sprint: false
+  gap_6_sm_3_evaluation_checklist:
+    scope: "E12-S3 EVALUATION.md SM-3(a)(b) verification steps could be more prescriptive (5-line grader-reproducible checklist)"
+    recommended_action: "Address inline when creating E12-S3 story file"
+    blocks_sprint: false
+
+# =============================================================================
+# ACTION ITEMS (from retrospectives — empty at sprint start)
+# =============================================================================
+
+action_items: []
