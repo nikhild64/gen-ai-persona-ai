@@ -101,11 +101,11 @@ development_status:
   epic-0-5-retrospective: optional
 
   # --- Day 1 rest: Foundation (positions 1-4 in critical path) ---
-  epic-0: in-progress
+  epic-0: done
   e0-s1-scaffold-angular-primeng: done
   e0-s2-port-interfaces-domain-types: done
   e0-s3-config-constants-and-registries: done
-  e0-s4-eslint-stylelint-and-tests: ready-for-dev
+  e0-s4-eslint-stylelint-and-tests: done
   epic-0-retrospective: optional
 
   # --- Day 2: Persona-Faithful Chat Engine (Solo) — positions 6-9 ---

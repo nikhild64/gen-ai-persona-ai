@@ -1,0 +1,20 @@
+{
+  "extends": ["stylelint-config-standard-scss"],
+  "rules": {
+    "custom-property-pattern": [
+      "^persona-(accent|bubble-bg|avatar-url|code-block-emphasis|input-placeholder-style)$",
+      {
+        "message": "AD-17: persona CSS custom properties must be one of the 5 THEME_VARS in src/config/theme-vars.ts."
+      }
+    ],
+    "no-empty-source": null,
+    "scss/at-import-partial-extension": null,
+    "at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["use", "forward", "mixin", "include", "if", "else", "each", "for", "while", "function", "return", "extend"]
+      }
+    ]
+  },
+  "ignoreFiles": ["dist/**", "node_modules/**", ".angular/**"]
+}

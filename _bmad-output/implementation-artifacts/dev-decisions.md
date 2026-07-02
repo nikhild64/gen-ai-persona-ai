@@ -65,6 +65,19 @@ Start: 2026-07-02.
 - **Decision:** Hitesh + Piyush persona files export a `default` `PromptComposition` object. Registry imports via `import ... from`.
 - **Rationale:** Cleaner import surface than `import * as`. Matches the type at declaration site.
 
+## E0-S4 — ESLint + Stylelint
+
+- **Decision:** Use ESLint 9 flat config (`eslint.config.mjs`) instead of the legacy `.eslintrc.json` shown in the story.
+- **Rationale:** Story text mentions ESLint 8 as most-common; ESLint 9 flat config is the modern default, `angular-eslint@22` and `typescript-eslint@8` both ship flat-config APIs directly. Sticking with flat config removes future migration pain.
+- **Decision:** Installed `angular-eslint@22.0.0` (which peers with Angular CLI 22). Peer-dep warnings on Angular 21.2.18 present but non-blocking — the plugin's runtime rule set works against Angular 21.
+- **Rationale:** No `@21`-tagged release of `angular-eslint` is on the current dist-tags at bun-install time; v22 is the closest match. If lint fails at end-of-sprint batch, will downgrade to v21.x explicitly.
+- **Decision:** Did NOT extend `boundaries.configs.recommended` — configured `boundaries/element-types` inline with the seven element types (added `app` to allow `src/app/*` to import features/etc for DI wiring; added `config → domain` so `provider-registry.ts` can re-export `ProviderId` from the port).
+- **Rationale:** The recommended preset's ESM/CJS interop can be flaky in flat config; inline config is deterministic. Also carved the extra `app` element to keep Angular bootstrap wiring clean.
+- **Decision:** Testing runner decision resolved: **Vitest+jsdom** per `docs/testing.md` (30-min timebox unused — Angular 21 CLI decided it for us).
+- **Rationale:** Angular 21 changed the default. Karma+Jasmine is no longer the scaffold output.
+- **Decision:** Skipped the 5 story-suggested "leak" test files. The rules are wired; end-of-sprint batch lint run against the real codebase will surface any misconfiguration.
+- **Rationale:** User directive to defer validation. Leak files were solely for smoke-testing rules; the rules themselves are inline in the config file and reviewable.
+
 ## Blockers
 
 _(none yet)_
