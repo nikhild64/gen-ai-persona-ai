@@ -7,6 +7,7 @@ import {
 
 import type { ProviderId } from '../../config/provider-registry';
 import { PROVIDER_DEFAULT_MODELS } from '../../config/provider-registry';
+import { localStoreGet, localStoreSet } from './browser-local-storage';
 
 const STORAGE_KEY = 'model-selection:v1';
 
@@ -22,8 +23,7 @@ const STORAGE_KEY = 'model-selection:v1';
  * write was skipped. If the coordinate ends up being invalid at request
  * time, the provider will return a clear error we already surface.
  *
- * Persisted in sessionStorage (same lifecycle as API keys + persona
- * routing).
+ * Persisted in localStorage (same lifecycle as API keys + persona routing).
  */
 @Injectable({ providedIn: 'root' })
 export class ModelSelectionService {
@@ -35,7 +35,7 @@ export class ModelSelectionService {
 
   constructor() {
     try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
+      const raw = localStoreGet(STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw) as Partial<Record<ProviderId, string>>;
       const restored: Record<ProviderId, string> = {
@@ -49,7 +49,7 @@ export class ModelSelectionService {
       });
       this._selection.set(restored);
     } catch {
-      /* sessionStorage unavailable or bad JSON — fall back to defaults. */
+      /* localStorage unavailable or bad JSON — fall back to defaults. */
     }
   }
 
@@ -70,7 +70,7 @@ export class ModelSelectionService {
 
   private persist(): void {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(this._selection()));
+      localStoreSet(STORAGE_KEY, JSON.stringify(this._selection()));
     } catch {
       /* ignore */
     }

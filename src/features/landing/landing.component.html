@@ -1,25 +1,51 @@
 <section class="hero">
+
   <h1>{{ heroTitle }}</h1>
+
   <p class="sub">{{ heroSubheader }}</p>
+
 </section>
 
-@for (group of groups; track group.title) {
-<section class="category" [attr.aria-label]="group.title">
-  <h2 class="category-title">{{ group.title }}</h2>
-  <div class="cards">
-    @for (p of group.personas; track p) {
-    <app-persona-card [persona]="p" />
-    }
-  </div>
-</section>
-}
 
-@if (askBothEnabled) {
-<section class="ask-both-section" aria-label="Ask Both blended mode">
-  <app-ask-both-card />
+
+<section class="persona-grid" aria-label="Choose an advisor">
+
+  @for (p of personas; track p) {
+
+  <app-persona-card [persona]="p" />
+
+  }
+
+  @if (askBothEnabled) {
+
+  <app-ask-both-card (blendRequested)="openPicker()" />
+
+  }
+
 </section>
-}
+
+
+
+<app-persona-picker-dialog
+
+  [(open)]="pickerOpen"
+
+  mode="unified"
+
+  [initialPair]="{ a: blendedPair.personaA(), b: blendedPair.personaB() }"
+
+  (personaPicked)="onPersonaPicked($event)"
+
+  (pairConfirmed)="onBlendPairConfirmed($event)"
+
+/>
+
+
 
 <section class="disclaimer-band" role="note">
+
   <p>{{ disclaimerBand }}</p>
+
 </section>
+
+

@@ -8,12 +8,13 @@ import {
 import type { PersonaId } from '../types/persona';
 import type { ProviderId } from '../../config/provider-registry';
 import { PROVIDER_DEFAULT_ROUTING } from '../../config/provider-registry';
+import { localStoreGet, localStoreSet } from './browser-local-storage';
 
 const STORAGE_KEY = 'persona-routing:v1';
 
 /**
- * User-configurable persona → provider mapping. Persisted to sessionStorage
- * (same lifecycle as saved API keys — clears on tab close).
+ * User-configurable persona → provider mapping. Persisted to localStorage
+ * (same lifecycle as saved API keys).
  *
  * The `PROVIDER_DEFAULT_ROUTING` values from `provider-registry.ts` remain
  * the source-of-truth defaults; this service just lets the user override
@@ -31,7 +32,7 @@ export class PersonaRoutingService {
 
   constructor() {
     try {
-      const raw = sessionStorage.getItem(STORAGE_KEY);
+      const raw = localStoreGet(STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw) as Partial<
         Record<PersonaId, ProviderId>
@@ -41,7 +42,7 @@ export class PersonaRoutingService {
         ...parsed,
       });
     } catch {
-      /* sessionStorage unavailable or bad JSON — fall back to defaults. */
+      /* localStorage unavailable or bad JSON — fall back to defaults. */
     }
   }
 
@@ -61,7 +62,7 @@ export class PersonaRoutingService {
 
   private persist(): void {
     try {
-      sessionStorage.setItem(STORAGE_KEY, JSON.stringify(this._routing()));
+      localStoreSet(STORAGE_KEY, JSON.stringify(this._routing()));
     } catch {
       /* ignore */
     }

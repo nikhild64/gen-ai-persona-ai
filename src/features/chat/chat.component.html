@@ -1,99 +1,223 @@
 <section
+
   class="chat-shell"
+
   [attr.data-persona]="activePersona()"
+
 >
+
   <header class="chat-header">
-    <div class="persona-id">
+
+    <button
+
+      type="button"
+
+      class="persona-id"
+
+      [attr.aria-label]="personaSwitcherAriaLabel()"
+
+      [attr.title]="orchestrator.inFlightStream() ? switcherDisabledTooltip() : null"
+
+      [disabled]="orchestrator.inFlightStream()"
+
+      (click)="openPersonaPicker()"
+
+    >
+
       <img
+
         class="avatar"
+
         [src]="'/images/' + activePersona() + '.png'"
+
         [alt]="personaName() + ' avatar'"
+
         width="40"
+
         height="40"
+
       />
+
       <div class="persona-meta">
+
         <h1>{{ personaName() }}</h1>
+
         <p class="tagline">{{ personaTagline() }}</p>
+
       </div>
-    </div>
+
+      <span class="chevron" aria-hidden="true">▾</span>
+
+    </button>
+
     <div class="header-slots">
-      <app-persona-switcher
-        [activePersona]="activePersona()"
-        [disabled]="orchestrator.inFlightStream()"
-      />
+
       <app-key-status-badge
+
         [persona]="activePersona()"
+
         (clicked)="openSettings()"
+
       />
+
       <app-mode-switcher
+
         activeMode="solo"
+
         [disabled]="orchestrator.inFlightStream()"
+
       />
+
     </div>
+
   </header>
 
+
+
   <aside class="chat-disclaimer" role="note" aria-live="polite">
+
     {{ chatDisclaimer() }}
+
   </aside>
 
-  <app-settings-modal
-    [(open)]="settingsOpen"
-    [(autoOpenMode)]="settingsAutoOpen"
-    (closedWithSave)="onSettingsSaved()"
-    (closedWithoutSave)="onSettingsDismissed()"
+
+
+  <app-persona-picker-dialog
+
+    [(open)]="personaPickerOpen"
+
+    mode="single"
+
+    [activePersona]="activePersona()"
+
+    [disabled]="orchestrator.inFlightStream()"
+
+    (personaPicked)="onPersonaPicked($event)"
+
   />
 
+
+
+  <app-settings-modal
+
+    [(open)]="settingsOpen"
+
+    [(autoOpenMode)]="settingsAutoOpen"
+
+    (closedWithSave)="onSettingsSaved()"
+
+    (closedWithoutSave)="onSettingsDismissed()"
+
+  />
+
+
+
   <div class="message-list" #messageList>
+
     @for (msg of messages(); track msg.id) {
+
     <app-message-bubble [message]="msg" />
+
     } @if (streamingBubble(); as streaming) {
+
     <app-message-bubble [message]="streaming" />
+
     } @if (showStreamingIndicator()) {
+
     <app-streaming-indicator
+
       [label]="streamingLabel()"
+
       [stalled]="orchestrator.streamStalled()"
+
       (cancelClicked)="onCancel()"
+
     />
+
     }
+
   </div>
 
+
+
   <form class="input-area" (ngSubmit)="onSend()">
+
     <textarea
+
       #inputEl
+
       rows="2"
+
       [attr.aria-label]="inputAriaLabel()"
+
       [placeholder]="inputPlaceholder()"
+
       [disabled]="inputDisabled()"
+
       [(ngModel)]="draft"
+
       name="draft"
+
       (keydown)="onKeyDown($event)"
+
     ></textarea>
+
     @if (orchestrator.capReached()) {
+
     <p class="cap-hint">{{ capReachedHint }}</p>
+
     } @if (retryHint(); as hint) {
+
     <div class="retry-hint" role="alert">
+
       <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+
       <span>{{ hint }}</span>
+
     </div>
+
     }
+
     <div class="input-controls">
+
       @if (orchestrator.inFlightStream()) {
+
       <button type="button" class="cancel-btn" (click)="onCancel()">
+
         Cancel
+
       </button>
+
       } @else {
+
       <button
+
         type="submit"
+
         class="send-btn"
+
         [attr.aria-label]="sendAriaLabel"
+
         [disabled]="!draft().trim() || inputDisabled()"
+
       >
+
         Send
+
       </button>
+
       } @if (streamStalledMessage()) {
+
       <span class="stall-hint">{{ streamStalledMessage() }}</span>
+
       }
+
       <app-settings-menu-entry class="menu-entry-slot" />
+
     </div>
+
   </form>
+
 </section>
+
+

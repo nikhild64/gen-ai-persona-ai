@@ -17,7 +17,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 
 import { ChatOrchestrator } from '../../domain/chat/chat-orchestrator.service';
-import { STORAGE_PORT } from '../../domain/chat/di-tokens';
+import { STORAGE_PORT, ANALYTICS_PORT } from '../../domain/chat/di-tokens';
 import type { PersonaId } from '../../domain/types/persona';
 import { isPersonaId } from '../../domain/types/persona';
 import type { Message, Thread } from '../../domain/types/message';
@@ -31,6 +31,7 @@ import { PRODUCT_COPY } from '../../config/product-copy';
 import { personaChatDisclaimer } from '../../config/persona-disclaimers';
 import {
   chatInputLabel,
+  personaSwitcherLabel,
   sendButtonLabel,
 } from '../../config/aria-labels';
 
@@ -38,11 +39,12 @@ import { MessageBubbleComponent } from '../../shared/message-bubble/message-bubb
 import { StreamingIndicatorComponent } from '../../shared/streaming-indicator/streaming-indicator.component';
 import { AriaAnnouncerService } from '../../shared/aria-announcer/aria-announcer.component';
 import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.component';
-import { PersonaSwitcherComponent } from '../persona-switcher/persona-switcher.component';
+import { PersonaPickerDialogComponent } from '../persona-picker/persona-picker-dialog.component';
 import { SettingsModalComponent } from '../settings/settings-modal.component';
 import { KeyStatusBadgeComponent } from '../settings/key-status-badge.component';
 import { ModeSwitcherComponent } from '../mode-switcher/mode-switcher.component';
 import { Router } from '@angular/router';
+import { localStoreGet, localStoreSet } from '../../domain/key-vault/browser-local-storage';
 
 /**
  * Solo-mode chat surface. `activePersona` is currently hard-wired via route
@@ -58,7 +60,7 @@ import { Router } from '@angular/router';
     MessageBubbleComponent,
     StreamingIndicatorComponent,
     SettingsMenuEntryComponent,
-    PersonaSwitcherComponent,
+    PersonaPickerDialogComponent,
     SettingsModalComponent,
     KeyStatusBadgeComponent,
     ModeSwitcherComponent,
@@ -73,12 +75,14 @@ export class ChatComponent {
   private readonly storage = inject(STORAGE_PORT);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly analytics = inject(ANALYTICS_PORT);
   private readonly destroyRef = inject(DestroyRef);
   private readonly renderer = inject(Renderer2);
   private readonly document = inject(DOCUMENT);
 
   readonly settingsOpen = signal(false);
   readonly settingsAutoOpen = signal(false);
+  readonly personaPickerOpen = signal(false);
   private queuedText: string | null = null;
 
   readonly sendAriaLabel = sendButtonLabel;
@@ -101,11 +105,17 @@ export class ChatComponent {
 
   @ViewChild('messageList') messageListEl?: ElementRef<HTMLDivElement>;
 
-  readonly activePersona = signal<PersonaId>('hitesh');
+  readonly activePersona = signal<PersonaId>('musk');
 
   readonly personaName = computed(() => personaDisplayName(this.activePersona()));
   readonly personaTagline = computed(
     () => PERSONA_REGISTRY[this.activePersona()].tagline,
+  );
+  readonly personaSwitcherAriaLabel = computed(() =>
+    personaSwitcherLabel(this.activePersona()),
+  );
+  readonly switcherDisabledTooltip = computed(() =>
+    PRODUCT_COPY.switcherDisabledDuringStream(this.personaName()),
   );
 
   readonly chatDisclaimer = computed(() =>
@@ -160,7 +170,7 @@ export class ChatComponent {
       .subscribe((params) => {
         const slug = params.get('persona');
         const persona: PersonaId =
-          slug && isPersonaId(slug) ? slug : 'hitesh';
+          slug && isPersonaId(slug) ? slug : 'musk';
         if (persona !== this.activePersona()) {
           this.orchestrator.cancelInFlight();
         }
@@ -244,16 +254,26 @@ export class ChatComponent {
     // when the user comes back from Ask-Both.
     effect(() => {
       const persona = this.activePersona();
-      try {
-        sessionStorage.setItem('last-active-solo', persona);
-      } catch {
-        /* ignore */
-      }
+      localStoreSet('last-active-solo', persona);
     });
   }
 
   openSettings(): void {
     this.settingsOpen.set(true);
+  }
+
+  openPersonaPicker(): void {
+    if (this.orchestrator.inFlightStream()) return;
+    this.personaPickerOpen.set(true);
+  }
+
+  onPersonaPicked(target: PersonaId): void {
+    if (target === this.activePersona()) return;
+    this.analytics.emit({
+      name: 'persona_switched',
+      payload: { from: this.activePersona(), to: target },
+    });
+    void this.router.navigate(['/chat', target]);
   }
 
   onSettingsSaved(): void {

@@ -120,10 +120,10 @@ export default tseslint.config(
       // ── AD-6, AD-11: browser-persistence APIs whitelisted per file ──────
       'no-restricted-globals': [
         'error',
-        { name: 'localStorage', message: 'Use StoragePort or KeyVaultService.' },
+        { name: 'localStorage', message: 'Use browser-local-storage helpers (AD-11).' },
         {
           name: 'sessionStorage',
-          message: 'sessionStorage is only allowed inside KeyVaultService (AD-11).',
+          message: 'Use browser-local-storage helpers (AD-11). Legacy migration only.',
         },
         { name: 'caches', message: 'Use StoragePort.' },
         { name: 'indexedDB', message: 'Use StoragePort (IdbKeyvalStorageAdapter).' },
@@ -206,16 +206,16 @@ export default tseslint.config(
   },
 
   // ─── Storage-adapter exemption (AD-6): file that IS the port impl ────
-  //     plus the last-active-solo persona tracker in chat/mode surfaces
-  //     which persists a non-sensitive UI hint in sessionStorage.
+  //     plus settings/key-vault services that persist via browser-local-storage.
   {
     files: [
+      'src/domain/key-vault/browser-local-storage.ts',
       'src/infrastructure/storage/idb-keyval.adapter.ts',
       'src/domain/key-vault/key-vault.service.ts',
       'src/features/chat/chat.component.ts',
       'src/features/mode-switcher/mode-switcher.component.ts',
-      'src/features/ask-both/ask-both-mode.service.ts', // post-sprint: persists Ask-Both variant preference (AD-11 semantics)
-      'src/features/ask-both/blended-pair.service.ts', // V2: persists Blended pair selection (AD-11 semantics)
+      'src/features/ask-both/ask-both-mode.service.ts',
+      'src/features/ask-both/blended-pair.service.ts',
       'src/domain/key-vault/model-discovery.service.ts',
       'src/domain/key-vault/model-selection.service.ts',
       'src/domain/key-vault/persona-routing.service.ts',

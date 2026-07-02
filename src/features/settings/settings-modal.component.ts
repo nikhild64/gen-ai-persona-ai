@@ -82,6 +82,7 @@ export class SettingsModalComponent {
   readonly personas: PersonaId[] = [...PERSONA_IDS];
   readonly routing = this.personaRouting.routing;
   readonly selectedModel = this.modelSelection.selection;
+  readonly discoveryState = this.modelDiscovery.state;
 
   readonly inputs = signal<Record<ProviderId, string>>({
     gemini: '',
@@ -176,20 +177,20 @@ export class SettingsModalComponent {
   }
 
   discoveryLoading(provider: ProviderId): boolean {
-    return this.modelDiscovery.state()[provider].loading;
+    return this.discoveryState()[provider].loading;
   }
 
   discoveryError(provider: ProviderId): string | null {
-    return this.modelDiscovery.state()[provider].error;
+    return this.discoveryState()[provider].error;
   }
 
   isLive(provider: ProviderId): boolean {
-    const live = this.modelDiscovery.state()[provider].models;
+    const live = this.discoveryState()[provider].models;
     return live !== null && live.length > 0;
   }
 
   private modelsFor(provider: ProviderId) {
-    const live = this.modelDiscovery.state()[provider].models;
+    const live = this.discoveryState()[provider].models;
     // Same guard as ModelDiscoveryService.getModelsFor — treat an empty
     // live array as "fetch happened but nothing usable" and fall back to
     // the curated static list rather than surfacing a blank dropdown.
@@ -222,6 +223,7 @@ export class SettingsModalComponent {
     this.setInput(id, '');
     this.flashToast(PRODUCT_COPY.keySavedToast);
     this.savedDuringSession = true;
+    void this.modelDiscovery.refresh(id, true);
     // Notify the caller so a queued message can re-dispatch. We deliberately
     // do NOT close the dialog — user may want to configure the other key or
     // change routing.
@@ -231,6 +233,7 @@ export class SettingsModalComponent {
 
   onClear(id: ProviderId): void {
     this.keyVault.clearKey(id);
+    this.modelDiscovery.clear(id);
   }
 
   onDone(): void {

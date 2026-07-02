@@ -28,8 +28,6 @@ export const NEWTON_REGEX =
   /shoulders of giants|principia|force|motion|natural philosophy/i;
 
 export const PERSONA_REGEX: Record<PersonaId, RegExp> = {
-  hitesh: HITESH_REGEX,
-  piyush: PIYUSH_REGEX,
   musk: MUSK_REGEX,
   jobs: JOBS_REGEX,
   gandhi: GANDHI_REGEX,
@@ -50,4 +48,4 @@ export const hasBlendedSignature = (
 
 /** @deprecated Use hasBlendedSignature(text, a, b). Kept for Hitesh+Piyush default pair. */
 export const hasBlendedSignatureLegacy = (text: string): boolean =>
-  hasBlendedSignature(text, 'hitesh', 'piyush');
+  hasBlendedSignature(text, 'musk', 'jobs');

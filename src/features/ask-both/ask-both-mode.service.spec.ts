@@ -8,10 +8,13 @@ const STORAGE_KEY = 'settings:ask-both-mode:v1';
 describe('AskBothModeService (blended-only Ask-Both)', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
+    localStorage.clear();
     sessionStorage.clear();
+    TestBed.configureTestingModule({});
   });
 
   afterEach(() => {
+    localStorage.clear();
     sessionStorage.clear();
   });
 
@@ -21,22 +24,31 @@ describe('AskBothModeService (blended-only Ask-Both)', () => {
     expect(svc.mode()).toBe('blended');
   });
 
-  it('persists user selection to sessionStorage under the closed StorageKey', () => {
+  it('persists user selection to localStorage under the closed StorageKey', () => {
     const svc = TestBed.inject(AskBothModeService);
-    // Default is already blended — pick a different stored value to exercise persist().
     svc.set('sequential');
     expect(svc.get()).toBe('sequential');
-    expect(sessionStorage.getItem(STORAGE_KEY)).toBe('sequential');
+    expect(localStorage.getItem(STORAGE_KEY)).toBe('sequential');
   });
 
-  it('primes state from sessionStorage on construction (survives reload)', () => {
-    sessionStorage.setItem(STORAGE_KEY, 'blended');
+  it('primes state from localStorage on construction (survives reload)', () => {
+    localStorage.setItem(STORAGE_KEY, 'blended');
     const svc = TestBed.inject(AskBothModeService);
     expect(svc.get()).toBe('blended');
   });
 
-  it('ignores invalid sessionStorage payload and falls back to blended default', () => {
-    sessionStorage.setItem(STORAGE_KEY, 'gibberish');
+  it('migrates legacy sessionStorage value on first read', () => {
+    sessionStorage.setItem(STORAGE_KEY, 'parallel');
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({});
+    const svc = TestBed.inject(AskBothModeService);
+    expect(svc.get()).toBe('parallel');
+    expect(localStorage.getItem(STORAGE_KEY)).toBe('parallel');
+    expect(sessionStorage.getItem(STORAGE_KEY)).toBe(null);
+  });
+
+  it('ignores invalid localStorage payload and falls back to blended default', () => {
+    localStorage.setItem(STORAGE_KEY, 'gibberish');
     const svc = TestBed.inject(AskBothModeService);
     expect(svc.get()).toBe('blended');
   });
@@ -44,8 +56,8 @@ describe('AskBothModeService (blended-only Ask-Both)', () => {
   it('no-ops when setting the currently active mode (avoids redundant writes)', () => {
     const svc = TestBed.inject(AskBothModeService);
     expect(svc.get()).toBe('blended');
-    sessionStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(STORAGE_KEY);
     svc.set('blended');
-    expect(sessionStorage.getItem(STORAGE_KEY)).toBe(null);
+    expect(localStorage.getItem(STORAGE_KEY)).toBe(null);
   });
 });

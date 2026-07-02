@@ -1,0 +1,89 @@
+<p-dialog
+  [(visible)]="open"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="true"
+  [style]="{ width: 'min(720px, 96vw)' }"
+  [contentStyle]="{ 'max-height': '75vh', 'overflow-y': 'auto' }"
+  (onHide)="onHide()"
+>
+  <ng-template pTemplate="header">
+    <div class="picker-header">
+      <h2>{{ title() }}</h2>
+      <p class="subtitle">{{ subtitle() }}</p>
+    </div>
+  </ng-template>
+
+  <div
+    class="persona-grid"
+    role="listbox"
+    [attr.aria-label]="title()"
+    [attr.aria-multiselectable]="mode() === 'unified'"
+  >
+    @for (p of personas; track p) {
+    <button
+      type="button"
+      class="persona-tile"
+      role="option"
+      [attr.data-persona]="p"
+      [class.selected]="mode() === 'unified' && isSelected(p)"
+      [class.active]="mode() === 'single' && activePersona() === p"
+      [attr.aria-selected]="mode() === 'unified' ? isSelected(p) : activePersona() === p"
+      [disabled]="disabled()"
+      (click)="onTileClick(p)"
+    >
+      @if (mode() === 'unified' && isSelected(p)) {
+      <span class="slot-badge" aria-hidden="true">
+        {{ selectionIndex(p) === 0 ? '1' : '2' }}
+      </span>
+      }
+      <img
+        class="avatar"
+        [src]="'/images/' + p + '.png'"
+        alt=""
+        width="80"
+        height="80"
+      />
+      <span class="name">{{ fullName(p) }}</span>
+      <span class="tagline">{{ tagline(p) }}</span>
+    </button>
+    }
+  </div>
+
+  @if (mode() === 'unified') {
+  <div class="picker-actions" role="group" aria-label="Confirm selection">
+    <p class="selection-hint">{{ selectionHint() }}</p>
+    <div class="footer-actions">
+      <p-button
+        [label]="soloButtonLabel()"
+        severity="secondary"
+        [disabled]="!canConfirmSolo() || disabled()"
+        (onClick)="onConfirmSolo()"
+      />
+      <p-button
+        [label]="blendButtonLabel()"
+        [disabled]="!canConfirmBlend() || disabled()"
+        (onClick)="onConfirmBlend()"
+      />
+    </div>
+  </div>
+  }
+
+  <ng-template pTemplate="footer">
+    @if (mode() === 'unified') {
+    <div class="footer-actions footer-actions--dialog">
+      <p-button
+        [label]="soloButtonLabel()"
+        severity="secondary"
+        [disabled]="!canConfirmSolo() || disabled()"
+        (onClick)="onConfirmSolo()"
+      />
+      <p-button
+        [label]="blendButtonLabel()"
+        [disabled]="!canConfirmBlend() || disabled()"
+        (onClick)="onConfirmBlend()"
+      />
+    </div>
+    }
+  </ng-template>
+</p-dialog>

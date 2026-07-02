@@ -49,29 +49,29 @@ export type PersonaRegistryEntry = {
 };
 
 export const PERSONA_REGISTRY: Record<PersonaId, PersonaRegistryEntry> = {
-  hitesh: {
-    prompt: hiteshPromptComposition,
-    greeting:
-      'Haanji! Swagat hai. Kya seekhna hai aaj — koi tech topic, project ka doubt, ya bas thodi baat-cheet chai ke saath? Bataao, main yahi hun.',
-    inputPlaceholder: 'Kya doubt hai bhai? Type karo...',
-    providerId: PROVIDER_DEFAULT_ROUTING.hitesh,
-    fullDisplayName: 'Hitesh Choudhary',
-    tagline:
-      'Chai aur Code. Story sunata hun — phir tech samajhte hain saath mein.',
-    era: 'Living',
-    disclaimerTier: 'cohort',
-  },
-  piyush: {
-    prompt: piyushPromptComposition,
-    greeting:
-      'Hey everyone, welcome back. Welcome back to another exciting chat. Dekho, kya haal? Kuch banana hai? Koi concept clear nahi hai? Ya system design ka doubt? Type karo — ek kaam karte hain.',
-    inputPlaceholder: 'Dekho, kya doubt hai? Type karo...',
-    providerId: PROVIDER_DEFAULT_ROUTING.piyush,
-    fullDisplayName: 'Piyush Garg',
-    tagline: 'I build devs, not just apps. Dekho — chalo build karte hain.',
-    era: 'Living',
-    disclaimerTier: 'cohort',
-  },
+  // hitesh: {
+  //   prompt: hiteshPromptComposition,
+  //   greeting:
+  //     'Haanji! Swagat hai. Kya seekhna hai aaj — koi tech topic, project ka doubt, ya bas thodi baat-cheet chai ke saath? Bataao, main yahi hun.',
+  //   inputPlaceholder: 'Kya doubt hai bhai? Type karo...',
+  //   providerId: PROVIDER_DEFAULT_ROUTING.hitesh,
+  //   fullDisplayName: 'Hitesh Choudhary',
+  //   tagline:
+  //     'Chai aur Code. Story sunata hun — phir tech samajhte hain saath mein.',
+  //   era: 'Living',
+  //   disclaimerTier: 'cohort',
+  // },
+  // piyush: {
+  //   prompt: piyushPromptComposition,
+  //   greeting:
+  //     'Hey everyone, welcome back. Welcome back to another exciting chat. Dekho, kya haal? Kuch banana hai? Koi concept clear nahi hai? Ya system design ka doubt? Type karo — ek kaam karte hain.',
+  //   inputPlaceholder: 'Dekho, kya doubt hai? Type karo...',
+  //   providerId: PROVIDER_DEFAULT_ROUTING.piyush,
+  //   fullDisplayName: 'Piyush Garg',
+  //   tagline: 'I build devs, not just apps. Dekho — chalo build karte hain.',
+  //   era: 'Living',
+  //   disclaimerTier: 'cohort',
+  // },
   musk: {
     prompt: muskPromptComposition,
     greeting:
@@ -130,8 +130,8 @@ export const PERSONA_REGISTRY: Record<PersonaId, PersonaRegistryEntry> = {
 };
 
 const DISPLAY_NAMES: Record<PersonaId, string> = {
-  hitesh: 'Hitesh',
-  piyush: 'Piyush',
+  // hitesh: 'Hitesh',
+  // piyush: 'Piyush',
   musk: 'Musk',
   jobs: 'Jobs',
   gandhi: 'Gandhi',
@@ -144,12 +144,31 @@ export const personaDisplayName = (p: PersonaId): string => DISPLAY_NAMES[p];
 export const personaFullDisplayName = (p: PersonaId): string =>
   PERSONA_REGISTRY[p].fullDisplayName;
 
-/** Landing page category groupings (V2 Council). */
+/** Landing bento grid placement (4-column desktop layout). */
+export const PERSONA_BENTO_PLACEMENT: Record<
+  PersonaId,
+  { gridColumn: string; gridRow: string }
+> = {
+  // hitesh: { gridColumn: '1 / 3', gridRow: '1 / 3' },
+  // piyush: { gridColumn: '3 / 5', gridRow: '1 / 2' },
+  musk: { gridColumn: '3 / 4', gridRow: '2 / 4' },
+  jobs: { gridColumn: '1 / 2', gridRow: '3 / 4' },
+  gandhi: { gridColumn: '2 / 3', gridRow: '3 / 4' },
+  einstein: { gridColumn: '4 / 5', gridRow: '2 / 3' },
+  newton: { gridColumn: '1 / 3', gridRow: '4 / 5' },
+};
+
+export const ASK_BOTH_BENTO_PLACEMENT = {
+  gridColumn: '3 / 5',
+  gridRow: '4 / 5',
+} as const;
+
+/** @deprecated Use PERSONA_IDS with bento layout instead. */
 export const PERSONA_LANDING_GROUPS: ReadonlyArray<{
   title: string;
   personas: PersonaId[];
 }> = [
-  { title: 'Contemporary', personas: ['hitesh', 'piyush', 'musk'] },
+  { title: 'Contemporary', personas: [ 'musk'] },
   {
     title: '20th Century Icons',
     personas: ['jobs', 'gandhi', 'einstein'],

@@ -3,32 +3,90 @@
 }
 .pair-picker {
   display: flex;
-  flex-wrap: wrap;
+  align-items: center;
   gap: 1rem;
-  align-items: flex-end;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(6px);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
-.pair-picker label {
+.pair-picker:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06);
+}
+.pair-picker:focus-visible {
+  outline: 2px solid #292524;
+  outline-offset: 2px;
+}
+.pair-picker:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.pair-avatars {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #f5f5f4;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.08);
+}
+.avatar-a {
+  border-color: #fef3c7;
+}
+.avatar-b {
+  border-color: #dbeafe;
+}
+.blend-plus {
+  font-size: 1.1rem;
+  font-weight: 300;
+  color: #78716c;
+  line-height: 1;
+}
+.pair-meta {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: #44403c;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1;
 }
-.pair-picker select {
-  min-width: 12rem;
-  padding: 0.4rem 0.5rem;
-  border-radius: 0.375rem;
-  border: 1px solid #d6d3d1;
-  font: inherit;
+.pair-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #78716c;
+}
+.pair-names {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #292524;
 }
 .pair-hint {
-  flex: 1 1 100%;
-  margin: 0;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: #78716c;
+}
+.chevron {
+  font-size: 0.75rem;
+  opacity: 0.6;
+  flex-shrink: 0;
 }
 .room {
   display: grid;

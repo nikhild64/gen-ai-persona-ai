@@ -22,8 +22,21 @@ export const PRODUCT_COPY = {
   // ─── LANDING ─────────────────────────────────────────────────────────────
   landingHeroTitle: 'Council — advisors from across time.',
   landingHeroSubheader:
-    'Seven AI parody personas — pick one, or blend any two in Ask Both mode.',
+    'Seven AI parody personas — pick one, or blend any two advisors.',
   landingCtaLabel: 'Start chatting',
+  personaPickerSingleTitle: 'Choose an advisor',
+  personaPickerSingleSubtitle: 'Tap a personality to start chatting.',
+  personaPickerUnifiedTitle: 'Choose advisor(s)',
+  personaPickerUnifiedSubtitle:
+    'Pick one to chat solo, or two to blend their voices.',
+  personaPickerSoloButtonLabel: 'Chat solo',
+  personaPickerSoloButtonLabelFor: (name: string): string => `Chat with ${name}`,
+  personaPickerBlendButtonLabel: 'Blend pair',
+  personaPickerBlendButtonLabelFor: (a: string, b: string): string =>
+    `Blend ${a} + ${b}`,
+  personaPickerSelectionHintNone: 'Select 1 advisor for solo chat, or 2 to blend.',
+  personaPickerSelectionHintOne: '1 selected — chat solo, or pick one more to blend.',
+  personaPickerSelectionHintTwo: '2 selected — ready to blend or switch to solo.',
   landingDisclaimerBand:
     'AI parody personas — not affiliated with or endorsed by the real individuals or their estates. Educational research project exploring LLM-based persona modeling. All persona content is derived from publicly available materials and used under fair use for non-commercial educational purposes. Takedown requests honored immediately.',
   continueHint: 'Bring your own key to continue.',
@@ -48,11 +61,11 @@ export const PRODUCT_COPY = {
   keyStatusUsingLabel: (p: ProviderId): string =>
     `Using your ${providerName(p)} key`,
   keyStatusNoKeyLabel: 'No key saved',
-  keySavedToast: 'API key saved for this browser session.',
+  keySavedToast: 'API key saved in this browser.',
   settingsAutoOpenHeader:
     'Paste an API key to start chatting with Council.',
   keyPrivacyDisclaimer:
-    'Your key stays in this browser session only. Never sent to our servers, never persisted to disk, cleared when you close the tab.',
+    'Your key stays in this browser only. Never sent to our servers. Stored in local storage until you clear it or clear site data.',
   clearSessionMenuLabel: 'Clear chat history',
 
   // ─── STREAMING / STALL ───────────────────────────────────────────────────
@@ -73,15 +86,15 @@ export const PRODUCT_COPY = {
   // ─── START-NEW-SESSION MODAL ─────────────────────────────────────────────
   startNewSessionTitle: 'Start a new session?',
   startNewSessionBody:
-    'This clears the current thread. Your API key stays in this browser session.',
+    'This clears the current thread. Your API key stays saved in this browser.',
   startNewSessionConfirmLabel: 'Start new',
   startNewSessionCancelLabel: 'Keep going',
   sessionClearedToast: 'Chat cleared. New session started.',
   startNewSessionMenuLabel: 'Start new session',
 
-  // ─── MODE SWITCHER (Solo ↔ Ask-Both) ─────────────────────────────────────
+  // ─── MODE SWITCHER (Solo ↔ Blend) ────────────────────────────────────────
   modeSwitcherSoloLabel: 'Solo',
-  modeSwitcherAskBothLabel: 'Ask both',
+  modeSwitcherAskBothLabel: 'Blend',
 
   // ─── ASK-BOTH VARIANT TOGGLE (post-sprint Blended mode) ──────────────────
   askBothVariantLabels: {
@@ -93,15 +106,16 @@ export const PRODUCT_COPY = {
     'One blended answer — 1 LLM call (Sequential is 2, Parallel is 2).',
   askBothBlendedAttribution: (pairLabel: string): string => pairLabel,
 
-  // ─── ASK-BOTH ROOM ───────────────────────────────────────────────────────
+  // ─── BLEND ROOM ──────────────────────────────────────────────────────────
   askBothBannerLabel:
-    'Blended mode — pick two personas below; one fused answer per turn.',
+    'Blend mode — tap the pair below to change advisors.',
   askBothGreeting:
-    'Welcome to Ask Both — choose Persona A and Persona B, then ask one question. You will get a single fused answer blending both voices.',
+    'Welcome to Blend — choose two advisors, then ask one question. You will get a single fused answer blending both voices.',
   askBothGreetingHint: 'Try different pairs — Hitesh + Piyush, Musk + Jobs, Gandhi + Einstein…',
   askBothBridgeAnnouncement:
     'The second persona is now responding.',
-  askBothInputPlaceholder: 'Ask your chosen pair — type your question…',
+  askBothInputPlaceholder: 'Type your question for the blended pair…',
+  askBothSendButtonLabel: 'Blend',
   askBothPairLabelA: 'Persona A',
   askBothPairLabelB: 'Persona B',
 

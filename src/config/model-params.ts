@@ -10,22 +10,6 @@ export type PersonaModelParams = ChatRequestParams & {
  * so adapter code stays generic.
  */
 export const PERSONA_MODEL_PARAMS: Record<PersonaId, PersonaModelParams> = {
-  hitesh: {
-    modelName: 'gemini-2.5-flash',
-    temperature: 0.75,
-    topP: 0.95,
-    maxOutputTokens: 500,
-    frequencyPenalty: 0.2,
-    presencePenalty: 0.3,
-  },
-  piyush: {
-    modelName: 'openai/gpt-oss-120b',
-    temperature: 0.55,
-    topP: 0.9,
-    maxOutputTokens: 500,
-    frequencyPenalty: 0.05,
-    presencePenalty: 0.1,
-  },
   musk: {
     modelName: 'openai/gpt-oss-120b',
     temperature: 0.7,

@@ -12,6 +12,7 @@ import { modeSwitcherLabel } from '../../config/aria-labels';
 import { PRODUCT_COPY } from '../../config/product-copy';
 import { ANALYTICS_PORT } from '../../domain/chat/di-tokens';
 import { FEATURE_ASK_BOTH_MODE } from '../../config/feature-flags';
+import { localStoreGet } from '../../domain/key-vault/browser-local-storage';
 
 export type ChatMode = 'solo' | 'ask-both';
 
@@ -42,7 +43,7 @@ export class ModeSwitcherComponent {
 
   readonly disabledTooltip = computed(() =>
     PRODUCT_COPY.switcherDisabledDuringStream(
-      this.activeMode() === 'solo' ? 'Assistant' : 'Ask-Both',
+      this.activeMode() === 'solo' ? 'Assistant' : 'Blend',
     ),
   );
 
@@ -68,10 +69,7 @@ export class ModeSwitcherComponent {
     if (mode === 'ask-both') {
       void this.router.navigateByUrl('/chat/ask-both');
     } else {
-      const last =
-        typeof sessionStorage !== 'undefined'
-          ? sessionStorage.getItem('last-active-solo')
-          : null;
+      const last = localStoreGet('last-active-solo');
       void this.router.navigateByUrl(`/chat/${last ?? 'hitesh'}`);
     }
   }

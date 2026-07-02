@@ -20,6 +20,8 @@ import { CHAT_STORAGE_KEYS } from '../../config/storage-keys';
 import { PERSONA_REGISTRY } from '../../personas/persona.registry';
 import {
   HITESH_REGEX,
+  JOBS_REGEX,
+  MUSK_REGEX,
   PIYUSH_REGEX,
 } from '../../config/regex-patterns';
 import {
@@ -277,7 +279,7 @@ export class ChatOrchestrator {
       await this.storage.set(this.threadKeyFor(persona), thread);
 
       // Step 10 — regex smoke-test (AD-19 observation-only)
-      const regex = persona === 'hitesh' ? HITESH_REGEX : PIYUSH_REGEX;
+      const regex = persona === 'musk' ? MUSK_REGEX : JOBS_REGEX;
       if (!regex.test(finalText)) {
         this.analytics.emit({
           name: 'persona_regex_miss',

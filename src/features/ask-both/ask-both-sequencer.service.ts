@@ -214,7 +214,7 @@ export class AskBothSequencerService {
       };
 
       const hiteshResult = await this.streamPersona(
-        'hitesh',
+        'musk',
         thread,
         'ask-both-keep-going',
         buildNote(thread),
@@ -230,7 +230,7 @@ export class AskBothSequencerService {
           await this.pause(700);
           this.bridgeAnnouncement.set(null);
           await this.streamPersona(
-            'piyush',
+            'jobs',
             thread,
             'ask-both-keep-going',
             buildNote(thread),
@@ -255,7 +255,7 @@ export class AskBothSequencerService {
   private async dispatchSequential(thread: Thread): Promise<void> {
     // Persona A â€” Hitesh
     const hiteshResult = await this.streamPersona(
-      'hitesh',
+      'musk',
       thread,
       'ask-both-a',
       undefined,
@@ -269,11 +269,11 @@ export class AskBothSequencerService {
 
     // Persona B â€” Piyush (invoked even on Hitesh in-character refusal).
     const systemNote = ASK_BOTH_SYSTEM_NOTE_TEMPLATE(
-      personaDisplayName('hitesh'),
+      personaDisplayName('musk'),
       hiteshResult.text,
     );
     this.bridgeAnnouncement.set(null);
-    await this.streamPersona('piyush', thread, 'ask-both-b', systemNote);
+    await this.streamPersona('jobs', thread, 'ask-both-b', systemNote);
   }
 
   private async dispatchParallel(thread: Thread): Promise<void> {
@@ -283,8 +283,8 @@ export class AskBothSequencerService {
       payload: {},
     });
     await Promise.all([
-      this.streamPersona('hitesh', thread, 'ask-both-a', undefined),
-      this.streamPersona('piyush', thread, 'ask-both-a', undefined),
+      this.streamPersona('musk', thread, 'ask-both-a', undefined),
+      this.streamPersona('jobs', thread, 'ask-both-a', undefined),
     ]);
   }
 
@@ -538,10 +538,10 @@ export class AskBothSequencerService {
   private lastTwoAssistantTexts(thread: Thread): [string, string] {
     const assistants = thread.messages.filter((m) => m.role === 'assistant');
     const piyush =
-      [...assistants].reverse().find((m) => m.persona === 'piyush')?.content ??
+      [...assistants].reverse().find((m) => m.persona === 'jobs')?.content ??
       '';
     const hitesh =
-      [...assistants].reverse().find((m) => m.persona === 'hitesh')?.content ??
+      [...assistants].reverse().find((m) => m.persona === 'musk')?.content ??
       '';
     return [hitesh, piyush];
   }

@@ -7,9 +7,14 @@ import {
 } from '@angular/core';
 
 import type { ProviderId } from '../../config/provider-registry';
+import {
+  localStoreGet,
+  localStoreRemove,
+  localStoreSet,
+} from './browser-local-storage';
 
 /**
- * AD-11 — sessionStorage-only key vault. Keys clear on tab close and never
+ * AD-11 — localStorage key vault. Keys stay in the browser only and never
  * touch IndexedDB, logs, or analytics event payloads (redaction registry in
  * `LoggerService` + `VercelAnalyticsAdapter` scrubs any stringified copy
  * before it leaves the browser).
@@ -25,8 +30,6 @@ export class KeyVaultService {
   readonly hasKey = computed(() => this._current() !== null);
 
   constructor() {
-    // Prime the signal on construction — sessionStorage may already carry a
-    // key from a prior page load in this tab.
     for (const p of ['gemini', 'groq'] as ProviderId[]) {
       if (this.readRaw(p)) {
         this._current.set(p);
@@ -40,12 +43,8 @@ export class KeyVaultService {
   }
 
   setKey(provider: ProviderId, key: string): void {
-    try {
-      sessionStorage.setItem(KeyVaultService.storageKey(provider), key);
-      this._current.set(provider);
-    } catch {
-      /* sessionStorage unavailable (private mode) — silently drop. */
-    }
+    localStoreSet(KeyVaultService.storageKey(provider), key);
+    this._current.set(provider);
   }
 
   saveKeyForProvider(provider: ProviderId, key: string): void {
@@ -53,12 +52,8 @@ export class KeyVaultService {
   }
 
   clearKey(provider: ProviderId): void {
-    try {
-      sessionStorage.removeItem(KeyVaultService.storageKey(provider));
-      if (this._current() === provider) this._current.set(null);
-    } catch {
-      /* ignore */
-    }
+    localStoreRemove(KeyVaultService.storageKey(provider));
+    if (this._current() === provider) this._current.set(null);
   }
 
   clearKeyForProvider(provider: ProviderId): void {
@@ -70,11 +65,7 @@ export class KeyVaultService {
   }
 
   private readRaw(provider: ProviderId): string | null {
-    try {
-      return sessionStorage.getItem(KeyVaultService.storageKey(provider));
-    } catch {
-      return null;
-    }
+    return localStoreGet(KeyVaultService.storageKey(provider));
   }
 
   private static storageKey(provider: ProviderId): string {

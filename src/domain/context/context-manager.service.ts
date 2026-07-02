@@ -61,7 +61,7 @@ export class ContextManager {
     }
 
     const persona: PersonaId =
-      thread.scope === 'ask-both' ? 'hitesh' : thread.scope;
+      thread.scope === 'ask-both' ? 'musk' : thread.scope;
     const providerId: ProviderId =
       thread.scope === 'ask-both'
         ? ASK_BOTH_SUMMARY_PROVIDER_ID

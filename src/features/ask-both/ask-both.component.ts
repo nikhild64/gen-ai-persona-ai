@@ -14,23 +14,20 @@ import {
 import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Router } from '@angular/router';
 
 import type { PersonaId } from '../../domain/types/persona';
-import { PERSONA_IDS } from '../../domain/types/persona';
 import type { Message, Thread } from '../../domain/types/message';
 import { STORAGE_PORT } from '../../domain/chat/di-tokens';
 import { PRODUCT_COPY } from '../../config/product-copy';
 import { buildBlendedComposition } from '../../personas/blended.prompt';
-import {
-  PERSONA_REGISTRY,
-  personaDisplayName,
-} from '../../personas/persona.registry';
 import { MessageBubbleComponent } from '../../shared/message-bubble/message-bubble.component';
 import { StreamingIndicatorComponent } from '../../shared/streaming-indicator/streaming-indicator.component';
 import { ModeSwitcherComponent } from '../mode-switcher/mode-switcher.component';
 import { KeyStatusBadgeComponent } from '../settings/key-status-badge.component';
 import { SettingsModalComponent } from '../settings/settings-modal.component';
 import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.component';
+import { PersonaPickerDialogComponent } from '../persona-picker/persona-picker-dialog.component';
 import { AskBothSequencerService } from './ask-both-sequencer.service';
 import { AskBothModeService } from './ask-both-mode.service';
 import { BlendedPairService } from './blended-pair.service';
@@ -46,6 +43,7 @@ import { BlendedPairService } from './blended-pair.service';
     KeyStatusBadgeComponent,
     SettingsModalComponent,
     SettingsMenuEntryComponent,
+    PersonaPickerDialogComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './ask-both.component.html',
@@ -56,6 +54,7 @@ export class AskBothComponent implements OnDestroy {
   readonly modeService = inject(AskBothModeService);
   readonly blendedPair = inject(BlendedPairService);
   private readonly storage = inject(STORAGE_PORT);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly renderer = inject(Renderer2);
   private readonly document = inject(DOCUMENT);
@@ -63,10 +62,9 @@ export class AskBothComponent implements OnDestroy {
   readonly draft = signal('');
   readonly messages = signal<Message[]>([]);
   readonly settingsOpen = signal(false);
+  readonly pickerOpen = signal(false);
   readonly bridgeMessage = this.sequencer.bridgeAnnouncement;
   readonly canKeepGoing = this.sequencer.canKeepGoing;
-
-  readonly personaOptions = PERSONA_IDS;
 
   @ViewChild('messageList') messageListEl?: ElementRef<HTMLDivElement>;
 
@@ -75,8 +73,7 @@ export class AskBothComponent implements OnDestroy {
   readonly askBothGreetingHint = PRODUCT_COPY.askBothGreetingHint;
   readonly inputPlaceholder = PRODUCT_COPY.askBothInputPlaceholder;
   readonly keepGoingLabel = PRODUCT_COPY.keepGoingButtonLabel;
-  readonly pairLabelA = PRODUCT_COPY.askBothPairLabelA;
-  readonly pairLabelB = PRODUCT_COPY.askBothPairLabelB;
+  readonly sendLabel = PRODUCT_COPY.askBothSendButtonLabel;
 
   readonly pairAttribution = computed(() =>
     buildBlendedComposition(
@@ -108,24 +105,17 @@ export class AskBothComponent implements OnDestroy {
     this.renderer.removeAttribute(this.document.body, 'data-mode');
   }
 
-  personaLabel(p: PersonaId): string {
-    return personaDisplayName(p);
+  openBlendPicker(): void {
+    if (this.sequencer.inFlight()) return;
+    this.pickerOpen.set(true);
   }
 
-  personaFullName(p: PersonaId): string {
-    return PERSONA_REGISTRY[p].fullDisplayName;
+  onPersonaPicked(persona: PersonaId): void {
+    void this.router.navigate(['/chat', persona]);
   }
 
-  onPersonaAChange(value: string): void {
-    if (this.isPersonaId(value)) {
-      this.blendedPair.setPersonaA(value);
-    }
-  }
-
-  onPersonaBChange(value: string): void {
-    if (this.isPersonaId(value)) {
-      this.blendedPair.setPersonaB(value);
-    }
+  onBlendPairConfirmed(pair: { a: PersonaId; b: PersonaId }): void {
+    this.blendedPair.setPair(pair.a, pair.b);
   }
 
   streamingLabel(): string {
@@ -133,8 +123,8 @@ export class AskBothComponent implements OnDestroy {
       return PRODUCT_COPY.streamingIndicatorAskBothBlended(this.pairAttribution());
     }
     const persona = this.sequencer.activePersona();
-    if (persona === 'hitesh') return PRODUCT_COPY.streamingIndicatorAskBothA;
-    if (persona === 'piyush') return PRODUCT_COPY.streamingIndicatorAskBothB;
+    if (persona === 'musk') return PRODUCT_COPY.streamingIndicatorAskBothA;
+    if (persona === 'jobs') return PRODUCT_COPY.streamingIndicatorAskBothB;
     return 'Preparing…';
   }
 
@@ -178,10 +168,6 @@ export class AskBothComponent implements OnDestroy {
 
   openSettings(): void {
     this.settingsOpen.set(true);
-  }
-
-  private isPersonaId(value: string): value is PersonaId {
-    return (this.personaOptions as readonly string[]).includes(value);
   }
 
   private async loadThread(): Promise<void> {

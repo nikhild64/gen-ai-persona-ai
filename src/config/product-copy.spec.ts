@@ -23,7 +23,7 @@ describe('product-copy (AD-22 chrome separation)', () => {
   });
 
   it('carries the generic askBothGreeting for blended pair mode', () => {
-    expect(PRODUCT_COPY.askBothGreeting).toMatch(/Ask Both/i);
+    expect(PRODUCT_COPY.askBothGreeting).toMatch(/Blend/i);
     expect(PRODUCT_COPY.askBothGreeting).toMatch(/fused/i);
   });
 

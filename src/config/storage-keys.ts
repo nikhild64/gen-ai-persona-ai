@@ -1,7 +1,7 @@
 import type { PersonaId } from '../domain/types/persona';
 
 /**
- * AD-6 — closed StorageKey union. Every IndexedDB / sessionStorage read and
+ * AD-6 — closed StorageKey union. Every IndexedDB / localStorage read and
  * write goes through StoragePort with one of these keys. Adding a new key is
  * an AD update; there is no `| string` escape hatch.
  */
@@ -20,8 +20,6 @@ export type StorageKey =
 
 /** Solo chat thread keys keyed by persona id (V2 — 7 personas). */
 export const CHAT_STORAGE_KEYS: Record<PersonaId, StorageKey> = {
-  hitesh: 'chat:hitesh:v1',
-  piyush: 'chat:piyush:v1',
   musk: 'chat:musk:v1',
   jobs: 'chat:jobs:v1',
   gandhi: 'chat:gandhi:v1',

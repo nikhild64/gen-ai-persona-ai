@@ -7,18 +7,18 @@ import {
 
 import { ASK_BOTH_MODE, type AskBothMode } from '../../config/feature-flags';
 import type { StorageKey } from '../../config/storage-keys';
+import { localStoreGet, localStoreSet } from '../../domain/key-vault/browser-local-storage';
 
 /**
  * Post-sprint Blended Ask-Both variant support. User-selectable
  * Ask-Both variant (Sequential | Parallel | Blended), persisted to
- * sessionStorage — same lifecycle as BYO-Key vault (AD-11), so the
- * selection survives within-tab reloads but clears when the tab closes.
+ * localStorage — same lifecycle as BYO-Key vault (AD-11), so the
+ * selection survives browser restarts.
  *
  * The build-time `ASK_BOTH_MODE` flag (`src/config/feature-flags.ts`)
  * stays authoritative for FRESH sessions with no persisted preference —
  * flag semantics preserved per the post-sprint constraint. Once the user
- * clicks the mode toggle, their sessionStorage value wins for the rest
- * of the tab session.
+ * clicks the mode toggle, their stored value wins until changed.
  *
  * `AskBothSequencerService` consumes `.get()` on every send, so mid-thread
  * mode switches take effect for the NEXT message only (per AC-1).
@@ -51,22 +51,22 @@ export class AskBothModeService {
 
   private readRaw(): AskBothMode | null {
     try {
-      const raw = sessionStorage.getItem(AskBothModeService.STORAGE_KEY);
+      const raw = localStoreGet(AskBothModeService.STORAGE_KEY);
       if (raw === 'sequential' || raw === 'parallel' || raw === 'blended') {
         return raw;
       }
       return null;
     } catch {
-      // sessionStorage unavailable (private mode / SSR) — fall back silently.
+      // localStorage unavailable (private mode / SSR) — fall back silently.
       return null;
     }
   }
 
   private persist(mode: AskBothMode): void {
     try {
-      sessionStorage.setItem(AskBothModeService.STORAGE_KEY, mode);
+      localStoreSet(AskBothModeService.STORAGE_KEY, mode);
     } catch {
-      // sessionStorage unavailable — silently drop (matches KeyVaultService).
+      // localStorage unavailable — silently drop (matches KeyVaultService).
     }
   }
 }

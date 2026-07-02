@@ -3,17 +3,18 @@ import { Injectable, signal } from '@angular/core';
 import type { PersonaId } from '../../domain/types/persona';
 import { isPersonaId } from '../../domain/types/persona';
 import type { StorageKey } from '../../config/storage-keys';
+import { localStoreGet, localStoreSet } from '../../domain/key-vault/browser-local-storage';
 
 const STORAGE_KEY: StorageKey = 'settings:blended-pair:v1';
 
 const DEFAULT_PAIR: { a: PersonaId; b: PersonaId } = {
-  a: 'hitesh',
-  b: 'piyush',
+  a: 'musk',
+  b: 'jobs',
 };
 
 /**
  * V2 — persists the active Blended pair (Persona A / Persona B) in
- * sessionStorage. Persona A carries the provider slot for blended dispatch.
+ * localStorage. Persona A carries the provider slot for blended dispatch.
  */
 @Injectable({ providedIn: 'root' })
 export class BlendedPairService {
@@ -21,7 +22,7 @@ export class BlendedPairService {
   readonly personaB = signal<PersonaId>(DEFAULT_PAIR.b);
 
   constructor() {
-    this.loadFromSession();
+    this.loadFromStorage();
   }
 
   getPair(): { a: PersonaId; b: PersonaId } {
@@ -44,22 +45,28 @@ export class BlendedPairService {
     this.persist();
   }
 
+  setPair(a: PersonaId, b: PersonaId): void {
+    if (a === b) return;
+    this.personaA.set(a);
+    this.personaB.set(b);
+    this.persist();
+  }
+
   private pickAlternate(exclude: PersonaId): PersonaId {
     const order: PersonaId[] = [
-      'hitesh',
-      'piyush',
+      'musk',
+      'jobs',
       'musk',
       'jobs',
       'gandhi',
       'einstein',
       'newton',
     ];
-    return order.find((p) => p !== exclude) ?? 'hitesh';
+    return order.find((p) => p !== exclude) ?? 'musk';
   }
 
-  private loadFromSession(): void {
-    if (typeof sessionStorage === 'undefined') return;
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+  private loadFromStorage(): void {
+    const raw = localStoreGet(STORAGE_KEY);
     if (!raw) return;
     try {
       const parsed = JSON.parse(raw) as { a?: string; b?: string };
@@ -74,13 +81,12 @@ export class BlendedPairService {
         this.personaB.set(parsed.b);
       }
     } catch {
-      /* ignore corrupt session value */
+      /* ignore corrupt stored value */
     }
   }
 
   private persist(): void {
-    if (typeof sessionStorage === 'undefined') return;
-    sessionStorage.setItem(
+    localStoreSet(
       STORAGE_KEY,
       JSON.stringify({ a: this.personaA(), b: this.personaB() }),
     );

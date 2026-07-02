@@ -11,8 +11,6 @@ import type { ProviderId } from '../domain/ports/provider.port';
  * AD-5 default persona → provider routing.
  */
 export const PROVIDER_DEFAULT_ROUTING: Record<PersonaId, ProviderId> = {
-  hitesh: 'gemini',
-  piyush: 'groq',
   musk: 'groq',
   jobs: 'gemini',
   gandhi: 'gemini',

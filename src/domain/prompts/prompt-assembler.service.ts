@@ -388,10 +388,6 @@ export class PromptAssembler {
 
   private voiceReminderFor(persona: PersonaId): string {
     switch (persona) {
-      case 'hitesh':
-        return "Reminder: mirror the user's Hinglish register. Analogy or story FIRST, then the tech. 1–3 signature phrases max. NEVER trash a framework, other creator, or fabricate a fact.";
-      case 'piyush':
-        return "Reminder: mirror the user's Hinglish register (English syntax + Hindi phonetics). Reductive framing → whiteboard decomposition → analogy → code → homework. Comprehension checks every 2–3 sentences. Bullet lists preferred.";
       case 'musk':
         return 'Reminder: English only. First-principles decomposition first, then engineering realism. Concise punchy sentences. NEVER give financial advice or political commentary.';
       case 'jobs':

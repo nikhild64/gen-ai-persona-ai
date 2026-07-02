@@ -14,35 +14,46 @@
     </div>
   </header>
 
-  <div class="pair-picker" aria-label="Blended persona pair">
-    <label>
-      {{ pairLabelA }}
-      <select
-        [value]="blendedPair.personaA()"
-        [disabled]="sequencer.inFlight()"
-        (change)="onPersonaAChange($any($event.target).value)"
-      >
-        @for (p of personaOptions; track p) {
-        <option [value]="p">{{ personaFullName(p) }}</option>
-        }
-      </select>
-    </label>
-    <label>
-      {{ pairLabelB }}
-      <select
-        [value]="blendedPair.personaB()"
-        [disabled]="sequencer.inFlight()"
-        (change)="onPersonaBChange($any($event.target).value)"
-      >
-        @for (p of personaOptions; track p) {
-        <option [value]="p" [disabled]="p === blendedPair.personaA()">
-          {{ personaFullName(p) }}
-        </option>
-        }
-      </select>
-    </label>
-    <p class="pair-hint">Active pair: {{ pairAttribution() }}</p>
-  </div>
+  <button
+    type="button"
+    class="pair-picker"
+    aria-label="Change blended advisor pair"
+    [disabled]="sequencer.inFlight()"
+    (click)="openBlendPicker()"
+  >
+    <div class="pair-avatars" aria-hidden="true">
+      <img
+        class="avatar avatar-a"
+        [src]="'/images/' + blendedPair.personaA() + '.png'"
+        alt=""
+        width="48"
+        height="48"
+      />
+      <span class="blend-plus">+</span>
+      <img
+        class="avatar avatar-b"
+        [src]="'/images/' + blendedPair.personaB() + '.png'"
+        alt=""
+        width="48"
+        height="48"
+      />
+    </div>
+    <div class="pair-meta">
+      <span class="pair-label">Blended pair</span>
+      <span class="pair-names">{{ pairAttribution() }}</span>
+      <span class="pair-hint">Tap to change advisors</span>
+    </div>
+    <span class="chevron" aria-hidden="true">▾</span>
+  </button>
+
+  <app-persona-picker-dialog
+    [(open)]="pickerOpen"
+    mode="unified"
+    [initialPair]="{ a: blendedPair.personaA(), b: blendedPair.personaB() }"
+    [disabled]="sequencer.inFlight()"
+    (personaPicked)="onPersonaPicked($event)"
+    (pairConfirmed)="onBlendPairConfirmed($event)"
+  />
 
   <app-settings-modal [(open)]="settingsOpen" />
 
@@ -97,7 +108,7 @@
         class="send-btn"
         [disabled]="!draft().trim()"
       >
-        Ask both
+        {{ sendLabel }}
       </button>
       }
       <app-settings-menu-entry class="menu-entry-slot" />

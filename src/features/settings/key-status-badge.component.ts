@@ -53,8 +53,8 @@ export class KeyStatusBadgeComponent {
     const p = this.persona();
     if (p) return [this.personaRouting.getProviderFor(p)];
     if (this.askBoth()) {
-      const h = this.personaRouting.getProviderFor('hitesh');
-      const py = this.personaRouting.getProviderFor('piyush');
+      const h = this.personaRouting.getProviderFor('musk');
+      const py = this.personaRouting.getProviderFor('jobs');
       return h === py ? [h] : [h, py];
     }
     const fallback = this.keyVault.currentProvider();

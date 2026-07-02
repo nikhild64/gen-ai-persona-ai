@@ -7,8 +7,8 @@ import type { StorageKey } from '../../config/storage-keys';
 /**
  * AD-6 single-writer discipline — the SOLE writer to IndexedDB. All other
  * files reach IndexedDB through this port. `KeyVaultService` (AD-11) is the
- * only other browser-storage-privileged file, and it uses `sessionStorage`,
- * not IndexedDB.
+ * `KeyVaultService` (AD-11) is the only other browser-storage-privileged
+ * surface — it uses localStorage, not IndexedDB.
  */
 @Injectable()
 export class IdbKeyvalStorageAdapter implements StoragePort {

@@ -17,7 +17,7 @@ export type BlendedComposition = {
 };
 
 const hinglishPersona = (id: PersonaId): boolean =>
-  id === 'hitesh' || id === 'piyush';
+  id === 'musk' || id === 'jobs';
 
 const needsLatinScriptRule = (a: PersonaId, b: PersonaId): boolean =>
   hinglishPersona(a) ||
@@ -119,6 +119,6 @@ export function buildBlendedComposition(
 }
 
 /** Default export: backwards-compatible Hitesh + Piyush pair. */
-const blendedComposition = buildBlendedComposition('hitesh', 'piyush');
+const blendedComposition = buildBlendedComposition('musk', 'jobs');
 
 export default blendedComposition;

@@ -1,15 +1,18 @@
-<a
+<button
+  type="button"
   class="ask-both-card"
   data-mode="ask-both"
-  [routerLink]="['/chat', 'ask-both']"
-  aria-label="Ask Both — blend any two personas"
+  aria-label="Blend — pick any two advisors"
+  (click)="blendRequested.emit()"
 >
-  <div class="icon-stack" aria-hidden="true">+</div>
+  <div class="icon-stack" aria-hidden="true">
+    <span class="plus">+</span>
+  </div>
   <div class="body">
-    <h2>Ask Both</h2>
+    <h2>Blend</h2>
     <p class="tagline">
-      Pick any two personas — one fused answer blending both voices per turn.
+      Pick any two advisors — one fused answer blending both voices per turn.
     </p>
   </div>
   <span class="cta">Blend a pair</span>
-</a>
+</button>

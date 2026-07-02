@@ -12,6 +12,7 @@ import {
   type AvailableModel,
 } from '../../config/available-models';
 import { KeyVaultService } from './key-vault.service';
+import { localStoreGet, localStoreSet } from './browser-local-storage';
 
 const CACHE_KEY = 'model-discovery:v1';
 
@@ -34,9 +35,8 @@ const emptyState = (): ProviderModelState => ({
 /**
  * Live model discovery via each provider's `/models` endpoint. The curated
  * `AVAILABLE_MODELS` list stays as the instant baseline / offline fallback;
- * once we fetch successfully we prefer the live list. Cached in
- * sessionStorage so re-opening settings during the same tab session doesn't
- * re-hit the API.
+ * once we fetch successfully we prefer the live list. Cached in localStorage
+ * so re-opening settings doesn't re-hit the API every time.
  */
 @Injectable({ providedIn: 'root' })
 export class ModelDiscoveryService {
@@ -100,6 +100,12 @@ export class ModelDiscoveryService {
     await Promise.all(
       (['gemini', 'groq'] as ProviderId[]).map((p) => this.refresh(p, force)),
     );
+  }
+
+  /** Reset live model cache for a provider (e.g. after key cleared). */
+  clear(provider: ProviderId): void {
+    this.patch(provider, emptyState());
+    this.persist();
   }
 
   private patch(provider: ProviderId, partial: Partial<ProviderModelState>): void {
@@ -196,7 +202,7 @@ export class ModelDiscoveryService {
 
   private hydrateFromCache(): void {
     try {
-      const raw = sessionStorage.getItem(CACHE_KEY);
+      const raw = localStoreGet(CACHE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw) as Partial<
         Record<ProviderId, Pick<ProviderModelState, 'models' | 'fetchedAt'>>
@@ -225,7 +231,7 @@ export class ModelDiscoveryService {
         if (s.models)
           snapshot[p] = { models: s.models, fetchedAt: s.fetchedAt };
       });
-      sessionStorage.setItem(CACHE_KEY, JSON.stringify(snapshot));
+      localStoreSet(CACHE_KEY, JSON.stringify(snapshot));
     } catch {
       /* ignore */
     }

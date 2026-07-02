@@ -23,11 +23,11 @@ describe('aria-labels (AD-20 per EXPERIENCE.md Accessibility Floor)', () => {
 
   it('produces informative mode switcher labels', () => {
     expect(modeSwitcherLabel('solo')).toContain('Solo');
-    expect(modeSwitcherLabel('ask-both')).toContain('Ask Both');
+    expect(modeSwitcherLabel('ask-both')).toContain('Blend');
   });
 
   it('adapts chat-input label to null (ask-both) vs a specific persona', () => {
-    expect(chatInputLabel(null)).toContain('both');
+    expect(chatInputLabel(null)).toContain('blended');
     expect(chatInputLabel('hitesh')).toContain('Hitesh');
   });
 
@@ -53,11 +53,11 @@ describe('aria-labels (AD-20 per EXPERIENCE.md Accessibility Floor)', () => {
     expect(askBothVariantToggleLabel('sequential')).toContain('Sequential');
     expect(askBothVariantToggleLabel('parallel')).toContain('Parallel');
     expect(askBothVariantToggleLabel('blended')).toContain('Blended');
-    // All three labels announce the "Switch Ask-Both variant" purpose.
+    // All three labels announce the "Switch blend variant" purpose.
     ['sequential', 'parallel', 'blended'].forEach((v) => {
       expect(
         askBothVariantToggleLabel(v as 'sequential' | 'parallel' | 'blended'),
-      ).toContain('Ask-Both variant');
+      ).toContain('blend variant');
     });
   });
 });

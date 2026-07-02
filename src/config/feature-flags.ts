@@ -55,7 +55,7 @@ export const FEATURE_BYO_KEY: boolean = true;
  *
  * Semantics with the runtime toggle: this constant is now the DEFAULT SEED
  * for the user's session preference. `AskBothModeService` layers a
- * sessionStorage-persisted override on top — the user's chosen variant wins
+ * localStorage-persisted override on top — the user's chosen variant wins
  * once set, and this value only applies to fresh sessions (no override
  * saved yet). The env-flag change surface stays intact for build-time
  * defaulting; adding `blended` here is the only change per the post-sprint

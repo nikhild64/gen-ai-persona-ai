@@ -1,12 +1,12 @@
 :host {
   display: block;
-  max-width: 960px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 2rem 1.25rem 3rem;
 }
 .hero {
   text-align: center;
-  margin-bottom: 1.75rem;
+  margin-bottom: 2rem;
 }
 .hero h1 {
   margin: 0 0 0.5rem;
@@ -17,34 +17,27 @@
   color: #57534e;
   font-size: 16px;
 }
-.category {
+.persona-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
   margin-bottom: 2rem;
 }
-.category-title {
-  font-size: 1rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: #78716c;
-  margin: 0 0 0.75rem;
+.persona-grid > * {
+  min-height: 220px;
 }
-.cards {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: 1fr;
-}
-@media (min-width: 640px) {
-  .cards {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 960px) {
+  .persona-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
-@media (min-width: 960px) {
-  .cards {
-    grid-template-columns: repeat(3, 1fr);
+@media (max-width: 520px) {
+  .persona-grid {
+    grid-template-columns: 1fr;
   }
-}
-.ask-both-section {
-  margin: 1rem 0 2rem;
+  .persona-grid > * {
+    min-height: 0;
+  }
 }
 .disclaimer-band {
   margin-top: 2rem;

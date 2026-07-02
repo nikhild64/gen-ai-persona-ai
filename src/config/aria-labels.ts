@@ -5,7 +5,7 @@ import type { AskBothMode } from './feature-flags';
 import { personaDisplayName } from '../personas/persona.registry';
 
 const modeDisplayName = (m: 'solo' | 'ask-both'): string =>
-  m === 'solo' ? 'Solo' : 'Ask Both';
+  m === 'solo' ? 'Solo' : 'Blend';
 
 const askBothVariantDisplayName = (v: AskBothMode): string => {
   switch (v) {
@@ -28,10 +28,10 @@ export const modeSwitcherLabel = (m: 'solo' | 'ask-both'): string =>
   `Switch mode — currently ${modeDisplayName(m)}`;
 
 export const askBothVariantToggleLabel = (v: AskBothMode): string =>
-  `Switch Ask-Both variant — currently ${askBothVariantDisplayName(v)}`;
+  `Switch blend variant — currently ${askBothVariantDisplayName(v)}`;
 
 export const chatInputLabel = (p: PersonaId | null): string =>
-  p ? `Message ${personaDisplayName(p)}` : 'Ask both personas';
+  p ? `Message ${personaDisplayName(p)}` : 'Message blended pair';
 
 export const sendButtonLabel = 'Send message';
 export const keepGoingButtonLabel = 'Keep going — one more round';

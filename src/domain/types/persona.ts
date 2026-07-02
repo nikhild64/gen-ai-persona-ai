@@ -1,6 +1,6 @@
 export type PersonaId =
-  | 'hitesh'
-  | 'piyush'
+  // | 'hitesh'
+  // | 'piyush'
   | 'musk'
   | 'jobs'
   | 'gandhi'
@@ -8,8 +8,8 @@ export type PersonaId =
   | 'newton';
 
 export const PERSONA_IDS: readonly PersonaId[] = [
-  'hitesh',
-  'piyush',
+  // 'hitesh',
+  // 'piyush',
   'musk',
   'jobs',
   'gandhi',

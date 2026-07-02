@@ -50,6 +50,7 @@
 
   <h3 class="section-heading">Provider keys</h3>
   @for (slot of slots; track slot.id) {
+  @let discovery = discoveryState()[slot.id];
   <section class="slot" [attr.data-provider]="slot.id">
     <header class="slot-header">
       <div class="slot-title">
@@ -104,7 +105,7 @@
         type="button"
         class="refresh-btn"
         [attr.aria-label]="'Refresh ' + slot.label + ' model list'"
-        [disabled]="!isSaved(slot.id) || discoveryLoading(slot.id)"
+        [disabled]="!isSaved(slot.id) || discovery.loading"
         [title]="
           !isSaved(slot.id)
             ? 'Save a key to fetch live models'
@@ -114,9 +115,9 @@
       >
         <i
           class="pi"
-          [class.pi-refresh]="!discoveryLoading(slot.id)"
-          [class.pi-spin]="discoveryLoading(slot.id)"
-          [class.pi-spinner]="discoveryLoading(slot.id)"
+          [class.pi-refresh]="!discovery.loading"
+          [class.pi-spin]="discovery.loading"
+          [class.pi-spinner]="discovery.loading"
           aria-hidden="true"
         ></i>
       </button>
@@ -127,9 +128,9 @@
       }
       <span class="hint auto-saved">Auto-saved on change</span>
     </div>
-    @if (discoveryError(slot.id); as err) {
+    @if (discovery.error; as err) {
     <span class="hint error">Live fetch failed: {{ err }}. Showing bundled list.</span>
-    } @else if (isLive(slot.id)) {
+    } @else if (discovery.models && discovery.models.length > 0) {
     <span class="hint live">Live from provider</span>
     }
 
