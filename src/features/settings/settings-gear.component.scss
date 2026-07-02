@@ -1,0 +1,30 @@
+:host {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.gear-row {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.gear-btn {
+  background: transparent;
+  border: 1px solid #d6d3d1;
+  border-radius: 6px;
+  padding: 0.4rem 0.55rem;
+  cursor: pointer;
+  font-size: 14px;
+  color: #292524;
+  position: relative;
+}
+.gear-btn::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: v-bind(dotColor);
+}

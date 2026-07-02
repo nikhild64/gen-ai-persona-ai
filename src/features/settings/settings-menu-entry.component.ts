@@ -20,65 +20,8 @@ import { ConfirmModalComponent } from './confirm-modal.component';
   standalone: true,
   imports: [ConfirmModalComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <button
-      type="button"
-      class="entry"
-      [attr.aria-label]="clearAriaLabel"
-      (click)="modalOpen.set(true)"
-    >
-      {{ menuLabel }}
-    </button>
-    <app-confirm-modal
-      [(open)]="modalOpen"
-      (confirmed)="onConfirmClear()"
-      (cancelled)="modalOpen.set(false)"
-    />
-    @if (justCleared()) {
-    <span class="toast" role="status">{{ clearedToast }}</span>
-    }
-  `,
-  styles: [
-    `
-      :host {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .entry {
-        background: rgba(255, 255, 255, 0.7);
-        border: 1px solid rgba(0, 0, 0, 0.1);
-        color: #292524;
-        padding: 0 0.85rem;
-        height: 36px;
-        border-radius: 999px;
-        cursor: pointer;
-        font-size: 13px;
-        font-weight: 500;
-        line-height: 1;
-        display: inline-flex;
-        align-items: center;
-        transition:
-          background 0.15s ease,
-          border-color 0.15s ease;
-      }
-      .entry:hover {
-        background: white;
-        border-color: var(--persona-accent, #d6d3d1);
-      }
-      .entry:focus-visible {
-        outline: 2px solid var(--persona-accent, #0ea5e9);
-        outline-offset: 2px;
-      }
-      .toast {
-        font-size: 13px;
-        color: #166534;
-        background: #dcfce7;
-        padding: 0.3rem 0.5rem;
-        border-radius: 4px;
-      }
-    `,
-  ],
+  templateUrl: './settings-menu-entry.component.html',
+  styleUrls: ['./settings-menu-entry.component.scss'],
 })
 export class SettingsMenuEntryComponent {
   private readonly startNewSession = inject(StartNewSessionService);

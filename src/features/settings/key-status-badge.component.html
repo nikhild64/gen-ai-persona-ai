@@ -1,0 +1,11 @@
+<button
+  type="button"
+  class="badge"
+  [class.saved]="state() === 'saved'"
+  [class.none]="state() === 'none'"
+  [attr.aria-label]="ariaLabel()"
+  (click)="clicked.emit()"
+>
+  <span class="dot" aria-hidden="true"></span>
+  <span>{{ label() }}</span>
+</button>

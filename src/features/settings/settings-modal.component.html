@@ -1,0 +1,161 @@
+<p-dialog
+  [(visible)]="open"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="false"
+  [style]="{ width: '560px', 'max-height': '90vh' }"
+  [contentStyle]="{ 'max-height': '65vh', 'overflow-y': 'auto' }"
+  (onHide)="onHide()"
+>
+  <ng-template pTemplate="header">
+    <div class="modal-header">
+      @if (autoOpenMode()) {
+      <p class="ctx">{{ autoOpenHeader }}</p>
+      }
+      <h2>{{ title }}</h2>
+      <p class="lead">
+        Route each persona to the provider whose key you want to use.
+        You can point both personas at the same provider if you only
+        have one key.
+      </p>
+    </div>
+  </ng-template>
+
+  <section class="routing">
+    <h3 class="section-heading">Which provider answers as…</h3>
+    <div class="routing-grid">
+      @for (persona of personas; track persona) {
+      <label class="route-row">
+        <span class="lbl">{{ personaLabel(persona) }}</span>
+        <p-select
+          [options]="providerOptions"
+          [ngModel]="routing()[persona]"
+          (ngModelChange)="setRoute(persona, $event)"
+          [ngModelOptions]="{ standalone: true }"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body"
+        ></p-select>
+        <span
+          class="route-status"
+          [class.ok]="isSaved(routing()[persona])"
+        >
+          @if (isSaved(routing()[persona])) { Key ready } @else { Key
+          missing }
+        </span>
+      </label>
+      }
+    </div>
+  </section>
+
+  <h3 class="section-heading">Provider keys</h3>
+  @for (slot of slots; track slot.id) {
+  <section class="slot" [attr.data-provider]="slot.id">
+    <header class="slot-header">
+      <div class="slot-title">
+        <span class="dot" [class.on]="isSaved(slot.id)"></span>
+        <span class="name">{{ slot.label }}</span>
+      </div>
+      <span class="status">{{ slotStatus(slot.id) }}</span>
+    </header>
+
+    <div class="key-input">
+      <input
+        pInputText
+        spellcheck="false"
+        autocomplete="off"
+        [type]="revealed()[slot.id] ? 'text' : 'password'"
+        [placeholder]="slot.placeholder"
+        [ngModel]="inputs()[slot.id]"
+        [ngModelOptions]="{ standalone: true }"
+        (ngModelChange)="setInput(slot.id, $event)"
+        (keydown.enter)="onSave(slot.id)"
+      />
+      <button
+        type="button"
+        class="eye"
+        [attr.aria-label]="
+          revealed()[slot.id] ? 'Hide key' : 'Show key'
+        "
+        (click)="toggleReveal(slot.id)"
+      >
+        <i
+          class="pi"
+          [class.pi-eye]="!revealed()[slot.id]"
+          [class.pi-eye-slash]="revealed()[slot.id]"
+          aria-hidden="true"
+        ></i>
+      </button>
+    </div>
+    <span class="hint">{{ slot.hint }}</span>
+
+    <div class="model-row">
+      <span class="model-lbl">Model</span>
+      <p-select
+        [options]="modelOptionsFor(slot.id)"
+        [ngModel]="selectedModel()[slot.id]"
+        (ngModelChange)="setModel(slot.id, $event)"
+        [ngModelOptions]="{ standalone: true }"
+        optionLabel="label"
+        optionValue="value"
+        appendTo="body"
+      ></p-select>
+      <button
+        type="button"
+        class="refresh-btn"
+        [attr.aria-label]="'Refresh ' + slot.label + ' model list'"
+        [disabled]="!isSaved(slot.id) || discoveryLoading(slot.id)"
+        [title]="
+          !isSaved(slot.id)
+            ? 'Save a key to fetch live models'
+            : 'Refresh model list from ' + slot.label
+        "
+        (click)="onRefreshModels(slot.id)"
+      >
+        <i
+          class="pi"
+          [class.pi-refresh]="!discoveryLoading(slot.id)"
+          [class.pi-spin]="discoveryLoading(slot.id)"
+          [class.pi-spinner]="discoveryLoading(slot.id)"
+          aria-hidden="true"
+        ></i>
+      </button>
+    </div>
+    <div class="hint-row">
+      @if (modelHintFor(slot.id); as h) {
+      <span class="hint">{{ h }}</span>
+      }
+      <span class="hint auto-saved">Auto-saved on change</span>
+    </div>
+    @if (discoveryError(slot.id); as err) {
+    <span class="hint error">Live fetch failed: {{ err }}. Showing bundled list.</span>
+    } @else if (isLive(slot.id)) {
+    <span class="hint live">Live from provider</span>
+    }
+
+    <div class="slot-actions">
+      <p-button
+        [label]="clearLabel"
+        severity="secondary"
+        [disabled]="!isSaved(slot.id)"
+        (onClick)="onClear(slot.id)"
+      ></p-button>
+      <p-button
+        [label]="saveLabel"
+        [disabled]="!inputs()[slot.id]?.trim()"
+        (onClick)="onSave(slot.id)"
+      ></p-button>
+    </div>
+  </section>
+  }
+
+  <ng-template pTemplate="footer">
+    <div class="footer-actions">
+      <p-button label="Done" (onClick)="onDone()"></p-button>
+    </div>
+  </ng-template>
+</p-dialog>
+
+@if (justSaved()) {
+<div class="toast" role="status">{{ toastMessage() }}</div>
+}

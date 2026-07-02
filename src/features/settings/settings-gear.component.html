@@ -1,0 +1,17 @@
+<div class="gear-row">
+  <app-key-status-badge (clicked)="open.set(true)" />
+  <button
+    type="button"
+    class="gear-btn"
+    [attr.aria-label]="gearLabel"
+    (click)="open.set(true)"
+  >
+    <span class="pi pi-cog" aria-hidden="true"></span>
+  </button>
+</div>
+<app-settings-modal
+  [(open)]="open"
+  [(autoOpenMode)]="autoOpenMode"
+  (closedWithSave)="savedEmit()"
+  (closedWithoutSave)="dismissedEmit()"
+/>

@@ -25,51 +25,8 @@ import { modalDismissLabel } from '../../config/aria-labels';
   standalone: true,
   imports: [Dialog, Button],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <p-dialog
-      [(visible)]="open"
-      [modal]="true"
-      [closable]="true"
-      [dismissableMask]="false"
-      [style]="{ width: '400px' }"
-      role="alertdialog"
-      (onHide)="cancelled.emit()"
-    >
-      <ng-template pTemplate="header">
-        <h2 id="confirm-modal-title" style="margin: 0;">
-          {{ title() }}
-        </h2>
-      </ng-template>
-      <p class="body">{{ body() }}</p>
-      <div class="action-row">
-        <p-button
-          #cancelBtn
-          [label]="cancelLabel()"
-          severity="secondary"
-          (onClick)="onCancel()"
-        ></p-button>
-        <p-button
-          [label]="confirmLabel()"
-          severity="danger"
-          (onClick)="onConfirm()"
-        ></p-button>
-      </div>
-    </p-dialog>
-  `,
-  styles: [
-    `
-      .body {
-        line-height: 1.5;
-        color: #292524;
-        margin: 0 0 1.25rem;
-      }
-      .action-row {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-      }
-    `,
-  ],
+  templateUrl: './confirm-modal.component.html',
+  styleUrls: ['./confirm-modal.component.scss'],
 })
 export class ConfirmModalComponent {
   readonly open = model<boolean>(false);

@@ -1,0 +1,29 @@
+<p-dialog
+  [(visible)]="open"
+  [modal]="true"
+  [closable]="true"
+  [dismissableMask]="false"
+  [style]="{ width: '400px' }"
+  role="alertdialog"
+  (onHide)="cancelled.emit()"
+>
+  <ng-template pTemplate="header">
+    <h2 id="confirm-modal-title" style="margin: 0;">
+      {{ title() }}
+    </h2>
+  </ng-template>
+  <p class="body">{{ body() }}</p>
+  <div class="action-row">
+    <p-button
+      #cancelBtn
+      [label]="cancelLabel()"
+      severity="secondary"
+      (onClick)="onCancel()"
+    ></p-button>
+    <p-button
+      [label]="confirmLabel()"
+      severity="danger"
+      (onClick)="onConfirm()"
+    ></p-button>
+  </div>
+</p-dialog>
