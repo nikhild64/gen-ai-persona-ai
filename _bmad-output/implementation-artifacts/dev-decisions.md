@@ -52,6 +52,19 @@ Start: 2026-07-02.
 
 - Test files written but NOT executed (per user directive to batch validation at the end).
 
+## E0-S3 — Config constants + PROVIDER_REGISTRY + PERSONA_REGISTRY
+
+- **Decision:** `ProviderId` union is declared in `src/domain/ports/provider.port.ts` (E0-S2) and re-exported from `src/config/provider-registry.ts`. Same pattern as PersonaId.
+- **Rationale:** E0-S3 AC says `provider-registry.ts` "exports ProviderId type", but E0-S2 already declared it. Re-export satisfies both.
+- **Decision:** `feature-flags.ts` uses `NG_APP_*` env prefix (Angular 21 CLI convention) not `VITE_*` from the story's example. Also handles missing `import.meta.env` gracefully (jsdom / test env).
+- **Rationale:** Angular 21 uses `NG_APP_*` prefix for build-time env-var replacement. Story used `VITE_*` from a Vite-first example; Angular is not Vite. Documented via constant naming; E10-S1 wires the final env pipeline.
+- **Decision:** Added a `FEATURE_SPIKE_ROUTES` flag (not in story) that gates the E0.5-S1 `/spike/gemini-cors` route to dev-only environments. Defaults ON in dev, OFF in prod.
+- **Rationale:** User directive explicitly requires: "Guard the route behind a dev-only flag from src/config/feature-flags.ts (e.g. FEATURE_SPIKE_ROUTES = true only in development environment)". Landed here so E0.5-S1 can consume it directly without extending this file.
+- **Decision:** Full 17-field `PromptComposition` type is declared once in `persona.registry.ts` with all fields populated as empty placeholders in `hitesh.prompt.ts` / `piyush.prompt.ts`. Downstream stories POPULATE fields (never re-declare) per readiness-gap #4.
+- **Rationale:** Story explicitly asked for this consolidation. Field owners are documented inline as comments in `persona.registry.ts`.
+- **Decision:** Hitesh + Piyush persona files export a `default` `PromptComposition` object. Registry imports via `import ... from`.
+- **Rationale:** Cleaner import surface than `import * as`. Matches the type at declaration site.
+
 ## Blockers
 
 _(none yet)_

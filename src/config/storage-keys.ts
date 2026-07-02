@@ -1,6 +1,10 @@
 /**
- * STUB — this stays as `string` in E0-S2 to let `StoragePort` compile.
- * E0-S3 will tighten this to a closed union per AD-6:
- *   `chat:threads:v1` | `chat:activeThreadId:v1` | `chat:activePersona:v1` | ...
+ * AD-6 — closed StorageKey union. Every IndexedDB / sessionStorage read and
+ * write goes through StoragePort with one of these keys. Adding a new key is
+ * an AD update; there is no `| string` escape hatch.
  */
-export type StorageKey = string;
+export type StorageKey =
+  | 'chat:hitesh:v1'
+  | 'chat:piyush:v1'
+  | 'chat:ask-both:v1'
+  | 'settings:v1';

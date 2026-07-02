@@ -104,7 +104,7 @@ development_status:
   epic-0: in-progress
   e0-s1-scaffold-angular-primeng: done
   e0-s2-port-interfaces-domain-types: done
-  e0-s3-config-constants-and-registries: ready-for-dev
+  e0-s3-config-constants-and-registries: done
   e0-s4-eslint-stylelint-and-tests: ready-for-dev
   epic-0-retrospective: optional
 
