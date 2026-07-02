@@ -145,17 +145,17 @@ development_status:
   epic-5-retrospective: optional
 
   # --- Day 5 morning: BYO-Key Mode — positions 20-22 ---
-  epic-6: in-progress
+  epic-6: done
   e6-s1-key-vault-and-redaction-registry: done
   e6-s2-settings-modal-with-key-input: done
   e6-s3-auto-open-and-key-status-badge: done
-  epic-6: done
   epic-6-retrospective: optional
 
   # --- Day 5 afternoon: Client-Side Guardrails — positions 23-24 ---
-  epic-7: backlog
-  e7-s1-max-turn-cap-refusal: ready-for-dev
-  e7-s2-provider-429-in-character-surfacing: ready-for-dev
+  epic-7: in-progress
+  e7-s1-max-turn-cap-refusal: done
+  e7-s2-provider-429-in-character-surfacing: done
+  epic-7: done
   epic-7-retrospective: optional
 
   # --- Day 5 evening: In-Character Safety & Refusals — positions 25-26 ---

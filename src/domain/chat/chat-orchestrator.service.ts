@@ -21,7 +21,14 @@ import {
   HITESH_REGEX,
   PIYUSH_REGEX,
 } from '../../config/regex-patterns';
-import { STREAM_STALL_TIMEOUT_MS } from '../../config/context-config';
+import {
+  STREAM_STALL_TIMEOUT_MS,
+  MAX_TURNS_PER_THREAD,
+} from '../../config/context-config';
+import {
+  assistantMessageCount,
+  expectedAssistantMessagesForMode,
+} from '../context/turn-counting';
 import { PromptAssembler } from '../prompts/prompt-assembler.service';
 import { KeyVaultService } from '../key-vault/key-vault.service';
 import { ContextManager } from '../context/context-manager.service';
@@ -65,6 +72,10 @@ export class ChatOrchestrator {
   readonly activeAssistantMessageId: WritableSignal<string | null> = signal(
     null,
   );
+  /** E7-S1: true once max-turn cap fires; input disables until thread is cleared. */
+  readonly capReached: WritableSignal<boolean> = signal(false);
+  /** E7-S2: seconds carried in a provider 429 Retry-After header, if any. */
+  readonly retryAfterSec: WritableSignal<number | null> = signal(null);
 
   /** E6-S3 subscribes to auto-open the settings modal when a key is missing. */
   readonly keyMissing$: Subject<PersonaId> = new Subject<PersonaId>();
@@ -133,6 +144,29 @@ export class ChatOrchestrator {
 
     // Step 2 — append user message
     const thread = await this.getOrCreateThread(persona);
+
+    // E7-S1: max-turn cap check before touching the provider.
+    if (
+      assistantMessageCount(thread) + expectedAssistantMessagesForMode('solo') >
+      MAX_TURNS_PER_THREAD
+    ) {
+      const capContent = PERSONA_REGISTRY[persona].prompt.capRefusalTemplate;
+      const capMsg: Message = {
+        id: this.uuid(),
+        role: 'assistant',
+        persona,
+        content: capContent,
+        timestamp: Date.now(),
+        status: 'complete',
+      };
+      thread.messages.push(capMsg);
+      thread.updatedAt = capMsg.timestamp;
+      await this.storage.set(this.threadKeyFor(persona), thread);
+      this.capReached.set(true);
+      this.accumulatedText.set(capContent);
+      return;
+    }
+
     const userMsg: Message = {
       id: this.uuid(),
       role: 'user',
@@ -319,6 +353,21 @@ export class ChatOrchestrator {
     }
 
     if (kind === 'quota_exhausted') {
+      // E7-S2 — In-Character 429 surfacing.
+      const template = PERSONA_REGISTRY[persona].prompt.quotaExhaustedTemplate;
+      const msg: Message = {
+        id: msgId,
+        role: 'assistant',
+        persona,
+        content: template || partial,
+        timestamp: Date.now(),
+        status: 'complete',
+      };
+      thread.messages.push(msg);
+      thread.updatedAt = msg.timestamp;
+      await this.storage.set(this.threadKeyFor(persona), thread);
+      this.accumulatedText.set(msg.content);
+      this.retryAfterSec.set(chunk.meta?.retryAfterSec ?? null);
       this.analytics.emit({
         name: 'provider_429_surfaced',
         payload: {
@@ -326,10 +375,10 @@ export class ChatOrchestrator {
           retryAfterSec: chunk.meta?.retryAfterSec,
         },
       });
-      // E7-S2 renders the in-character quota-exhausted template.
+      return;
     }
 
-    // Persist an error-status message so the UI can render a red bubble.
+    // Other error kinds — persist an error-status message so the UI can render a red bubble.
     const msg: Message = {
       id: msgId,
       role: 'assistant',

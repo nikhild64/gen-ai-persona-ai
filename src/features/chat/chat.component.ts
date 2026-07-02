@@ -120,11 +120,16 @@ import { Router } from '@angular/router';
           rows="2"
           [attr.aria-label]="inputAriaLabel()"
           [placeholder]="inputPlaceholder()"
-          [disabled]="orchestrator.inFlightStream()"
+          [disabled]="inputDisabled()"
           [(ngModel)]="draft"
           name="draft"
           (keydown)="onKeyDown($event)"
         ></textarea>
+        @if (orchestrator.capReached()) {
+        <p class="cap-hint">{{ capReachedHint }}</p>
+        } @if (retryHint(); as hint) {
+        <p class="retry-hint">{{ hint }}</p>
+        }
         <div class="input-controls">
           @if (orchestrator.inFlightStream()) {
           <button type="button" class="cancel-btn" (click)="onCancel()">
@@ -247,6 +252,15 @@ import { Router } from '@angular/router';
         color: #b45309;
         font-size: 13px;
       }
+      .cap-hint,
+      .retry-hint {
+        margin: 0;
+        color: #57534e;
+        font-size: 12px;
+      }
+      .retry-hint {
+        color: #b45309;
+      }
     `,
   ],
 })
@@ -263,8 +277,19 @@ export class ChatComponent {
   private queuedText: string | null = null;
 
   readonly sendAriaLabel = sendButtonLabel;
+  readonly capReachedHint = PRODUCT_COPY.capReachedInputHint;
   readonly draft = signal('');
   readonly messages = signal<Message[]>([]);
+
+  readonly inputDisabled = computed(
+    () =>
+      this.orchestrator.inFlightStream() || this.orchestrator.capReached(),
+  );
+
+  readonly retryHint = computed(() => {
+    const seconds = this.orchestrator.retryAfterSec();
+    return seconds === null ? null : PRODUCT_COPY.retryAfterHint(seconds);
+  });
 
   @ViewChild('messageList') messageListEl?: ElementRef<HTMLDivElement>;
 
@@ -340,11 +365,52 @@ export class ChatComponent {
         this.announcer.announce(`${this.personaName()} says: ${text}`);
       }
     });
+
+    // E6-S3 auto-open — the orchestrator fires this Subject whenever the
+    // active provider has no saved key. Open the modal in auto-open mode and
+    // queue the pending user message for re-dispatch on save.
+    this.orchestrator.keyMissing$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.settingsAutoOpen.set(true);
+        this.settingsOpen.set(true);
+      });
+  }
+
+  openSettings(): void {
+    this.settingsOpen.set(true);
+  }
+
+  onSettingsSaved(): void {
+    const wasAuto = this.settingsAutoOpen();
+    this.settingsAutoOpen.set(false);
+    if (wasAuto && this.queuedText) {
+      const text = this.queuedText;
+      this.queuedText = null;
+      this.orchestrator
+        .sendMessage(this.activePersona(), text)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          complete: () => void this.reloadThread(),
+          error: () => void this.reloadThread(),
+        });
+    }
+  }
+
+  onSettingsDismissed(): void {
+    const wasAuto = this.settingsAutoOpen();
+    this.settingsAutoOpen.set(false);
+    if (wasAuto) {
+      this.queuedText = null;
+      void this.router.navigateByUrl('/');
+    }
   }
 
   onSend(): void {
     const text = this.draft().trim();
     if (!text || this.orchestrator.inFlightStream()) return;
+
+    this.queuedText = text; // E6-S3 auto-open flow re-dispatches after save
 
     this.messages.update((m) => [
       ...m,
@@ -361,7 +427,10 @@ export class ChatComponent {
       .sendMessage(this.activePersona(), text)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        complete: () => void this.reloadThread(),
+        complete: () => {
+          this.queuedText = null;
+          void this.reloadThread();
+        },
         error: () => void this.reloadThread(),
       });
   }

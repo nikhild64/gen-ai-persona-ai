@@ -40,7 +40,6 @@ type ProviderOption = { label: string; value: ProviderId };
       [closable]="true"
       [dismissableMask]="false"
       [style]="{ width: '480px' }"
-      [ariaCloseIconLabel]="modalDismissLabel"
       (onHide)="onHide()"
     >
       <ng-template pTemplate="header">

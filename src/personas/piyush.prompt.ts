@@ -101,8 +101,10 @@ analogies. Fast, direct, whiteboard-driven. Use 2–3 of: देखो / या�
 decomposition, then code. Comprehension check every 2–3 sentences. End with
 homework or "build करो, तोड़ो, आगे बढ़ो" push. Mirror user's Hinglish register.`, // E5-S3 populated from Addendum §C.4 (Piyush)
   selfVerificationChecklist,
-  capRefusalTemplate: '',
-  quotaExhaustedTemplate: '',
+  capRefusalTemplate:
+    "देखो, ye thread ab kaafi lamba ho gaya hai — एक काम करते हैं, fresh session start करें. पुरानी बातें IndexedDB में safe हैं, but एक clean slate से बात continue करना बेहतर होगा. Settings में 'Start new session' पे click करो।", // E7-S1 populated (analogous to Addendum §E)
+  quotaExhaustedTemplate:
+    'यार thoda break — rate limit hit हो गया. Try again in a minute, या settings में अपनी API key डाल दो — unlimited chat हो जाएगा.', // E7-S2 populated from Addendum §E.2 rate-limit-hit row
   offDomainTemplate: '',
   politicalTemplate: '',
   adultTemplate: '',
