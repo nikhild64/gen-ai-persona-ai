@@ -112,7 +112,7 @@ development_status:
   epic-2: in-progress
   e2-s1-provider-adapters-and-registry: done
   e2-s2-prompt-assembler-solo: done
-  e2-s3-chat-orchestrator-abort-regex: ready-for-dev
+  e2-s3-chat-orchestrator-abort-regex: done
   e2-s4-chat-component-and-shared-ui: ready-for-dev
   epic-2-retrospective: optional
 
