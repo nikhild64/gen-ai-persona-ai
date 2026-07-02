@@ -24,6 +24,7 @@ import {
 import { STREAM_STALL_TIMEOUT_MS } from '../../config/context-config';
 import { PromptAssembler } from '../prompts/prompt-assembler.service';
 import { KeyVaultService } from '../key-vault/key-vault.service';
+import { ContextManager } from '../context/context-manager.service';
 import type { ProviderId } from '../../config/provider-registry';
 import type {
   ProviderPort,
@@ -73,6 +74,7 @@ export class ChatOrchestrator {
   private readonly analytics = inject(ANALYTICS_PORT);
   private readonly assembler = inject(PromptAssembler);
   private readonly keyVault = inject(KeyVaultService);
+  private readonly contextManager = inject(ContextManager);
   private readonly adapterFactory = inject(ADAPTER_FACTORY);
 
   private currentAbort: AbortController | null = null;
@@ -238,6 +240,11 @@ export class ChatOrchestrator {
         name: 'message_sent',
         payload: { persona, mode: 'solo', charCount: text.length },
       });
+
+      // Fire-and-forget rolling-summary trigger per AD-9. Main chat is not
+      // blocked; any failure surfaces only as a `summary_failed` analytics
+      // event.
+      void this.contextManager.onTurnComplete(this.threadKeyFor(persona));
     }
   }
 

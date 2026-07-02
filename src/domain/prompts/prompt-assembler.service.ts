@@ -43,9 +43,7 @@ export class PromptAssembler {
           `PromptAssembler: mode='${mode}' lands in E9-S2 / E9-S3 (not yet implemented).`,
         );
       case 'summarize':
-        throw new Error(
-          `PromptAssembler: mode='summarize' lands in E5-S2 (not yet implemented).`,
-        );
+        return this.composeSummary(persona, thread, params);
       default:
         return assertNever(mode);
     }
@@ -86,6 +84,37 @@ export class PromptAssembler {
         hasSummary: !!thread.rollingSummary,
         hasDriftRefresh: false,
         estimatedTokens: estimateTokens(systemContent + userContent),
+      },
+    };
+  }
+
+  private composeSummary(
+    _persona: PersonaId,
+    thread: Thread,
+    params: (typeof PERSONA_MODEL_PARAMS)[PersonaId],
+  ): OutboundPrompt {
+    const systemPrompt =
+      'Compress the conversation below into ~200 tokens preserving facts, ' +
+      'user context (stack, project, error), and open threads. ' +
+      'Do NOT preserve verbatim wording.';
+    const historyBlock = thread.messages
+      .map((m) => `${m.role}: ${m.content}`)
+      .join('\n');
+    const messages: PromptMessage[] = [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: historyBlock },
+    ];
+    return {
+      messages,
+      model: params.modelName,
+      temperature: 0.2, // lower temp for consistent summarisation
+      topP: params.topP,
+      maxOutputTokens: 300,
+      meta: {
+        mode: 'summarize',
+        hasSummary: false,
+        hasDriftRefresh: false,
+        estimatedTokens: estimateTokens(systemPrompt + historyBlock),
       },
     };
   }
