@@ -119,7 +119,8 @@ development_status:
   # --- Day 3 morning: Chat History — positions 10-11 ---
   epic-3: in-progress
   e3-s1-idb-storage-adapter: done
-  e3-s2-start-new-session-modal: ready-for-dev
+  e3-s2-start-new-session-modal: done
+  epic-3: done
   epic-3-retrospective: optional
 
   # --- Day 3 afternoon: Persona Switcher — positions 12-14 ---

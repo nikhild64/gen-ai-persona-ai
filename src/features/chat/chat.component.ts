@@ -31,6 +31,7 @@ import {
 import { MessageBubbleComponent } from '../../shared/message-bubble/message-bubble.component';
 import { StreamingIndicatorComponent } from '../../shared/streaming-indicator/streaming-indicator.component';
 import { AriaAnnouncerService } from '../../shared/aria-announcer/aria-announcer.component';
+import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.component';
 
 /**
  * Solo-mode chat surface. `activePersona` is currently hard-wired via route
@@ -41,7 +42,12 @@ import { AriaAnnouncerService } from '../../shared/aria-announcer/aria-announcer
 @Component({
   selector: 'app-chat',
   standalone: true,
-  imports: [FormsModule, MessageBubbleComponent, StreamingIndicatorComponent],
+  imports: [
+    FormsModule,
+    MessageBubbleComponent,
+    StreamingIndicatorComponent,
+    SettingsMenuEntryComponent,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section
