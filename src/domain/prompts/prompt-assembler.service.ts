@@ -42,16 +42,105 @@ export class PromptAssembler {
       case 'solo':
         return this.composeSolo(persona, thread, params, options);
       case 'ask-both-a':
+        return this.composeAskBothA(persona, thread, params);
       case 'ask-both-b':
+        return this.composeAskBothB(persona, thread, params, options?.systemNote);
       case 'ask-both-keep-going':
-        throw new Error(
-          `PromptAssembler: mode='${mode}' lands in E9-S2 / E9-S3 (not yet implemented).`,
+        return this.composeAskBothKeepGoing(
+          persona,
+          thread,
+          params,
+          options?.systemNote,
         );
       case 'summarize':
         return this.composeSummary(persona, thread, params);
       default:
         return assertNever(mode);
     }
+  }
+
+  private composeAskBothA(
+    persona: PersonaId,
+    thread: Thread,
+    params: (typeof PERSONA_MODEL_PARAMS)[PersonaId],
+  ): OutboundPrompt {
+    const solo = this.composeSolo(persona, thread, params);
+    return {
+      ...solo,
+      meta: { ...solo.meta, mode: 'ask-both-a' },
+    };
+  }
+
+  private composeAskBothB(
+    persona: PersonaId,
+    thread: Thread,
+    params: (typeof PERSONA_MODEL_PARAMS)[PersonaId],
+    systemNote: string | undefined,
+  ): OutboundPrompt {
+    const systemContent = this.buildSystemBlock(persona, thread, null);
+    const lastMessage = thread.messages[thread.messages.length - 1];
+    const currentUserText =
+      lastMessage && lastMessage.role === 'user' ? lastMessage.content : '';
+
+    const messages: PromptMessage[] = [
+      { role: 'system', content: systemContent },
+      ...(systemNote && systemNote.length > 0
+        ? [{ role: 'system' as const, content: systemNote }]
+        : []),
+      { role: 'user', content: `<user_message>${currentUserText}</user_message>` },
+    ];
+
+    return {
+      messages,
+      model: params.modelName,
+      temperature: params.temperature,
+      topP: params.topP,
+      maxOutputTokens: params.maxOutputTokens,
+      frequencyPenalty: params.frequencyPenalty,
+      presencePenalty: params.presencePenalty,
+      meta: {
+        mode: 'ask-both-b',
+        hasSummary: !!thread.rollingSummary,
+        hasDriftRefresh: false,
+        estimatedTokens: estimateTokens(
+          systemContent + (systemNote ?? '') + currentUserText,
+        ),
+      },
+    };
+  }
+
+  private composeAskBothKeepGoing(
+    persona: PersonaId,
+    thread: Thread,
+    params: (typeof PERSONA_MODEL_PARAMS)[PersonaId],
+    systemNote: string | undefined,
+  ): OutboundPrompt {
+    const systemContent = this.buildSystemBlock(persona, thread, null);
+    const messages: PromptMessage[] = [
+      { role: 'system', content: systemContent },
+      ...(systemNote && systemNote.length > 0
+        ? [{ role: 'system' as const, content: systemNote }]
+        : []),
+      {
+        role: 'user',
+        content: '<user_message>Respond with your additional take.</user_message>',
+      },
+    ];
+    return {
+      messages,
+      model: params.modelName,
+      temperature: params.temperature,
+      topP: params.topP,
+      maxOutputTokens: params.maxOutputTokens,
+      frequencyPenalty: params.frequencyPenalty,
+      presencePenalty: params.presencePenalty,
+      meta: {
+        mode: 'ask-both-keep-going',
+        hasSummary: !!thread.rollingSummary,
+        hasDriftRefresh: false,
+        estimatedTokens: estimateTokens(systemContent + (systemNote ?? '')),
+      },
+    };
   }
 
   private composeSolo(

@@ -161,15 +161,14 @@ development_status:
   epic-8: done
   e8-s1-refusal-rules-and-snapshot-test: done
   e8-s2-heuristic-moderation-adapter: done
-  epic-8: done
   epic-8-retrospective: optional
 
   # --- Day 6: Ask-Both Mode — positions 27-30 (second biggest epic) ---
-  epic-9: backlog
-  e9-s1-mode-switcher-and-joint-greeting: ready-for-dev
-  e9-s2-ask-both-sequencer-sequential: ready-for-dev
-  e9-s3-ask-both-ui-and-keep-going: ready-for-dev
-  e9-s4-parallel-mode-and-aria-bridge: ready-for-dev       # SCOPE-CUT CANDIDATE #1
+  epic-9: done
+  e9-s1-mode-switcher-and-joint-greeting: done
+  e9-s2-ask-both-sequencer-sequential: done
+  e9-s3-ask-both-ui-and-keep-going: done
+  e9-s4-parallel-mode-and-aria-bridge: done       # SCOPE-CUT CANDIDATE #1 — minimal impl kept per completed flag
   epic-9-retrospective: optional
 
   # --- Day 7 morning: Feature Flags & Kill-Switches — position 31 ---

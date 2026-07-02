@@ -35,6 +35,7 @@ import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.comp
 import { PersonaSwitcherComponent } from '../persona-switcher/persona-switcher.component';
 import { SettingsModalComponent } from '../settings/settings-modal.component';
 import { KeyStatusBadgeComponent } from '../settings/key-status-badge.component';
+import { ModeSwitcherComponent } from '../mode-switcher/mode-switcher.component';
 import { Router } from '@angular/router';
 
 /**
@@ -54,6 +55,7 @@ import { Router } from '@angular/router';
     PersonaSwitcherComponent,
     SettingsModalComponent,
     KeyStatusBadgeComponent,
+    ModeSwitcherComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -78,6 +80,10 @@ import { Router } from '@angular/router';
         <div class="header-slots">
           <app-persona-switcher
             [activePersona]="activePersona()"
+            [disabled]="orchestrator.inFlightStream()"
+          />
+          <app-mode-switcher
+            activeMode="solo"
             [disabled]="orchestrator.inFlightStream()"
           />
           <app-key-status-badge (clicked)="openSettings()" />
@@ -375,6 +381,17 @@ export class ChatComponent {
         this.settingsAutoOpen.set(true);
         this.settingsOpen.set(true);
       });
+
+    // Track last-active-solo persona so the mode-switcher can restore it
+    // when the user comes back from Ask-Both.
+    effect(() => {
+      const persona = this.activePersona();
+      try {
+        sessionStorage.setItem('last-active-solo', persona);
+      } catch {
+        /* ignore */
+      }
+    });
   }
 
   openSettings(): void {
