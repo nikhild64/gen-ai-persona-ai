@@ -41,6 +41,17 @@ Start: 2026-07-02.
 - **Decision:** Angular 21 CLI generates `app.ts` (not `app.component.ts`) as the new filename convention. Kept the scaffold default.
 - **Rationale:** Angular 21 dropped the `.component.ts` suffix by default. All later stories that reference `app.component.ts` should read as `app.ts`.
 
+## E0-S2 — Port interfaces + domain types
+
+- **Decision:** `PersonaId` is re-exported from `src/domain/types/message.ts` via `export type { PersonaId } from './persona'` rather than re-declared. `persona.ts` (E0-S1) remains the single source of truth.
+- **Rationale:** Story literal says `message.ts` "exports" PersonaId, but Previous Story Intelligence line explicitly says "LEAVE that file alone". Re-export satisfies both without duplication. Consumers may import `PersonaId` from either module.
+- **Decision:** `src/config/storage-keys.ts` created as a one-line stub (`export type StorageKey = string`); E0-S3 will tighten it to the closed union.
+- **Rationale:** AC line 189 explicitly prefers this over inlining.
+
+## E0-S2 — deferred activity
+
+- Test files written but NOT executed (per user directive to batch validation at the end).
+
 ## Blockers
 
 _(none yet)_
