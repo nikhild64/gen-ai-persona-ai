@@ -87,7 +87,18 @@ Start: 2026-07-02.
 - **Decision:** Component fetches Gemini SSE endpoint directly from within the feature (component code, no adapter). Boundary rule allows this because `src/features/spike/` never imports from `src/infrastructure/`; it does its own `fetch(...)`.
 - **Rationale:** Story intent — this is a raw browser-fetch smoke test, NOT a test of the eventual GeminiAdapter (which lands in E2-S1). Passing this spike is the precondition for E2-S1 wiring.
 - **Note:** SSE parser reads token text from `candidates[0].content.parts[0].text` per user directive. Tokens are appended live to output panel via signal update.
-- **Awaiting user:** manual PASS/FAIL run per HARD STOP protocol.
+- **Outcome (2026-07-02 15:57):** PASS. HTTP 200 + content-type: text/event-stream + live token streaming confirmed by user. AD-5 stands as-is. No proxy fallback; AD-1 Pure-FE preserved. Resuming autonomous flow at E2-S1.
+
+## E2-S1 — Provider adapters (Gemini + Groq)
+
+- **Decision:** `GeminiAdapter` sends `system`-role messages via the top-level `systemInstruction` block, and only `user`/`assistant` (→ `model`) messages inside `contents[]`.
+- **Rationale:** Gemini's REST API rejects `role: 'system'` inside `contents[]`. Filtering + concatenating into `systemInstruction` preserves persona identity block delivery.
+- **Decision:** Both adapters use per-line SSE parsing with a `\n\n` event-boundary buffer. Handles chunked TCP boundaries mid-JSON.
+- **Rationale:** Naive `split('\n')` on each read misses events split across TCP packets. The buffer + `indexOf('\n\n')` loop is the standard SSE-consumer pattern.
+- **Decision:** Frequency + presence penalties are dropped for Gemini (not supported by the REST endpoint). Passed through for Groq.
+- **Rationale:** Gemini rejects these params. Log line inline. The `PromptAssembler` (E2-S2) doesn't need to know per-provider param support — adapters silently drop unsupported params.
+- **Decision:** `MockAdapter` used for both provider IDs in `TEST_PROVIDER_REGISTRY` (single class registered twice).
+- **Rationale:** Test doubles don't need per-provider fidelity; a single scriptable mock covers both.
 
 ## Blockers
 
