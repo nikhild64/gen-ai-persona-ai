@@ -22,4 +22,16 @@ describe('model-params (Addendum §B.4)', () => {
     expect(p.frequencyPenalty).toBe(0.05);
     expect(p.presencePenalty).toBe(0.1);
   });
+
+  it('populates Musk Groq params (V2)', () => {
+    const p = PERSONA_MODEL_PARAMS.musk;
+    expect(p.modelName).toBe('openai/gpt-oss-120b');
+    expect(p.temperature).toBe(0.7);
+  });
+
+  it('populates Jobs Gemini params (V2)', () => {
+    const p = PERSONA_MODEL_PARAMS.jobs;
+    expect(p.modelName).toBe('gemini-2.5-flash');
+    expect(p.temperature).toBe(0.55);
+  });
 });

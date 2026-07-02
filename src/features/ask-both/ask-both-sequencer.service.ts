@@ -38,7 +38,7 @@ import {
   ANALYTICS_PORT,
 } from '../../domain/chat/di-tokens';
 import { PRODUCT_COPY } from '../../config/product-copy';
-import { hasBlendedSignature } from '../../config/regex-patterns';
+import { hasBlendedSignatureLegacy } from '../../config/regex-patterns';
 import { AskBothModeService } from './ask-both-mode.service';
 
 /**
@@ -386,7 +386,7 @@ export class AskBothSequencerService {
       });
 
       // AC-10 regex smoke-test â€” miss fires `persona_regex_miss{persona:'blended'}`.
-      if (!hasBlendedSignature(finalText)) {
+      if (!hasBlendedSignatureLegacy(finalText)) {
         this.analytics.emit({
           name: 'persona_regex_miss',
           payload: { persona: 'blended' },

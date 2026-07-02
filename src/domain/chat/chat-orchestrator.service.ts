@@ -16,6 +16,7 @@ import type {
   Thread,
 } from '../types/message';
 import type { StorageKey } from '../../config/storage-keys';
+import { CHAT_STORAGE_KEYS } from '../../config/storage-keys';
 import { PERSONA_REGISTRY } from '../../personas/persona.registry';
 import {
   HITESH_REGEX,
@@ -458,7 +459,7 @@ export class ChatOrchestrator {
   }
 
   private threadKeyFor(persona: PersonaId): StorageKey {
-    return persona === 'hitesh' ? 'chat:hitesh:v1' : 'chat:piyush:v1';
+    return CHAT_STORAGE_KEYS[persona];
   }
 
   private async getOrCreateThread(persona: PersonaId): Promise<Thread> {

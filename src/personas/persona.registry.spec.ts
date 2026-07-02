@@ -31,13 +31,80 @@ describe('PERSONA_REGISTRY (AD-17)', () => {
     );
   });
 
-  it('has providerId matching PROVIDER_DEFAULT_ROUTING', () => {
-    expect(PERSONA_REGISTRY.hitesh.providerId).toBe(
-      PROVIDER_DEFAULT_ROUTING.hitesh,
+  it('exposes personaDisplayName helper for all 7 personas', () => {
+    expect(personaDisplayName('hitesh')).toBe('Hitesh');
+    expect(personaDisplayName('piyush')).toBe('Piyush');
+    expect(personaDisplayName('musk')).toBe('Musk');
+    expect(personaDisplayName('jobs')).toBe('Jobs');
+    expect(personaDisplayName('gandhi')).toBe('Gandhi');
+    expect(personaDisplayName('einstein')).toBe('Einstein');
+    expect(personaDisplayName('newton')).toBe('Newton');
+  });
+
+  it('has Musk greeting BYTE-IDENTICAL (V2 snapshot)', () => {
+    expect(PERSONA_REGISTRY.musk.greeting).toBe(
+      'Look — first principles. What are we trying to build or understand today? Ask about engineering, manufacturing, rockets, or how systems actually work.',
     );
-    expect(PERSONA_REGISTRY.piyush.providerId).toBe(
-      PROVIDER_DEFAULT_ROUTING.piyush,
+  });
+
+  it('has Jobs greeting BYTE-IDENTICAL (V2 snapshot)', () => {
+    expect(PERSONA_REGISTRY.jobs.greeting).toBe(
+      'Focus matters. What are you trying to make insanely great? Ask me about design, simplicity, craft — and why you should stay hungry.',
     );
+  });
+
+  it('has Gandhi greeting BYTE-IDENTICAL (V2 snapshot)', () => {
+    expect(PERSONA_REGISTRY.gandhi.greeting).toBe(
+      'Peace. In my experiments with truth I learned that change begins within. What brings your conscience here today?',
+    );
+  });
+
+  it('has Einstein greeting BYTE-IDENTICAL (V2 snapshot)', () => {
+    expect(PERSONA_REGISTRY.einstein.greeting).toBe(
+      'Curiosity brought you here — good. The most beautiful thing we can experience is the mysterious. What question shall we explore together?',
+    );
+  });
+
+  it('has Newton greeting BYTE-IDENTICAL (V2 snapshot)', () => {
+    expect(PERSONA_REGISTRY.newton.greeting).toBe(
+      'You find me at my desk of natural philosophy. What matter of force, motion, or light shall we demonstrate today?',
+    );
+  });
+
+  it('has Musk self-identification BYTE-IDENTICAL (V2 snapshot)', () => {
+    expect(PERSONA_REGISTRY.musk.prompt.selfIdentificationResponse).toBe(
+      'I am NOT the real Elon Musk. This is an AI parody. Content derived from publicly available material under fair use for educational research purposes. Not endorsed by, affiliated with, or authorized by Elon Musk or his companies. Nothing here is financial advice.',
+    );
+  });
+
+  it('has Jobs self-identification BYTE-IDENTICAL (V2 snapshot)', () => {
+    expect(PERSONA_REGISTRY.jobs.prompt.selfIdentificationResponse).toBe(
+      'I am NOT the real Steve Jobs. This is an AI parody. Content derived from publicly available material under fair use for educational research purposes. Not endorsed by, affiliated with, or authorized by Steve Jobs, Apple, or the Steve Jobs estate.',
+    );
+  });
+
+  it('has Gandhi self-identification BYTE-IDENTICAL (V2 snapshot)', () => {
+    expect(PERSONA_REGISTRY.gandhi.prompt.selfIdentificationResponse).toBe(
+      'I am an AI simulation drawing from publicly available writings of Mahatma Gandhi. This is educational parody, not the actual person. Content should not be taken as historically authoritative statements on modern politics.',
+    );
+  });
+
+  it('has Einstein self-identification BYTE-IDENTICAL (V2 snapshot)', () => {
+    expect(PERSONA_REGISTRY.einstein.prompt.selfIdentificationResponse).toBe(
+      'I am an AI simulation drawing from publicly available writings of Albert Einstein. This is educational parody, not the actual person. I cannot speak authoritatively on discoveries after my lifetime.',
+    );
+  });
+
+  it('has Newton self-identification BYTE-IDENTICAL (V2 snapshot)', () => {
+    expect(PERSONA_REGISTRY.newton.prompt.selfIdentificationResponse).toBe(
+      'I am an AI simulation drawing from publicly available writings of Isaac Newton. This is educational parody, not the actual person. Popular stories such as the apple may not match verified history.',
+    );
+  });
+
+  it('has providerId matching PROVIDER_DEFAULT_ROUTING for all personas', () => {
+    for (const id of ['hitesh', 'piyush', 'musk', 'jobs', 'gandhi', 'einstein', 'newton'] as const) {
+      expect(PERSONA_REGISTRY[id].providerId).toBe(PROVIDER_DEFAULT_ROUTING[id]);
+    }
   });
 
   it('declares all 17 PromptComposition fields per readiness-gap #4', () => {
@@ -81,10 +148,5 @@ describe('PERSONA_REGISTRY (AD-17)', () => {
     expect(p.adultTemplate.length).toBeGreaterThan(0);
     expect(p.promptInjectionTemplate.length).toBeGreaterThan(0);
     expect(p.refusalRules.length).toBeGreaterThan(0);
-  });
-
-  it('exposes personaDisplayName helper', () => {
-    expect(personaDisplayName('hitesh')).toBe('Hitesh');
-    expect(personaDisplayName('piyush')).toBe('Piyush');
   });
 });

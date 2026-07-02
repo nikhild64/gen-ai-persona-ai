@@ -2,8 +2,7 @@ import type { PersonaId } from '../domain/types/persona';
 import type { ProviderId } from './provider-registry';
 import type { AskBothMode } from './feature-flags';
 
-const personaDisplayName = (p: PersonaId): string =>
-  p === 'hitesh' ? 'Hitesh' : 'Piyush';
+import { personaDisplayName } from '../personas/persona.registry';
 
 const modeDisplayName = (m: 'solo' | 'ask-both'): string =>
   m === 'solo' ? 'Solo' : 'Ask Both';

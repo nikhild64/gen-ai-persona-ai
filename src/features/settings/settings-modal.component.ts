@@ -26,6 +26,7 @@ import { PRODUCT_COPY } from '../../config/product-copy';
 import { modalDismissLabel } from '../../config/aria-labels';
 import { personaDisplayName } from '../../personas/persona.registry';
 import type { PersonaId } from '../../domain/types/persona';
+import { PERSONA_IDS } from '../../domain/types/persona';
 
 type ProviderSlot = {
   id: ProviderId;
@@ -78,7 +79,7 @@ export class SettingsModalComponent {
   readonly toastMessage = signal<string>(PRODUCT_COPY.keySavedToast);
   private savedDuringSession = false;
 
-  readonly personas: PersonaId[] = ['hitesh', 'piyush'];
+  readonly personas: PersonaId[] = [...PERSONA_IDS];
   readonly routing = this.personaRouting.routing;
   readonly selectedModel = this.modelSelection.selection;
 

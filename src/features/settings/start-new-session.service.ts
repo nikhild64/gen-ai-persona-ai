@@ -2,11 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
 
 import { STORAGE_PORT } from '../../domain/chat/di-tokens';
+import { CHAT_STORAGE_KEYS } from '../../config/storage-keys';
+import { PERSONA_IDS } from '../../domain/types/persona';
 
 /**
- * FR-15 — clears all three chat threads then navigates back to landing.
- * `chat:ask-both:v1` is deleted defensively; Epic 9 populates that key
- * eventually, but deleting a missing key is a no-op.
+ * FR-15 — clears all chat threads then navigates back to landing.
  */
 @Injectable({ providedIn: 'root' })
 export class StartNewSessionService {
@@ -14,8 +14,9 @@ export class StartNewSessionService {
   private readonly router = inject(Router);
 
   async clearAllThreads(): Promise<void> {
-    await this.storage.delete('chat:hitesh:v1');
-    await this.storage.delete('chat:piyush:v1');
+    for (const id of PERSONA_IDS) {
+      await this.storage.delete(CHAT_STORAGE_KEYS[id]);
+    }
     await this.storage.delete('chat:ask-both:v1');
   }
 

@@ -25,6 +25,7 @@ import {
   personaDisplayName,
 } from '../../personas/persona.registry';
 import type { StorageKey } from '../../config/storage-keys';
+import { CHAT_STORAGE_KEYS } from '../../config/storage-keys';
 import { PRODUCT_COPY } from '../../config/product-copy';
 import {
   chatInputLabel,
@@ -354,9 +355,7 @@ export class ChatComponent {
   }
 
   private threadKey(): StorageKey {
-    return this.activePersona() === 'hitesh'
-      ? 'chat:hitesh:v1'
-      : 'chat:piyush:v1';
+    return CHAT_STORAGE_KEYS[this.activePersona()];
   }
 
   private uuid(): string {
