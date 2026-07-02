@@ -172,8 +172,8 @@ development_status:
   epic-9-retrospective: optional
 
   # --- Day 7 morning: Feature Flags & Kill-Switches — position 31 ---
-  epic-10: backlog
-  e10-s1-feature-flag-consumption: ready-for-dev
+  epic-10: done
+  e10-s1-feature-flag-consumption: done
   epic-10-retrospective: optional
 
   # --- Day 7 midday+afternoon: Eval Infrastructure & Golden Set — positions 32-34 ---

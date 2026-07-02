@@ -16,6 +16,20 @@
 /* Persona theming CSS variables and shared component styles are layered on
    top of this file in later stories (E4-S2, E1-S1). */
 
+/* Registered custom properties enable smooth color interpolation on persona
+   swap. Fallbacks: browsers without @property support still render the
+   gradient — they just snap between states instead of tweening. */
+@property --surface-tint-top {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #fefaf3;
+}
+@property --surface-tint-bottom {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f2f6fc;
+}
+
 html,
 body {
   margin: 0;
@@ -28,4 +42,44 @@ body {
     "Helvetica Neue",
     Arial,
     sans-serif;
+}
+
+/* Landing / neutral surface — a subtle blend of the two persona hues so the
+   page never feels stark white. Individual chat routes override this via
+   the ChatComponent :host block. */
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      ellipse 90% 60% at 15% 0%,
+      rgba(253, 230, 138, 0.35) 0%,
+      rgba(253, 230, 138, 0) 60%
+    ),
+    radial-gradient(
+      ellipse 90% 60% at 85% 100%,
+      rgba(191, 219, 254, 0.4) 0%,
+      rgba(191, 219, 254, 0) 60%
+    ),
+    linear-gradient(
+      180deg,
+      var(--surface-tint-top) 0%,
+      var(--surface-tint-bottom) 100%
+    );
+  background-attachment: fixed;
+  transition:
+    --surface-tint-top 300ms ease-out,
+    --surface-tint-bottom 300ms ease-out;
+}
+
+/* Persona-tinted surface — driven by [data-persona] set on <body> by the
+   ChatComponent host so the gradient fills the entire viewport (not just
+   the max-width chat column). Kept intentionally soft so long messages
+   still read comfortably against the tint. */
+body[data-persona="hitesh"] {
+  --surface-tint-top: #fffefa;
+  --surface-tint-bottom: #fff4d6;
+}
+body[data-persona="piyush"] {
+  --surface-tint-top: #fbfcff;
+  --surface-tint-bottom: #e6efff;
 }

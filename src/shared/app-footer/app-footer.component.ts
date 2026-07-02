@@ -31,8 +31,9 @@ import { disclaimerLinkLabel } from '../../config/aria-labels';
       }
       .app-footer {
         min-height: 48px;
-        background: #fafaf9;
-        border-top: 1px solid #e7e5e4;
+        background: rgba(250, 250, 249, 0.6);
+        backdrop-filter: blur(6px);
+        border-top: 1px solid rgba(0, 0, 0, 0.06);
         display: flex;
         align-items: center;
         justify-content: space-between;

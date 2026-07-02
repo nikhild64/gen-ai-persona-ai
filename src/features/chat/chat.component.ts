@@ -3,12 +3,14 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  Renderer2,
   ViewChild,
   computed,
   effect,
   inject,
   signal,
 } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
@@ -173,14 +175,15 @@ import { Router } from '@angular/router';
         gap: 1rem;
       }
       /* Persona theme vars come from src/shared/styles/_personas.scss via
-         [data-persona] on this shell. This block just keeps chat-specific
-         layout tweaks. */
+         [data-persona] on this shell. The full-viewport background gradient
+         is driven by body[data-persona] (set from the component constructor)
+         so it fills the entire window, not just the max-width column. */
       .chat-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
         padding: 0.75rem 0;
-        border-bottom: 1px solid #e7e5e4;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.08);
       }
       .persona-id {
         display: flex;
@@ -216,19 +219,21 @@ import { Router } from '@angular/router';
         flex-direction: column;
         gap: 0.5rem;
         padding: 0.75rem 0 1rem;
-        border-top: 1px solid #e7e5e4;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
       }
       .input-area textarea {
         width: 100%;
         padding: 0.6rem 0.75rem;
-        border: 1px solid #d6d3d1;
+        border: 1px solid rgba(0, 0, 0, 0.12);
         border-radius: 8px;
         font: inherit;
         resize: vertical;
         min-height: 60px;
+        background: rgba(255, 255, 255, 0.7);
+        backdrop-filter: blur(4px);
       }
       .input-area textarea:disabled {
-        background: #f5f5f4;
+        background: rgba(245, 245, 244, 0.6);
         color: #78716c;
       }
       .input-controls {
@@ -277,6 +282,8 @@ export class ChatComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly renderer = inject(Renderer2);
+  private readonly document = inject(DOCUMENT);
 
   readonly settingsOpen = signal(false);
   readonly settingsAutoOpen = signal(false);
@@ -362,6 +369,17 @@ export class ChatComponent {
         this.activePersona.set(persona);
         void this.loadThread();
       });
+
+    // Sync body[data-persona] so the full-viewport gradient in styles.scss
+    // tracks the active persona. Effect fires on activePersona() changes and
+    // registers cleanup so navigating away restores the neutral surface.
+    effect((onCleanup) => {
+      const persona = this.activePersona();
+      this.renderer.setAttribute(this.document.body, 'data-persona', persona);
+      onCleanup(() =>
+        this.renderer.removeAttribute(this.document.body, 'data-persona'),
+      );
+    });
 
     // Announce completed assistant messages to screen readers per AD-20.
     effect(() => {

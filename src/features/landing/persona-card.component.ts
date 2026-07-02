@@ -54,18 +54,20 @@ import { personaCardLabel } from '../../config/aria-labels';
         gap: 1rem;
         padding: 1.1rem 1.3rem;
         border-radius: 14px;
-        border: 1px solid #e7e5e4;
-        background: white;
+        border: 1px solid rgba(0, 0, 0, 0.06);
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(8px);
         text-decoration: none;
         color: #1c1917;
-        transition: transform 0.12s ease, box-shadow 0.12s ease,
-          border-color 0.12s ease;
+        transition: transform 0.15s ease, box-shadow 0.15s ease,
+          border-color 0.15s ease, background 0.15s ease;
         min-height: 160px;
       }
       .persona-card:hover {
         transform: translateY(-2px);
-        box-shadow: 0 8px 30px rgba(15, 23, 42, 0.08);
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
         border-color: var(--persona-accent, #d6d3d1);
+        background: rgba(255, 255, 255, 0.9);
       }
       .persona-card:focus-visible {
         outline: 2px solid var(--persona-accent, #0ea5e9);

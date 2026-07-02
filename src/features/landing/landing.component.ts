@@ -64,7 +64,9 @@ import { PersonaCardComponent } from './persona-card.component';
       .disclaimer-band {
         margin-top: 2rem;
         padding: 1rem 1.2rem;
-        background: #f5f5f4;
+        background: rgba(255, 255, 255, 0.55);
+        backdrop-filter: blur(6px);
+        border: 1px solid rgba(0, 0, 0, 0.05);
         border-radius: 10px;
         color: #57534e;
         font-size: 13px;

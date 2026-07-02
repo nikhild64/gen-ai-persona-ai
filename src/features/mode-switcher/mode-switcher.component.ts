@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
 import { modeSwitcherLabel } from '../../config/aria-labels';
 import { PRODUCT_COPY } from '../../config/product-copy';
 import { ANALYTICS_PORT } from '../../domain/chat/di-tokens';
+import { FEATURE_ASK_BOTH_MODE } from '../../config/feature-flags';
 
 export type ChatMode = 'solo' | 'ask-both';
 
@@ -24,6 +25,7 @@ export type ChatMode = 'solo' | 'ask-both';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    @if (visible) {
     <div
       class="track"
       role="tablist"
@@ -47,6 +49,7 @@ export type ChatMode = 'solo' | 'ask-both';
       </button>
       }
     </div>
+    }
   `,
   styles: [
     `
@@ -92,6 +95,9 @@ export class ModeSwitcherComponent {
   readonly activeMode = input.required<ChatMode>();
   readonly disabled = input<boolean>(false);
   readonly switched = output<ChatMode>();
+
+  /** FR-32 kill-switch — hide entirely when Ask-Both feature is disabled. */
+  readonly visible = FEATURE_ASK_BOTH_MODE;
 
   private readonly router = inject(Router);
   private readonly analytics = inject(ANALYTICS_PORT);
