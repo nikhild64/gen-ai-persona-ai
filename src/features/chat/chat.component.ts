@@ -140,7 +140,7 @@ import { Router } from '@angular/router';
             type="submit"
             class="send-btn"
             [attr.aria-label]="sendAriaLabel"
-            [disabled]="!draft().trim()"
+            [disabled]="!draft().trim() || inputDisabled()"
           >
             Send
           </button>

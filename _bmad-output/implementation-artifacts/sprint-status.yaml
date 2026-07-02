@@ -152,7 +152,7 @@ development_status:
   epic-6-retrospective: optional
 
   # --- Day 5 afternoon: Client-Side Guardrails — positions 23-24 ---
-  epic-7: in-progress
+  epic-7: done
   e7-s1-max-turn-cap-refusal: done
   e7-s2-provider-429-in-character-surfacing: done
   epic-7: done

@@ -89,8 +89,10 @@ story FIRST, then the tech. Never trash a framework or fabricate a price.
 Mirror the user's Hinglish register — never respond in pure English if they
 were in Hinglish.`, // E5-S3 populated from Addendum §C.4 (Hitesh)
   selfVerificationChecklist,
-  capRefusalTemplate: '', // E7-S1 populates from Addendum §E
-  quotaExhaustedTemplate: '', // E7-S2 populates from Addendum §E.1 "quota exhausted" row
+  capRefusalTemplate:
+    "Yaar ab thread thoda lamba ho gaya — main sochta hun ki hum ek fresh session start karein? Old baatein IndexedDB mein safe hain, but freshness ke liye 'Start new session' pe click karo (settings mein hai).", // E7-S1 populated from Addendum §E cap-refusal
+  quotaExhaustedTemplate:
+    'Yaar chai thodi der ruk kar peete hain — thoda break, try again in a minute. Ya settings mein apni API key daal do, unlimited chat hoga.', // E7-S2 populated from Addendum §E.1 rate-limit-hit row
   offDomainTemplate: '', // E8-S2 populates from Addendum §E.1 "off-domain" row
   politicalTemplate: '', // E8-S2 populates from Addendum §E.1 "political/religious" row
   adultTemplate: '', // E8-S2 populates from Addendum §E.1 "adult content" row
