@@ -11,51 +11,8 @@ import { disclaimerLinkLabel } from '../../config/aria-labels';
   selector: 'app-footer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <footer class="app-footer">
-      <span class="disclaimer">{{ disclaimer }}</span>
-      <a
-        class="takedown-link"
-        [attr.aria-label]="ariaLabel"
-        [href]="takedownLink"
-      >
-        {{ takedownContact }}
-      </a>
-    </footer>
-  `,
-  styles: [
-    `
-      :host {
-        display: block;
-        width: 100%;
-      }
-      .app-footer {
-        min-height: 48px;
-        background: rgba(250, 250, 249, 0.6);
-        backdrop-filter: blur(6px);
-        border-top: 1px solid rgba(0, 0, 0, 0.06);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0.5rem 1.25rem;
-        color: #57534e;
-        font-size: 12px;
-        gap: 1rem;
-        flex-wrap: wrap;
-      }
-      .disclaimer {
-        line-height: 1.4;
-      }
-      .takedown-link {
-        color: #292524;
-        text-decoration: underline;
-        white-space: nowrap;
-      }
-      .takedown-link:hover {
-        color: #78350f;
-      }
-    `,
-  ],
+  templateUrl: './app-footer.component.html',
+  styleUrls: ['./app-footer.component.scss'],
 })
 export class AppFooterComponent {
   readonly disclaimer = PRODUCT_COPY.footerDisclaimer;

@@ -33,16 +33,7 @@ export class AriaAnnouncerService {
   selector: 'app-aria-announcer',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    <div
-      class="sr-only"
-      role="status"
-      aria-live="polite"
-      aria-atomic="true"
-    >
-      {{ announcer.currentAnnouncement() }}
-    </div>
-  `,
+  templateUrl: './aria-announcer.component.html',
 })
 export class AriaAnnouncerComponent {
   readonly announcer = inject(AriaAnnouncerService);

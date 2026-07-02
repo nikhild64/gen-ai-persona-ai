@@ -1,0 +1,29 @@
+:host {
+  display: block;
+  width: 100%;
+}
+.app-footer {
+  min-height: 48px;
+  background: rgba(250, 250, 249, 0.6);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 1.25rem;
+  color: #57534e;
+  font-size: 12px;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+.disclaimer {
+  line-height: 1.4;
+}
+.takedown-link {
+  color: #292524;
+  text-decoration: underline;
+  white-space: nowrap;
+}
+.takedown-link:hover {
+  color: #78350f;
+}

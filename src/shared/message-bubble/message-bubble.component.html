@@ -1,0 +1,27 @@
+<article
+  class="bubble"
+  [class.user]="message().role === 'user'"
+  [class.assistant]="message().role === 'assistant'"
+  [class.error]="message().status === 'error'"
+  [class.cancelled]="message().status === 'cancelled'"
+  [attr.data-persona]="message().persona || null"
+>
+  @if (message().role === 'assistant') {
+  <header class="bubble-header">
+    <span class="persona-name">{{ personaLabel() }}</span>
+    @if (message().status === 'streaming') {
+    <span class="status-badge streaming">typing…</span>
+    }
+  </header>
+  }
+  <div class="bubble-body" [innerHTML]="renderedContent()"></div>
+  @if (message().status === 'cancelled') {
+  <footer class="bubble-status cancelled-badge">
+    {{ cancelledLabel }}
+  </footer>
+  } @if (message().status === 'error') {
+  <footer class="bubble-status error-badge">
+    {{ errorLabel() }}
+  </footer>
+  }
+</article>
