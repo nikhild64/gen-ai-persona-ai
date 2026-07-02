@@ -78,18 +78,17 @@ import { Router } from '@angular/router';
             <h1>{{ personaName() }}</h1>
             <p class="tagline">{{ personaTagline() }}</p>
           </div>
+          <app-mode-switcher
+            activeMode="solo"
+            [disabled]="orchestrator.inFlightStream()"
+          />
         </div>
         <div class="header-slots">
           <app-persona-switcher
             [activePersona]="activePersona()"
             [disabled]="orchestrator.inFlightStream()"
           />
-          <app-mode-switcher
-            activeMode="solo"
-            [disabled]="orchestrator.inFlightStream()"
-          />
           <app-key-status-badge (clicked)="openSettings()" />
-          
         </div>
       </header>
 
@@ -186,6 +185,10 @@ import { Router } from '@angular/router';
         align-items: center;
         gap: 0.75rem;
         min-width: 0;
+        flex-wrap: wrap;
+      }
+      .persona-id app-mode-switcher {
+        margin-left: 0.5rem;
       }
       .avatar {
         width: 40px;

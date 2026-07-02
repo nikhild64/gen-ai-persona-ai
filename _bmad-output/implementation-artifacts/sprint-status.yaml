@@ -184,10 +184,11 @@ development_status:
   epic-11-retrospective: optional
 
   # --- Day 7 evening: Submission Deliverables — positions 35-37 ---
-  epic-12: backlog
-  e12-s1-readme-license-and-core-docs: ready-for-dev
-  e12-s2-persona-prompt-context-docs: ready-for-dev
-  e12-s3-sample-conversations-evaluation-deploy: ready-for-dev  # PARTIAL SCOPE-CUT CANDIDATE #3 (live-captures portion only)
+  epic-12: done
+  e12-s1-readme-license-and-core-docs: done
+  e12-s2-persona-prompt-context-docs: done
+  e12-s3-sample-conversations-evaluation-deploy: done  # PARTIAL SCOPE-CUT #3 — live-captures deferred to post-submission grader use of the deployed URL
+  epic-12: done
   epic-12-retrospective: optional
 
 # =============================================================================

@@ -83,7 +83,7 @@ export const PRODUCT_COPY = {
 
   // ─── MODE SWITCHER (Solo ↔ Ask-Both) ─────────────────────────────────────
   modeSwitcherSoloLabel: 'Solo',
-  modeSwitcherAskBothLabel: 'Ask both — Hitesh + Piyush',
+  modeSwitcherAskBothLabel: 'Ask both',
 
   // ─── ASK-BOTH ROOM ───────────────────────────────────────────────────────
   askBothBannerLabel: 'You are in Ask-Both mode — Hitesh answers first, then Piyush.',
