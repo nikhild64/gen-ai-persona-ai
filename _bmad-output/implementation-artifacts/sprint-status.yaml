@@ -117,15 +117,14 @@ development_status:
   epic-2-retrospective: optional
 
   # --- Day 3 morning: Chat History — positions 10-11 ---
-  epic-3: in-progress
+  epic-3: done
   e3-s1-idb-storage-adapter: done
   e3-s2-start-new-session-modal: done
-  epic-3: done
   epic-3-retrospective: optional
 
   # --- Day 3 afternoon: Persona Switcher — positions 12-14 ---
-  epic-4: backlog
-  e4-s1-persona-switcher-and-routing: ready-for-dev
+  epic-4: in-progress
+  e4-s1-persona-switcher-and-routing: done
   e4-s2-persona-theming-transition: ready-for-dev
   e4-s3-in-flight-disable-stall-cancel: ready-for-dev
   epic-4-retrospective: optional

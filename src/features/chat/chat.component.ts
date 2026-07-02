@@ -32,6 +32,7 @@ import { MessageBubbleComponent } from '../../shared/message-bubble/message-bubb
 import { StreamingIndicatorComponent } from '../../shared/streaming-indicator/streaming-indicator.component';
 import { AriaAnnouncerService } from '../../shared/aria-announcer/aria-announcer.component';
 import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.component';
+import { PersonaSwitcherComponent } from '../persona-switcher/persona-switcher.component';
 
 /**
  * Solo-mode chat surface. `activePersona` is currently hard-wired via route
@@ -47,6 +48,7 @@ import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.comp
     MessageBubbleComponent,
     StreamingIndicatorComponent,
     SettingsMenuEntryComponent,
+    PersonaSwitcherComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -69,8 +71,12 @@ import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.comp
           </div>
         </div>
         <div class="header-slots">
-          <!-- E4-S1 persona-switcher, E9-S1 mode-switcher,
-               E6-S3 key-status-badge, E6-S3 settings-gear land here -->
+          <app-persona-switcher
+            [activePersona]="activePersona()"
+            [disabled]="orchestrator.inFlightStream()"
+          />
+          <!-- E9-S1 mode-switcher, E6-S3 key-status-badge + settings-gear -->
+          <app-settings-menu-entry />
         </div>
       </header>
 
@@ -288,12 +294,19 @@ export class ChatComponent {
   );
 
   constructor() {
-    const persona = (this.route.snapshot.data?.['persona'] as PersonaId | undefined) ??
-      (this.route.snapshot.paramMap.get('persona') as PersonaId | null) ?? 'hitesh';
-    this.activePersona.set(persona);
-
-    // Load persisted thread + seed hardcoded greeting on empty thread.
-    void this.loadThread();
+    // Route reuse: `data` observable updates when navigation swaps persona on
+    // the same ChatComponent instance (Angular re-uses components across
+    // /chat/hitesh ↔ /chat/piyush by default).
+    this.route.data
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((data) => {
+        const persona = (data?.['persona'] as PersonaId | undefined) ?? 'hitesh';
+        if (persona !== this.activePersona()) {
+          this.orchestrator.cancelInFlight();
+        }
+        this.activePersona.set(persona);
+        void this.loadThread();
+      });
 
     // Announce completed assistant messages to screen readers per AD-20.
     effect(() => {
