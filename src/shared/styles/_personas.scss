@@ -1,0 +1,28 @@
+/* AD-17 persona-theme tokens. THREE scope blocks — :root default, Hitesh,
+   Piyush. Values from DESIGN.md Colors.Persona-theme-tokens. Only the 5
+   `THEME_VARS` from src/config/theme-vars.ts may appear as `--persona-*`
+   custom properties; Stylelint (E0-S4) enforces. */
+
+:root {
+  --persona-accent: #78716c;
+  --persona-bubble-bg: #fafaf9;
+  --persona-avatar-url: none;
+  --persona-code-block-emphasis: default;
+  --persona-input-placeholder-style: normal;
+}
+
+[data-persona='hitesh'] {
+  --persona-accent: #d97706;
+  --persona-bubble-bg: #fef3c7;
+  --persona-avatar-url: url('/images/hitesh.png');
+  --persona-code-block-emphasis: default;
+  --persona-input-placeholder-style: normal;
+}
+
+[data-persona='piyush'] {
+  --persona-accent: #2563eb;
+  --persona-bubble-bg: #eff6ff;
+  --persona-avatar-url: url('/images/piyush.png');
+  --persona-code-block-emphasis: foregrounded;
+  --persona-input-placeholder-style: normal;
+}

@@ -6,6 +6,10 @@
 /* AD-20: global accessibility floor (.sr-only, :focus-visible, reduced-motion) */
 @import "shared/styles/accessibility";
 
+/* AD-17: persona theme tokens + FR-10 250ms transition */
+@import "shared/styles/personas";
+@import "shared/styles/transitions";
+
 /* PrimeNG 21 themes are provided via providePrimeNG({ theme: { preset: Lara } })
    in app.config.ts — no CSS import required for theme tokens. */
 

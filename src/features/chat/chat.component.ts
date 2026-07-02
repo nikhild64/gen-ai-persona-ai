@@ -137,17 +137,9 @@ import { PersonaSwitcherComponent } from '../persona-switcher/persona-switcher.c
         padding: 0 1rem;
         gap: 1rem;
       }
-      /* AD-17 persona-scoped theme vars */
-      .chat-shell[data-persona='hitesh'] {
-        --persona-accent: #d97706;
-        --persona-bubble-bg: #fffbeb;
-        --persona-code-block-emphasis: default;
-      }
-      .chat-shell[data-persona='piyush'] {
-        --persona-accent: #2563eb;
-        --persona-bubble-bg: #eff6ff;
-        --persona-code-block-emphasis: foregrounded;
-      }
+      /* Persona theme vars come from src/shared/styles/_personas.scss via
+         [data-persona] on this shell. This block just keeps chat-specific
+         layout tweaks. */
       .chat-header {
         display: flex;
         align-items: center;

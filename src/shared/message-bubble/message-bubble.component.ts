@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  HostBinding,
   computed,
   input,
 } from '@angular/core';
@@ -153,6 +154,17 @@ marked.setOptions({
 export class MessageBubbleComponent {
   readonly message = input.required<Message>();
   readonly cancelledLabel = PRODUCT_COPY.cancelledMessageBadge;
+
+  /**
+   * AD-17 bubble-level attribution — carries persona scope on the host so
+   * Ask-Both mode (E9) can render mixed-persona bubbles inside a neutral
+   * container. Solo-mode bubbles inherit the container's persona anyway.
+   */
+  @HostBinding('attr.data-persona')
+  get personaAttr(): string | null {
+    const m = this.message();
+    return m.role === 'assistant' && m.persona ? m.persona : null;
+  }
 
   readonly personaLabel = computed(() => {
     const p = this.message().persona;
