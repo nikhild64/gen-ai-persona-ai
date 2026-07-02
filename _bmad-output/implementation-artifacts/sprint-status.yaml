@@ -117,8 +117,8 @@ development_status:
   epic-2-retrospective: optional
 
   # --- Day 3 morning: Chat History — positions 10-11 ---
-  epic-3: backlog
-  e3-s1-idb-storage-adapter: ready-for-dev
+  epic-3: in-progress
+  e3-s1-idb-storage-adapter: done
   e3-s2-start-new-session-modal: ready-for-dev
   epic-3-retrospective: optional
 

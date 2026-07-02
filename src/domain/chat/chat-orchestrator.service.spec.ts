@@ -10,7 +10,7 @@ import {
   MODERATION_PORT,
   ANALYTICS_PORT,
 } from './di-tokens';
-import { InMemoryStorageAdapter } from './chat-thread.service';
+import { InMemoryStorageAdapter } from './testing/in-memory-storage.adapter';
 import { KeyVaultService } from '../key-vault/key-vault.service';
 import { MockAdapter } from '../../infrastructure/providers/testing/mock.adapter';
 import type {
