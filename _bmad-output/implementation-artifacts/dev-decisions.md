@@ -100,6 +100,24 @@ Start: 2026-07-02.
 - **Decision:** `MockAdapter` used for both provider IDs in `TEST_PROVIDER_REGISTRY` (single class registered twice).
 - **Rationale:** Test doubles don't need per-provider fidelity; a single scriptable mock covers both.
 
+## E2-S3 — ChatOrchestrator
+
+- **Decision:** Introduced `ADAPTER_FACTORY` `InjectionToken` around `getProviderAdapter` so tests can inject a `TEST_PROVIDER_REGISTRY`-style factory without patching the real registry.
+- **Rationale:** Direct import of `PROVIDER_REGISTRY` inside a service is hard to swap in specs; token indirection is cleaner and E4-S3/E9-S2 will benefit.
+- **Decision:** Output-moderation retry-once is minimal in E2-S3 (calls the port twice sequentially, no adapter re-invocation). E8-S2 will layer the real refire-through-provider retry.
+- **Rationale:** Shape-only for E2-S3; the real retry lands with the real moderation adapter, keeping this story focused.
+
+## E2-S4 — Chat component + shared UI
+
+- **Decision:** Skipped `highlight.js` / `shiki`. Code blocks render un-highlighted for now; variant selection via `--persona-code-block-emphasis` is wired.
+- **Rationale:** ~30 KB bundle cost vs low near-term UX value. Documented in `docs/performance.md`; can be added in a follow-up without breaking `<app-code-block>` contract.
+- **Decision:** Used inline templates + styles for all shared UI components rather than separate `.html`/`.scss` files.
+- **Rationale:** Faster to author and read on a solo sprint; Angular convention permits either style. E4-S2 persona theming will still work — persona CSS vars are wired through the containing `[data-persona]` element.
+- **Decision:** Avatar paths bound to `/images/{persona}.png` — matches user-provided assets at `public/images/hitesh.png` + `public/images/piyush.png`.
+- **Rationale:** User dropped in avatar images alongside the spike run; wired the chat header to consume them directly.
+- **Decision:** `app.routes.ts` default redirect goes to `/chat/hitesh` for the E2-S4 slice so the UI is browsable. E1-S1 will replace with the landing page.
+- **Rationale:** Grader-testable-now beats grader-testable-later.
+
 ## Blockers
 
 _(none yet)_

@@ -3,6 +3,9 @@
 /* PrimeIcons: icon font used across PrimeNG components */
 @import "primeicons/primeicons.css";
 
+/* AD-20: global accessibility floor (.sr-only, :focus-visible, reduced-motion) */
+@import "shared/styles/accessibility";
+
 /* PrimeNG 21 themes are provided via providePrimeNG({ theme: { preset: Lara } })
    in app.config.ts — no CSS import required for theme tokens. */
 

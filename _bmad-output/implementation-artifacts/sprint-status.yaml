@@ -109,11 +109,11 @@ development_status:
   epic-0-retrospective: optional
 
   # --- Day 2: Persona-Faithful Chat Engine (Solo) — positions 6-9 ---
-  epic-2: in-progress
+  epic-2: done
   e2-s1-provider-adapters-and-registry: done
   e2-s2-prompt-assembler-solo: done
   e2-s3-chat-orchestrator-abort-regex: done
-  e2-s4-chat-component-and-shared-ui: ready-for-dev
+  e2-s4-chat-component-and-shared-ui: done
   epic-2-retrospective: optional
 
   # --- Day 3 morning: Chat History — positions 10-11 ---

@@ -29,6 +29,7 @@
     "@vercel/analytics": "^2.0.1",
     "@vercel/speed-insights": "^2.0.0",
     "idb-keyval": "^6",
+    "marked": "^18.0.5",
     "primeicons": "^7.0.0",
     "primeng": "21.1.9",
     "rxjs": "~7.8.0",

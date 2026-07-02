@@ -3,9 +3,9 @@ import type { Routes } from '@angular/router';
 import { FEATURE_SPIKE_ROUTES } from '../config/feature-flags';
 
 /**
- * Main-app routes are populated in Epic 1+ (landing, chat, ask-both, settings).
- * The `/spike/gemini-cors` route is dev-only, gated by FEATURE_SPIKE_ROUTES,
- * and never linked from primary UI (user must type the URL to reach it).
+ * Route table. E1-S1 will replace the default redirect with the landing page
+ * component; for now `/` sends users straight into the Hitesh chat so E2-S4
+ * is browsable without landing UI.
  */
 const spikeRoutes: Routes = FEATURE_SPIKE_ROUTES
   ? [
@@ -19,4 +19,12 @@ const spikeRoutes: Routes = FEATURE_SPIKE_ROUTES
     ]
   : [];
 
-export const routes: Routes = [...spikeRoutes];
+export const routes: Routes = [
+  { path: '', redirectTo: 'chat/hitesh', pathMatch: 'full' },
+  {
+    path: 'chat',
+    loadChildren: () =>
+      import('../features/chat/chat.routes').then((m) => m.CHAT_ROUTES),
+  },
+  ...spikeRoutes,
+];

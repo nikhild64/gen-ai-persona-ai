@@ -1,13 +1,14 @@
-import { Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
+
+import { AriaAnnouncerComponent } from '../shared/aria-announcer/aria-announcer.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, ButtonModule],
+  standalone: true,
+  imports: [RouterOutlet, AriaAnnouncerComponent],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
-export class App {
-  protected readonly title = signal('gen-ai-persona-ai');
-}
+export class App {}
