@@ -33,6 +33,9 @@ import { StreamingIndicatorComponent } from '../../shared/streaming-indicator/st
 import { AriaAnnouncerService } from '../../shared/aria-announcer/aria-announcer.component';
 import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.component';
 import { PersonaSwitcherComponent } from '../persona-switcher/persona-switcher.component';
+import { SettingsModalComponent } from '../settings/settings-modal.component';
+import { KeyStatusBadgeComponent } from '../settings/key-status-badge.component';
+import { Router } from '@angular/router';
 
 /**
  * Solo-mode chat surface. `activePersona` is currently hard-wired via route
@@ -49,6 +52,8 @@ import { PersonaSwitcherComponent } from '../persona-switcher/persona-switcher.c
     StreamingIndicatorComponent,
     SettingsMenuEntryComponent,
     PersonaSwitcherComponent,
+    SettingsModalComponent,
+    KeyStatusBadgeComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -75,10 +80,25 @@ import { PersonaSwitcherComponent } from '../persona-switcher/persona-switcher.c
             [activePersona]="activePersona()"
             [disabled]="orchestrator.inFlightStream()"
           />
-          <!-- E9-S1 mode-switcher, E6-S3 key-status-badge + settings-gear -->
+          <app-key-status-badge (clicked)="openSettings()" />
+          <button
+            type="button"
+            class="gear"
+            [attr.aria-label]="'Open settings'"
+            (click)="openSettings()"
+          >
+            ⚙
+          </button>
           <app-settings-menu-entry />
         </div>
       </header>
+
+      <app-settings-modal
+        [(open)]="settingsOpen"
+        [(autoOpenMode)]="settingsAutoOpen"
+        (closedWithSave)="onSettingsSaved()"
+        (closedWithoutSave)="onSettingsDismissed()"
+      />
 
       <div class="message-list" #messageList>
         @for (msg of messages(); track msg.id) {
@@ -235,7 +255,12 @@ export class ChatComponent {
   private readonly announcer = inject(AriaAnnouncerService);
   private readonly storage = inject(STORAGE_PORT);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+
+  readonly settingsOpen = signal(false);
+  readonly settingsAutoOpen = signal(false);
+  private queuedText: string | null = null;
 
   readonly sendAriaLabel = sendButtonLabel;
   readonly draft = signal('');

@@ -147,8 +147,9 @@ development_status:
   # --- Day 5 morning: BYO-Key Mode — positions 20-22 ---
   epic-6: in-progress
   e6-s1-key-vault-and-redaction-registry: done
-  e6-s2-settings-modal-with-key-input: ready-for-dev
-  e6-s3-auto-open-and-key-status-badge: ready-for-dev
+  e6-s2-settings-modal-with-key-input: done
+  e6-s3-auto-open-and-key-status-badge: done
+  epic-6: done
   epic-6-retrospective: optional
 
   # --- Day 5 afternoon: Client-Side Guardrails — positions 23-24 ---
