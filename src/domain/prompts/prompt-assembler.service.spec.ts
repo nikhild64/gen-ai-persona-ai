@@ -45,7 +45,7 @@ describe('PromptAssembler solo mode', () => {
     expect(out.model).toBe('gemini-2.5-flash');
     expect(out.temperature).toBe(0.75);
     expect(out.topP).toBe(0.95);
-    expect(out.maxOutputTokens).toBe(1200);
+    expect(out.maxOutputTokens).toBe(500);
     expect(out.frequencyPenalty).toBe(0.2);
     expect(out.presencePenalty).toBe(0.3);
   });
@@ -55,7 +55,7 @@ describe('PromptAssembler solo mode', () => {
     expect(out.model).toBe('openai/gpt-oss-120b');
     expect(out.temperature).toBe(0.55);
     expect(out.topP).toBe(0.9);
-    expect(out.maxOutputTokens).toBe(1000);
+    expect(out.maxOutputTokens).toBe(500);
   });
 
   it('populates OutboundPrompt.meta correctly for a fresh thread', () => {

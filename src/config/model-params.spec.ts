@@ -8,7 +8,7 @@ describe('model-params (Addendum §B.4)', () => {
     expect(p.modelName).toBe('gemini-2.5-flash');
     expect(p.temperature).toBe(0.75);
     expect(p.topP).toBe(0.95);
-    expect(p.maxOutputTokens).toBe(1200);
+    expect(p.maxOutputTokens).toBe(500);
     expect(p.frequencyPenalty).toBe(0.2);
     expect(p.presencePenalty).toBe(0.3);
   });
@@ -18,7 +18,7 @@ describe('model-params (Addendum §B.4)', () => {
     expect(p.modelName).toBe('openai/gpt-oss-120b');
     expect(p.temperature).toBe(0.55);
     expect(p.topP).toBe(0.9);
-    expect(p.maxOutputTokens).toBe(1000);
+    expect(p.maxOutputTokens).toBe(500);
     expect(p.frequencyPenalty).toBe(0.05);
     expect(p.presencePenalty).toBe(0.1);
   });

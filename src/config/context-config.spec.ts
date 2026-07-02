@@ -10,7 +10,7 @@ describe('context-config (AD-9 thresholds)', () => {
     expect(CFG.DRIFT_REFRESH_FIRST_TURN).toBe(15);
     expect(CFG.DRIFT_REFRESH_CADENCE).toBe(10);
     expect(CFG.MAX_TURNS_PER_THREAD).toBe(40);
-    expect(CFG.KEEP_GOING_ROUNDS).toBe(1);
+    expect(CFG.KEEP_GOING_ROUNDS).toBe(5);
     expect(CFG.STREAM_STALL_TIMEOUT_MS).toBe(30000);
   });
 });

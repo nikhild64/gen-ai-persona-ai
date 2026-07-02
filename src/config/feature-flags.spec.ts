@@ -19,7 +19,7 @@ describe('feature-flags (AD-1 build-time, AD-13 mode selector)', () => {
     expect(FEATURE_BYO_KEY).toBe(true);
   });
 
-  it('defaults ASK_BOTH_MODE to sequential (AD-13 flagship UX)', () => {
-    expect(ASK_BOTH_MODE).toBe('sequential');
+  it('defaults ASK_BOTH_MODE to blended (blended-only Ask-Both)', () => {
+    expect(ASK_BOTH_MODE).toBe('blended');
   });
 });

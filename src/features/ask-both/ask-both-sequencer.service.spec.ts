@@ -1,18 +1,10 @@
 import { TestBed } from '@angular/core/testing';
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  afterEach,
-  vi,
-} from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 
 import {
   AskBothSequencerService,
   ASK_BOTH_ADAPTER_FACTORY,
 } from './ask-both-sequencer.service';
-import { AskBothModeService } from './ask-both-mode.service';
 import { InMemoryStorageAdapter } from '../../domain/chat/testing/in-memory-storage.adapter';
 import { MockAdapter } from '../../infrastructure/providers/testing/mock.adapter';
 import {
@@ -70,20 +62,16 @@ function build(mockAdapter: MockAdapter) {
   });
   const keyVault = TestBed.inject(KeyVaultService);
   vi.spyOn(keyVault, 'getKeyForProvider').mockReturnValue('AIza-test-key');
-  const modeService = TestBed.inject(AskBothModeService);
   const sequencer = TestBed.inject(AskBothSequencerService);
-  return { sequencer, analytics, moderation, modeService };
+  return { sequencer, analytics, moderation };
 }
 
-describe('AskBothSequencerService — Blended mode (post-sprint AC-4 / AC-6 / AC-10)', () => {
+describe('AskBothSequencerService — blended-only Ask-Both', () => {
   beforeEach(() => {
     TestBed.resetTestingModule();
-    sessionStorage.clear();
   });
 
-  afterEach(() => sessionStorage.clear());
-
-  it('AC-4: dispatchBlended persists exactly ONE assistant bubble with attributionLabel + no persona', async () => {
+  it('persists exactly ONE assistant bubble with attributionLabel and no persona', async () => {
     const adapter = new MockAdapter().configure(
       [
         { type: 'delta', text: 'Haanji, dekho — ' },
@@ -92,8 +80,7 @@ describe('AskBothSequencerService — Blended mode (post-sprint AC-4 / AC-6 / AC
       ],
       0,
     );
-    const { sequencer, modeService } = build(adapter);
-    modeService.set('blended');
+    const { sequencer } = build(adapter);
 
     await sequencer.askBoth('React seekhna chahiye?');
 
@@ -110,7 +97,7 @@ describe('AskBothSequencerService — Blended mode (post-sprint AC-4 / AC-6 / AC
     expect(bubble.content).toContain('Haanji');
   });
 
-  it('AC-6: emits ask_both_blended_message_sent with sessionId + threadId + tokenEstimate', async () => {
+  it('emits ask_both_blended_message_sent with sessionId, threadId, and tokenEstimate', async () => {
     const adapter = new MockAdapter().configure(
       [
         { type: 'delta', text: 'Dekho yaar, kuch nahi hai.' },
@@ -118,8 +105,7 @@ describe('AskBothSequencerService — Blended mode (post-sprint AC-4 / AC-6 / AC
       ],
       0,
     );
-    const { sequencer, analytics, modeService } = build(adapter);
-    modeService.set('blended');
+    const { sequencer, analytics } = build(adapter);
 
     await sequencer.askBoth('Docker kya hai?');
 
@@ -134,7 +120,7 @@ describe('AskBothSequencerService — Blended mode (post-sprint AC-4 / AC-6 / AC
     }
   });
 
-  it('AC-10: emits persona_regex_miss{persona:"blended"} when reply lacks any signature phrase', async () => {
+  it('emits persona_regex_miss{persona:"blended"} when reply lacks any signature phrase', async () => {
     const adapter = new MockAdapter().configure(
       [
         { type: 'delta', text: 'This reply has no persona signature at all.' },
@@ -142,8 +128,7 @@ describe('AskBothSequencerService — Blended mode (post-sprint AC-4 / AC-6 / AC
       ],
       0,
     );
-    const { sequencer, analytics, modeService } = build(adapter);
-    modeService.set('blended');
+    const { sequencer, analytics } = build(adapter);
 
     await sequencer.askBoth('q');
 
@@ -154,7 +139,7 @@ describe('AskBothSequencerService — Blended mode (post-sprint AC-4 / AC-6 / AC
     expect(miss).toBeTruthy();
   });
 
-  it('AC-10: does NOT emit regex-miss when Hitesh signature is present', async () => {
+  it('does NOT emit regex-miss when a blended signature phrase is present', async () => {
     const adapter = new MockAdapter().configure(
       [
         { type: 'delta', text: 'Haanji chai peeni hai — chalo baat karte hain.' },
@@ -162,8 +147,7 @@ describe('AskBothSequencerService — Blended mode (post-sprint AC-4 / AC-6 / AC
       ],
       0,
     );
-    const { sequencer, analytics, modeService } = build(adapter);
-    modeService.set('blended');
+    const { sequencer, analytics } = build(adapter);
 
     await sequencer.askBoth('q');
 
@@ -174,27 +158,7 @@ describe('AskBothSequencerService — Blended mode (post-sprint AC-4 / AC-6 / AC
     expect(miss).toBeUndefined();
   });
 
-  it('Sequential mode does NOT emit ask_both_blended_message_sent', async () => {
-    const adapter = new MockAdapter().configure(
-      [
-        { type: 'delta', text: 'Haanji reply.' },
-        { type: 'done', meta: { tokens: 2, model: 'mock' } },
-      ],
-      0,
-    );
-    const { sequencer, analytics, modeService } = build(adapter);
-    modeService.set('sequential');
-
-    await sequencer.askBoth('q');
-
-    const blendedEvent = analytics.events.find(
-      (e) => e.name === 'ask_both_blended_message_sent',
-    );
-    expect(blendedEvent).toBeUndefined();
-  });
-
-  it('AC-5: Keep going in blended mode adds one MORE blended bubble (single call, single bubble)', async () => {
-    // First send — one blended bubble persisted.
+  it('Keep going adds one MORE blended bubble (single call, single bubble)', async () => {
     const adapter = new MockAdapter().configure(
       [
         { type: 'delta', text: 'Haanji first take. Dekho.' },
@@ -202,11 +166,9 @@ describe('AskBothSequencerService — Blended mode (post-sprint AC-4 / AC-6 / AC
       ],
       0,
     );
-    const { sequencer, modeService } = build(adapter);
-    modeService.set('blended');
+    const { sequencer } = build(adapter);
     await sequencer.askBoth('React ya Next.js?');
 
-    // Reconfigure adapter to answer the keep-going follow-up.
     adapter.configure(
       [
         { type: 'delta', text: 'Chai ke saath, dekho — ek aur angle.' },
@@ -222,8 +184,9 @@ describe('AskBothSequencerService — Blended mode (post-sprint AC-4 / AC-6 / AC
       (m) => m.role === 'assistant',
     );
     expect(assistantMessages).toHaveLength(2);
-    expect(assistantMessages.every((m) => m.attributionLabel === 'Hitesh + Piyush'))
-      .toBe(true);
+    expect(
+      assistantMessages.every((m) => m.attributionLabel === 'Hitesh + Piyush'),
+    ).toBe(true);
     expect(assistantMessages.every((m) => m.persona === undefined)).toBe(true);
   });
 });

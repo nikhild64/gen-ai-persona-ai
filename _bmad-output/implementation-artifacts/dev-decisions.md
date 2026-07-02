@@ -168,3 +168,18 @@ Out-of-band enhancement layered on top of the completed Sprint 1 (37/37). Adds a
 ## Blockers
 
 _(none)_
+
+## Post-blended-mode cleanup — test suite alignment (2026-07-02)
+
+- **Decision:** Ask-Both simplified to **blended-only**. User removed Sequential + Parallel from the UI (`ask-both.component.ts` no longer renders the three-way mode toggle). Build-time default `ASK_BOTH_MODE` hard-coded to `'blended'` in `feature-flags.ts`.
+- **PRD drift (logged, not fixed this task):** FR-26 through FR-31 still describe Sequential/Parallel behavior and the FR-31 parallel fallback. Flag for post-submission PRD + Addendum update.
+- **Keep-going:** `KEEP_GOING_ROUNDS` remains **5** in `context-config.ts`; blended `keepGoing()` in `AskBothSequencerService` still uses it. Test updated to match code (was asserting `1`).
+- **maxOutputTokens:** Specs updated to **500** for Hitesh + Piyush (mid-sprint trim in `model-params.ts`; was 1200/1000 in Addendum §B.4 tests).
+- **Test cleanup:**
+  - **Deleted:** `ask-both-mode-toggle.component.spec.ts` (11 tests) — three-segment Sequential | Parallel | Blended toggle removed from product surface.
+  - **Deleted:** 1 test — `Sequential mode does NOT emit ask_both_blended_message_sent` from sequencer spec.
+  - **Deleted:** 1 test — `accepts all three valid variants` from mode service spec.
+  - **Rewritten:** mode service spec (blended-only defaults + persist probe), sequencer spec (blended-only flow, no sessionStorage boilerplate), `feature-flags.spec.ts`, `context-config.spec.ts`, `model-params.spec.ts` ×2, `prompt-assembler.service.spec.ts` ×2.
+  - **Added:** `src/test-setup.ts` + `vitest.config.ts` so `bunx vitest run` initializes Angular TestBed + jsdom (parity with `ng test`).
+- **Test counts:** Before cleanup — **144** total, **36** failing via raw `bunx vitest run` (missing TestBed/jsdom) / **8** failing via `ng test` (assertion drift only). After cleanup — **133** total (11 deleted), target **0** failing on both runners.
+- **Vestigial code (not removed this task):** `AskBothSequencerService` still branches on `modeService.get()` for `'parallel'` / `'sequential'` with `dispatchParallel`, `dispatchSequential`, and Sequential/Parallel keep-going pair-round logic. `AskBothModeToggleComponent` + `AskBothModeService` remain in tree though toggle is not rendered. Safe dead paths while default + UI are blended-only.
