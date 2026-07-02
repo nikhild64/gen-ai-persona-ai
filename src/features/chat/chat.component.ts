@@ -184,11 +184,15 @@ import { Router } from '@angular/router';
         justify-content: space-between;
         padding: 0.75rem 0;
         border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        row-gap: 0.5rem;
       }
       .persona-id {
         display: flex;
         align-items: center;
         gap: 0.75rem;
+        min-width: 0;
       }
       .avatar {
         width: 40px;
@@ -197,6 +201,7 @@ import { Router } from '@angular/router';
         border: 2px solid var(--persona-accent, #94a3b8);
         object-fit: cover;
         background: #f5f5f4;
+        flex-shrink: 0;
       }
       .persona-meta h1 {
         font-size: 18px;
@@ -206,6 +211,42 @@ import { Router } from '@angular/router';
         font-size: 12px;
         color: #57534e;
         margin: 0;
+      }
+      .header-slots {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+      .gear {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        min-width: 36px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.7);
+        color: #292524;
+        font-size: 16px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+        transition:
+          background 0.15s ease,
+          border-color 0.15s ease,
+          transform 0.15s ease;
+      }
+      .gear:hover {
+        background: white;
+        border-color: var(--persona-accent, #d6d3d1);
+        transform: rotate(30deg);
+      }
+      .gear:focus-visible {
+        outline: 2px solid var(--persona-accent, #0ea5e9);
+        outline-offset: 2px;
       }
       .message-list {
         overflow-y: auto;

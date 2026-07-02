@@ -46,16 +46,29 @@ import { ConfirmModalComponent } from './confirm-modal.component';
         gap: 0.5rem;
       }
       .entry {
-        background: transparent;
-        border: 1px solid #d6d3d1;
+        background: rgba(255, 255, 255, 0.7);
+        border: 1px solid rgba(0, 0, 0, 0.1);
         color: #292524;
-        padding: 0.4rem 0.8rem;
-        border-radius: 6px;
+        padding: 0 0.85rem;
+        height: 36px;
+        border-radius: 999px;
         cursor: pointer;
         font-size: 13px;
+        font-weight: 500;
+        line-height: 1;
+        display: inline-flex;
+        align-items: center;
+        transition:
+          background 0.15s ease,
+          border-color 0.15s ease;
       }
       .entry:hover {
-        background: #f5f5f4;
+        background: white;
+        border-color: var(--persona-accent, #d6d3d1);
+      }
+      .entry:focus-visible {
+        outline: 2px solid var(--persona-accent, #0ea5e9);
+        outline-offset: 2px;
       }
       .toast {
         font-size: 13px;

@@ -179,8 +179,8 @@ development_status:
   # --- Day 7 midday+afternoon: Eval Infrastructure & Golden Set — positions 32-34 ---
   epic-11: in-progress
   e11-s1-golden-set-rubric-and-runner: done
-  e11-s2-drift-curve-attribution-ask-both-slice: ready-for-dev  # PARTIAL SCOPE-CUT CANDIDATE #2 (blind-attribution portion only)
-  e11-s3-performance-budget-headless-check: ready-for-dev
+  e11-s2-drift-curve-attribution-ask-both-slice: done  # PARTIAL SCOPE-CUT: blind-attribution kept as protocol doc only
+  e11-s3-performance-budget-headless-check: done
   epic-11-retrospective: optional
 
   # --- Day 7 evening: Submission Deliverables — positions 35-37 ---

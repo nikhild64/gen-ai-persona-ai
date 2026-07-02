@@ -44,20 +44,25 @@ import { keyStatusBadgeLabel } from '../../config/aria-labels';
       .badge {
         display: inline-flex;
         align-items: center;
-        gap: 0.35rem;
-        min-height: 24px;
-        padding: 0 0.6rem;
+        gap: 0.4rem;
+        height: 36px;
+        padding: 0 0.75rem;
         border-radius: 999px;
         font-size: 12px;
-        border: 1px solid #d6d3d1;
-        background: white;
+        font-weight: 500;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        background: rgba(255, 255, 255, 0.7);
         color: #292524;
       }
       .badge.none {
         cursor: pointer;
         color: #b45309;
-        border-color: #fed7aa;
+        border-color: rgba(254, 215, 170, 0.9);
+        background: rgba(255, 247, 237, 0.85);
+      }
+      .badge.none:hover {
         background: #fff7ed;
+        border-color: #fed7aa;
       }
       .dot {
         width: 8px;
