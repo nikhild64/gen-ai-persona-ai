@@ -89,15 +89,7 @@ import { Router } from '@angular/router';
             [disabled]="orchestrator.inFlightStream()"
           />
           <app-key-status-badge (clicked)="openSettings()" />
-          <button
-            type="button"
-            class="gear"
-            [attr.aria-label]="'Open settings'"
-            (click)="openSettings()"
-          >
-            ⚙
-          </button>
-          <app-settings-menu-entry />
+          
         </div>
       </header>
 
@@ -155,6 +147,7 @@ import { Router } from '@angular/router';
           } @if (streamStalledMessage()) {
           <span class="stall-hint">{{ streamStalledMessage() }}</span>
           }
+          <app-settings-menu-entry class="menu-entry-slot" />
         </div>
       </form>
     </section>
@@ -281,6 +274,10 @@ import { Router } from '@angular/router';
         display: flex;
         align-items: center;
         gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .menu-entry-slot {
+        margin-left: auto;
       }
       .send-btn,
       .cancel-btn {

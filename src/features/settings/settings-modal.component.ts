@@ -14,7 +14,6 @@ import { InputText } from 'primeng/inputtext';
 import { Button } from 'primeng/button';
 
 import type { ProviderId } from '../../config/provider-registry';
-import { PROVIDER_REGISTRY } from '../../infrastructure/providers/provider.registry';
 import { KeyVaultService } from '../../domain/key-vault/key-vault.service';
 import { ANALYTICS_PORT } from '../../domain/chat/di-tokens';
 import { PRODUCT_COPY } from '../../config/product-copy';
@@ -88,9 +87,6 @@ type ProviderOption = { label: string; value: ProviderId };
             </button>
           </div>
           <span class="hint">{{ keyHint() }}</span>
-          @if (formatWarning(); as warn) {
-          <span class="warn">{{ warn }}</span>
-          }
         </label>
       </section>
 
@@ -163,10 +159,6 @@ type ProviderOption = { label: string; value: ProviderId };
       }
       .hint {
         color: #78716c;
-        font-size: 12px;
-      }
-      .warn {
-        color: #b45309;
         font-size: 12px;
       }
       .status-row {
@@ -245,17 +237,6 @@ export class SettingsModalComponent {
   readonly keyPlaceholder = computed(() =>
     this.provider() === 'gemini' ? 'AIzaSy…' : 'gsk_…',
   );
-
-  readonly formatWarning = computed(() => {
-    const val = this.keyInput();
-    if (!val) return '';
-    const cls = PROVIDER_REGISTRY.get(this.provider());
-    const pattern = (cls as unknown as { KEY_PATTERN?: RegExp })?.KEY_PATTERN;
-    if (!pattern) return '';
-    return pattern.test(val)
-      ? ''
-      : PRODUCT_COPY.keyFormatWarning(this.provider());
-  });
 
   onSave(): void {
     const key = this.keyInput().trim();
