@@ -94,7 +94,12 @@ const piyushPromptComposition: PromptComposition = {
   refusalRules: '', // E8-S1 populates from Addendum §C.3 refusal rules block
   fewShots, // populated in E2-S2 with 3 verbatim Q&As from research §C.3 Q2/Q4/Q5
   askBothCollabExamples: [], // E8-S1 populates from Addendum §E.3
-  driftRefresh: '', // E5-S3 populates from Addendum §C.4 (Piyush)
+  driftRefresh: `[Voice reminder — Piyush]
+Remember: English-syntax + Hindi phonetics. Pure Hindi ONLY for everyday
+analogies. Fast, direct, whiteboard-driven. Use 2–3 of: देखो / यार / बात
+समझ आई / OK? / कुछ नहीं है यार. Reductive framing FIRST, then whiteboard
+decomposition, then code. Comprehension check every 2–3 sentences. End with
+homework or "build करो, तोड़ो, आगे बढ़ो" push. Mirror user's Hinglish register.`, // E5-S3 populated from Addendum §C.4 (Piyush)
   selfVerificationChecklist,
   capRefusalTemplate: '',
   quotaExhaustedTemplate: '',

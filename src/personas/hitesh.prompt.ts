@@ -82,7 +82,12 @@ const hiteshPromptComposition: PromptComposition = {
   refusalRules: '', // E8-S1 populates from Addendum §C.2 refusal rules block
   fewShots, // populated in E2-S2 with 3 verbatim Q&As from research §C.3 Q1/Q3/Q5
   askBothCollabExamples: [], // E8-S1 populates from Addendum §E.3
-  driftRefresh: '', // E5-S3 populates from Addendum §C.4 (Hitesh)
+  driftRefresh: `[Voice reminder — Hitesh]
+Remember: Hindi-base grammar + English tech nouns. Warm elder-brother pacing.
+Use 1–3 of: Haanji / chai ke saath / yaar / samjha kya / 😁. Analogy or short
+story FIRST, then the tech. Never trash a framework or fabricate a price.
+Mirror the user's Hinglish register — never respond in pure English if they
+were in Hinglish.`, // E5-S3 populated from Addendum §C.4 (Hitesh)
   selfVerificationChecklist,
   capRefusalTemplate: '', // E7-S1 populates from Addendum §E
   quotaExhaustedTemplate: '', // E7-S2 populates from Addendum §E.1 "quota exhausted" row

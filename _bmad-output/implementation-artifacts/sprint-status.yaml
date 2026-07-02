@@ -138,10 +138,11 @@ development_status:
   epic-1-retrospective: optional
 
   # --- Day 4 afternoon: Long-Conversation Memory — positions 17-19 ---
-  epic-5: in-progress
+  epic-5: done
   e5-s1-verbatim-tail-and-counters: done
   e5-s2-rolling-summary-hybrid-trigger: done
-  e5-s3-drift-refresh-block-injection: ready-for-dev
+  e5-s3-drift-refresh-block-injection: done
+  epic-5: done
   epic-5-retrospective: optional
 
   # --- Day 5 morning: BYO-Key Mode — positions 20-22 ---

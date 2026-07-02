@@ -10,8 +10,13 @@ import type {
 import type { OutboundPrompt, PromptMode } from './types';
 import { PERSONA_REGISTRY } from '../../personas/persona.registry';
 import { PERSONA_MODEL_PARAMS } from '../../config/model-params';
-import { VERBATIM_TAIL_LENGTH } from '../../config/context-config';
+import {
+  VERBATIM_TAIL_LENGTH,
+  DRIFT_REFRESH_FIRST_TURN,
+  DRIFT_REFRESH_CADENCE,
+} from '../../config/context-config';
 import { estimateTokens } from '../context/token-estimator';
+import { assistantMessageCount } from '../context/turn-counting';
 
 /**
  * AD-8 — the sole prompt composer. Every LLM call in Solo, Ask-Both, Rolling
@@ -55,7 +60,16 @@ export class PromptAssembler {
     params: (typeof PERSONA_MODEL_PARAMS)[PersonaId],
     _options?: { systemNote?: string; driftRefreshTurn?: number },
   ): OutboundPrompt {
-    const systemContent = this.buildSystemBlock(persona, thread, null);
+    // AD-9 drift-refresh cadence: current turn = imminent assistant message.
+    const currentTurn = assistantMessageCount(thread) + 1;
+    const shouldInjectDrift =
+      currentTurn >= DRIFT_REFRESH_FIRST_TURN &&
+      (currentTurn - DRIFT_REFRESH_FIRST_TURN) % DRIFT_REFRESH_CADENCE === 0;
+    const driftBlock: string | null = shouldInjectDrift
+      ? PERSONA_REGISTRY[persona].prompt.driftRefresh || null
+      : null;
+
+    const systemContent = this.buildSystemBlock(persona, thread, driftBlock);
 
     const lastMessage = thread.messages[thread.messages.length - 1];
     const currentUserText =
@@ -82,7 +96,7 @@ export class PromptAssembler {
       meta: {
         mode: 'solo',
         hasSummary: !!thread.rollingSummary,
-        hasDriftRefresh: false,
+        hasDriftRefresh: shouldInjectDrift && driftBlock !== null,
         estimatedTokens: estimateTokens(systemContent + userContent),
       },
     };
