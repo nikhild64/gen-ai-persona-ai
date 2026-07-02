@@ -1,0 +1,19 @@
+<a
+  class="persona-card"
+  [attr.data-persona]="persona()"
+  [routerLink]="['/chat', persona()]"
+  [attr.aria-label]="ariaLabel()"
+>
+  <img
+    class="avatar"
+    [src]="'/images/' + persona() + '.png'"
+    alt=""
+    width="96"
+    height="96"
+  />
+  <div class="body">
+    <h2>{{ displayName() }}</h2>
+    <p class="tagline">{{ tagline() }}</p>
+  </div>
+  <span class="cta">{{ ctaLabel }}</span>
+</a>

@@ -24,72 +24,8 @@ export type ChatMode = 'solo' | 'ask-both';
   selector: 'app-mode-switcher',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  template: `
-    @if (visible) {
-    <div
-      class="track"
-      role="tablist"
-      [attr.aria-label]="ariaLabel()"
-      [attr.aria-disabled]="disabled() || null"
-    >
-      @for (m of modes; track m) {
-      <button
-        type="button"
-        role="tab"
-        class="segment"
-        [attr.aria-selected]="m === activeMode()"
-        [attr.tabindex]="m === activeMode() ? 0 : -1"
-        [attr.title]="disabled() ? disabledTooltip() : null"
-        [class.active]="m === activeMode()"
-        [class.disabled]="disabled()"
-        [disabled]="disabled()"
-        (click)="onSelect(m)"
-      >
-        {{ label(m) }}
-      </button>
-      }
-    </div>
-    }
-  `,
-  styles: [
-    `
-      :host {
-        display: inline-block;
-      }
-      .track {
-        display: inline-flex;
-        background: #f5f5f4;
-        border: 1px solid #d6d3d1;
-        border-radius: 999px;
-        padding: 4px;
-        gap: 2px;
-        min-height: 36px;
-      }
-      .segment {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.35rem 0.85rem;
-        border-radius: 999px;
-        background: transparent;
-        border: none;
-        color: #57534e;
-        font-weight: 500;
-        cursor: pointer;
-        min-width: 44px;
-      }
-      .segment.active {
-        background: #1c1917;
-        color: white;
-      }
-      .segment:hover:not(.active):not(.disabled) {
-        background: #e7e5e4;
-      }
-      .segment.disabled {
-        opacity: 0.55;
-        cursor: not-allowed;
-      }
-    `,
-  ],
+  templateUrl: './mode-switcher.component.html',
+  styleUrls: ['./mode-switcher.component.scss'],
 })
 export class ModeSwitcherComponent {
   readonly activeMode = input.required<ChatMode>();

@@ -1,0 +1,16 @@
+<section class="hero">
+  <h1>{{ heroTitle }}</h1>
+  <p class="sub">{{ heroSubheader }}</p>
+</section>
+
+<section class="cards" aria-label="Available personas">
+  @for (p of personas; track p) {
+  <app-persona-card [persona]="p" />
+  } @if (askBothEnabled) {
+  <app-ask-both-card />
+  }
+</section>
+
+<section class="disclaimer-band" role="note">
+  <p>{{ disclaimerBand }}</p>
+</section>

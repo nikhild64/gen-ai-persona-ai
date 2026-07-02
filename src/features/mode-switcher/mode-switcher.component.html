@@ -1,0 +1,25 @@
+@if (visible) {
+<div
+  class="track"
+  role="tablist"
+  [attr.aria-label]="ariaLabel()"
+  [attr.aria-disabled]="disabled() || null"
+>
+  @for (m of modes; track m) {
+  <button
+    type="button"
+    role="tab"
+    class="segment"
+    [attr.aria-selected]="m === activeMode()"
+    [attr.tabindex]="m === activeMode() ? 0 : -1"
+    [attr.title]="disabled() ? disabledTooltip() : null"
+    [class.active]="m === activeMode()"
+    [class.disabled]="disabled()"
+    [disabled]="disabled()"
+    (click)="onSelect(m)"
+  >
+    {{ label(m) }}
+  </button>
+  }
+</div>
+}

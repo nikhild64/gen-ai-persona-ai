@@ -1,0 +1,81 @@
+<main class="spike-shell">
+  <header>
+    <h1>Spike-0 — Gemini browser-CORS gate</h1>
+    <p class="sub">
+      Paste a Gemini API key ({{ keyPattern }}). Click <b>Try streaming</b>.
+      <br />
+      PASS = tokens appear live in the output panel.
+      <br />
+      FAIL = the DevTools console shows a CORS block or a fetch error;
+      copy the error into the report.
+    </p>
+  </header>
+
+  <section class="input-row">
+    <label>
+      <span class="label">API key</span>
+      <input
+        type="password"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="AIzaSy…"
+        [ngModel]="apiKey()"
+        (ngModelChange)="apiKey.set($event)"
+      />
+    </label>
+    <button
+      type="button"
+      [disabled]="isStreaming() || apiKey().trim().length === 0"
+      (click)="tryStreaming()"
+    >
+      {{ isStreaming() ? 'Streaming…' : 'Try streaming' }}
+    </button>
+    <button
+      type="button"
+      [disabled]="!isStreaming()"
+      (click)="cancel()"
+    >
+      Cancel
+    </button>
+  </section>
+
+  <section class="panels">
+    <article class="panel output">
+      <h2>Output — live tokens</h2>
+      <p class="meta">
+        HTTP status:
+        <b>{{ status() ?? '—' }}</b>
+        &nbsp;|&nbsp; content-type:
+        <b>{{ contentType() ?? '—' }}</b>
+        &nbsp;|&nbsp; tokens received:
+        <b>{{ tokenCount() }}</b>
+      </p>
+      <pre>{{ output() || '(nothing yet)' }}</pre>
+    </article>
+
+    <article class="panel errors">
+      <h2>Errors — verbatim</h2>
+      <pre>{{ errorLog() || '(none)' }}</pre>
+      <p class="hint">
+        Also check DevTools → Console and DevTools → Network for any red
+        CORS-preflight rows.
+      </p>
+    </article>
+  </section>
+
+  <footer>
+    <p>
+      Endpoint:
+      <code>
+        POST
+        https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse
+      </code>
+    </p>
+    <p>
+      Report back:
+      <b>PASS</b> (tokens streaming) or
+      <b>FAIL</b> (copy the error text into the report + a screenshot of
+      the DevTools Network row).
+    </p>
+  </footer>
+</main>
