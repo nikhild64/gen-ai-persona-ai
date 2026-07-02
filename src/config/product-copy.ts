@@ -65,6 +65,7 @@ export const PRODUCT_COPY = {
   streamingIndicatorAskBothA: 'Hitesh is typing…',
   streamingIndicatorAskBothB: 'Piyush is responding to Hitesh…',
   streamingIndicatorAskBothParallel: 'Hitesh and Piyush are both typing…',
+  streamingIndicatorAskBothBlended: 'Hitesh + Piyush are speaking as one…',
   streamStallPromptBody:
     'Nothing has streamed for 30 seconds. This might be a slow provider — wait a bit more, or cancel and retry.',
   streamStallCancelLabel: 'Cancel',
@@ -84,6 +85,16 @@ export const PRODUCT_COPY = {
   // ─── MODE SWITCHER (Solo ↔ Ask-Both) ─────────────────────────────────────
   modeSwitcherSoloLabel: 'Solo',
   modeSwitcherAskBothLabel: 'Ask both',
+
+  // ─── ASK-BOTH VARIANT TOGGLE (post-sprint Blended mode) ──────────────────
+  askBothVariantLabels: {
+    sequential: 'Sequential',
+    parallel: 'Parallel',
+    blended: 'Blended',
+  },
+  askBothVariantTooltip:
+    'One blended answer — 1 LLM call (Sequential is 2, Parallel is 2).',
+  askBothBlendedAttribution: 'Hitesh + Piyush',
 
   // ─── ASK-BOTH ROOM ───────────────────────────────────────────────────────
   askBothBannerLabel: 'You are in Ask-Both mode — Hitesh answers first, then Piyush.',

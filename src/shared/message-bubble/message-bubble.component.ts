@@ -166,7 +166,15 @@ export class MessageBubbleComponent {
   }
 
   readonly personaLabel = computed(() => {
-    const p = this.message().persona;
+    const m = this.message();
+    // Post-sprint Blended Ask-Both: `attributionLabel` (when set) overrides
+    // the persona-derived name so the bubble header reads e.g.
+    // "Hitesh + Piyush" for the fused-voice variant. Falls through to the
+    // solo/sequential persona display name when absent.
+    if (m.attributionLabel && m.attributionLabel.length > 0) {
+      return m.attributionLabel;
+    }
+    const p = m.persona;
     return p ? personaDisplayName(p) : 'Assistant';
   });
 

@@ -9,6 +9,7 @@ import type {
 } from '../types/message';
 import type { OutboundPrompt, PromptMode } from './types';
 import { PERSONA_REGISTRY } from '../../personas/persona.registry';
+import blendedComposition from '../../personas/blended.prompt';
 import { PERSONA_MODEL_PARAMS } from '../../config/model-params';
 import {
   VERBATIM_TAIL_LENGTH,
@@ -70,6 +71,8 @@ export class PromptAssembler {
           params,
           options?.systemNote,
         );
+      case 'ask-both-blended':
+        return this.composeAskBothBlended(thread, params);
       case 'summarize':
         return this.composeSummary(persona, thread, params);
       default:
@@ -123,6 +126,56 @@ export class PromptAssembler {
         estimatedTokens: estimateTokens(
           systemContent + (systemNote ?? '') + currentUserText,
         ),
+      },
+    };
+  }
+
+  /**
+   * Post-sprint Blended arm. AC-3: returns a single `role:'system'` message
+   * (9-block order sourced from `blendedComposition` instead of persona
+   * registry) plus a single `role:'user'` message wrapped in
+   * `<user_message>` delimiters. `persona` arg is deliberately absent — the
+   * fusion is persona-agnostic; the sequencer owns provider routing and
+   * model params selection separately (uses Hitesh's slot as the canonical
+   * carrier).
+   *
+   * When the current thread's last message is an assistant reply (Keep
+   * Going in Blended mode per AC-5), we synthesise the user message as a
+   * "continue with a fresh angle" prompt so the model produces a follow-up
+   * take on the original question rather than paraphrasing itself. When it
+   * is a user message (initial Blended send per AC-3), that message goes
+   * through verbatim.
+   */
+  private composeAskBothBlended(
+    thread: Thread,
+    params: (typeof PERSONA_MODEL_PARAMS)[PersonaId],
+  ): OutboundPrompt {
+    const systemContent = this.buildBlendedSystemBlock(thread);
+    const lastMessage = thread.messages[thread.messages.length - 1];
+    const currentUserText =
+      lastMessage && lastMessage.role === 'user'
+        ? lastMessage.content
+        : 'Continue this Blended discussion with a second fused-voice take — offer a fresh angle or expand on a point you glossed. Keep the same warm-hook + reductive-breakdown + build-push structure.';
+    const userContent = `<user_message>${currentUserText}</user_message>`;
+
+    const messages: PromptMessage[] = [
+      { role: 'system', content: systemContent },
+      { role: 'user', content: userContent },
+    ];
+
+    return {
+      messages,
+      model: params.modelName,
+      temperature: params.temperature,
+      topP: params.topP,
+      maxOutputTokens: params.maxOutputTokens,
+      frequencyPenalty: params.frequencyPenalty,
+      presencePenalty: params.presencePenalty,
+      meta: {
+        mode: 'ask-both-blended',
+        hasSummary: !!thread.rollingSummary,
+        hasDriftRefresh: false,
+        estimatedTokens: estimateTokens(systemContent + userContent),
       },
     };
   }
@@ -319,5 +372,66 @@ export class PromptAssembler {
       default:
         return assertNever(persona);
     }
+  }
+
+  /**
+   * Post-sprint AD-8 9-block order for the Blended arm — mirrors
+   * `buildSystemBlock` structurally but sources every persona-shaped block
+   * from `blendedComposition` instead of the persona registry. The output
+   * is folded into a single `role:'system'` message per AC-3.
+   */
+  private buildBlendedSystemBlock(thread: Thread): string {
+    const parts: string[] = [];
+
+    parts.push(RESPONSE_LENGTH_DIRECTIVE);
+    parts.push('\n---\n');
+    parts.push(blendedComposition.identityBlock);
+    parts.push('\n---\n');
+    parts.push(blendedComposition.voiceRules);
+    parts.push('\n---\n');
+    parts.push(`REFUSAL RULES:\n${blendedComposition.refusalRules}`);
+    parts.push('\n---\n');
+
+    parts.push('# ---- FEW-SHOT EXAMPLES ----');
+    for (const fs of blendedComposition.fewShots) {
+      parts.push(`User: ${fs.user}\nAssistant: ${fs.assistant}\n`);
+    }
+    parts.push('\n---\n');
+
+    parts.push('# ---- REPEAT CRITICAL RULES ----');
+    parts.push(blendedComposition.voiceReminder);
+    parts.push('\n---\n');
+
+    parts.push('# ---- ROLLING SUMMARY (injected by system) ----');
+    parts.push(
+      thread.rollingSummary && thread.rollingSummary.length > 0
+        ? thread.rollingSummary
+        : '(none)',
+    );
+    parts.push('\n---\n');
+
+    parts.push('# ---- VERBATIM TAIL (last N turns) ----');
+    const totalMsgs = thread.messages.length;
+    // Exclude the last message from the tail when it's a user message
+    // (goes into Block 9 via `<user_message>`); include it when it's an
+    // assistant message so Keep-Going Blended sees its own prior take.
+    const lastMsg = thread.messages[totalMsgs - 1];
+    const dropLast = lastMsg?.role === 'user';
+    const tailEnd = Math.max(0, dropLast ? totalMsgs - 1 : totalMsgs);
+    const tailStart = Math.max(0, tailEnd - VERBATIM_TAIL_LENGTH);
+    const tail = thread.messages.slice(tailStart, tailEnd);
+    if (tail.length === 0) {
+      parts.push('(no prior turns)');
+    } else {
+      for (const m of tail) {
+        parts.push(`${m.role}: ${m.content}`);
+      }
+    }
+    parts.push('\n---\n');
+
+    parts.push('# ---- PRE-RESPONSE SELF-VERIFICATION ----');
+    parts.push(blendedComposition.selfVerificationChecklist);
+
+    return parts.join('\n');
   }
 }

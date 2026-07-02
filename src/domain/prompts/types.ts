@@ -10,6 +10,7 @@ export type PromptMode =
   | 'ask-both-a'
   | 'ask-both-b'
   | 'ask-both-keep-going'
+  | 'ask-both-blended'
   | 'summarize';
 
 /**

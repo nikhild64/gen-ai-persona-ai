@@ -122,3 +122,103 @@ describe('PromptAssembler solo mode', () => {
     ).toThrowError(/Unhandled variant/);
   });
 });
+
+describe('PromptAssembler ask-both-blended mode (post-sprint)', () => {
+  const assembler = new PromptAssembler();
+
+  it('AC-3: returns exactly one system + one user message; user wrapped in <user_message>', () => {
+    const thread = threadFrom([msg('user', 'system design kaise start karun?', 1)]);
+    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    expect(out.messages).toHaveLength(2);
+    expect(out.messages[0]?.role).toBe('system');
+    expect(out.messages[1]?.role).toBe('user');
+    expect(out.messages[1]?.content).toBe(
+      '<user_message>system design kaise start karun?</user_message>',
+    );
+    expect(out.meta.mode).toBe('ask-both-blended');
+  });
+
+  it('AC-3: system block preserves AD-8 9-block order sourced from blended composition', () => {
+    const thread = threadFrom([msg('user', 'hi', 1)]);
+    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    const system = out.messages[0]?.content ?? '';
+
+    const indices = {
+      identity: system.indexOf('FUSED VOICE'),
+      voice: system.indexOf('VOICE RULES'),
+      refusal: system.indexOf('REFUSAL RULES:'),
+      fewShots: system.indexOf('FEW-SHOT EXAMPLES'),
+      reminder: system.indexOf('REPEAT CRITICAL RULES'),
+      summary: system.indexOf('ROLLING SUMMARY'),
+      tail: system.indexOf('VERBATIM TAIL'),
+      selfCheck: system.indexOf('PRE-RESPONSE SELF-VERIFICATION'),
+    };
+
+    // Every block present and in ascending order — AD-8 9-block preservation.
+    Object.values(indices).forEach((idx) =>
+      expect(idx).toBeGreaterThanOrEqual(0),
+    );
+    expect(indices.identity).toBeLessThan(indices.voice);
+    expect(indices.voice).toBeLessThan(indices.refusal);
+    expect(indices.refusal).toBeLessThan(indices.fewShots);
+    expect(indices.fewShots).toBeLessThan(indices.reminder);
+    expect(indices.reminder).toBeLessThan(indices.summary);
+    expect(indices.summary).toBeLessThan(indices.tail);
+    expect(indices.tail).toBeLessThan(indices.selfCheck);
+  });
+
+  it('AC-8: fusion identityBlock includes the SCRIPT rule and forbids Devanagari', () => {
+    const thread = threadFrom([msg('user', 'q', 1)]);
+    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    const system = out.messages[0]?.content ?? '';
+    expect(system).toContain('SCRIPT: Roman/Latin transliteration for ALL content');
+    expect(system).toContain('NEVER emit');
+    expect(system).toContain('Devanagari');
+    // Pedagogical Devanagari (in the "write X not Y" clause) is allowed
+    // inside the identityBlock and the identity block only — same policy
+    // as the Piyush persona post-mid-sprint-fix. The instruction
+    // "NEVER emit Devanagari" makes the examples anti-patterns, not seeds.
+    // Everything OUTSIDE that identity block should be Latin-only.
+    const identityStart = system.indexOf('FUSED VOICE');
+    const identityEnd = system.indexOf('VOICE RULES');
+    const beforeIdentity = system.slice(0, identityStart);
+    const afterIdentity = system.slice(identityEnd);
+    const devanagari = /[\u0900-\u097F]/;
+    expect(devanagari.test(beforeIdentity)).toBe(false);
+    expect(devanagari.test(afterIdentity)).toBe(false);
+  });
+
+  it('AC-3: few-shots are the AC-3 subset — Hitesh Q1+Q3 + Piyush Q2+Q4', () => {
+    const thread = threadFrom([msg('user', 'q', 1)]);
+    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    const system = out.messages[0]?.content ?? '';
+    // Hitesh Q1 (React vs Next.js opener) + Q3 (job market)
+    expect(system).toContain('React seekhna chahiye ya directly Next.js pe jaana chahiye');
+    expect(system).toContain('Job market bahut kharaab hai');
+    // Piyush Q2 (system design) + Q4 (Docker)
+    expect(system).toContain('System design kaise start karun');
+    expect(system).toContain('Docker seekhna hai, kahaan se start karun');
+  });
+
+  it('AC-5: keep-going path synthesises a "continue" user message when last thread msg is assistant', () => {
+    const thread = threadFrom([
+      msg('user', 'original question', 1),
+      msg('assistant', 'first blended reply', 2),
+    ]);
+    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    const userMsg = out.messages[1]?.content ?? '';
+    expect(userMsg).toContain('Continue this Blended discussion');
+    expect(userMsg).toContain('fresh angle');
+    // Verbatim tail should now INCLUDE the prior assistant blended reply.
+    const system = out.messages[0]?.content ?? '';
+    expect(system).toContain('first blended reply');
+  });
+
+  it('populates OutboundPrompt.meta.estimatedTokens for the blended composition', () => {
+    const thread = threadFrom([msg('user', 'q', 1)]);
+    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    expect(out.meta.estimatedTokens).toBeGreaterThan(0);
+    expect(out.meta.hasSummary).toBe(false);
+    expect(out.meta.hasDriftRefresh).toBe(false);
+  });
+});

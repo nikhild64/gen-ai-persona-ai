@@ -1,5 +1,6 @@
-import {
+﻿import {
   Injectable,
+  InjectionToken,
   inject,
   signal,
   computed,
@@ -14,14 +15,18 @@ import type {
   Message,
   Thread,
 } from '../../domain/types/message';
-import type { ProviderPort } from '../../domain/ports/provider.port';
+import type {
+  ProviderPort,
+  ProviderPortAdapterClass,
+} from '../../domain/ports/provider.port';
+import type { ProviderId } from '../../config/provider-registry';
 import { KEEP_GOING_ROUNDS } from '../../config/context-config';
-import { ASK_BOTH_MODE as ASK_BOTH_MODE_SELECTOR } from '../../config/feature-flags';
 import {
   ASK_BOTH_SYSTEM_NOTE_TEMPLATE,
   ASK_BOTH_KEEP_GOING_SYSTEM_NOTE_TEMPLATE,
 } from '../../config/prompt-format';
 import { PERSONA_REGISTRY, personaDisplayName } from '../../personas/persona.registry';
+import blendedComposition from '../../personas/blended.prompt';
 import { PromptAssembler } from '../../domain/prompts/prompt-assembler.service';
 import { KeyVaultService } from '../../domain/key-vault/key-vault.service';
 import { PersonaRoutingService } from '../../domain/key-vault/persona-routing.service';
@@ -33,11 +38,28 @@ import {
   ANALYTICS_PORT,
 } from '../../domain/chat/di-tokens';
 import { PRODUCT_COPY } from '../../config/product-copy';
+import { hasBlendedSignature } from '../../config/regex-patterns';
+import { AskBothModeService } from './ask-both-mode.service';
+
+/**
+ * Sequencer-local injection token letting tests swap the provider-registry
+ * lookup for a mock, mirroring the `ADAPTER_FACTORY` pattern in
+ * `chat-orchestrator.service.ts`. Defaults to `getProviderAdapter` from
+ * `provider.registry.ts` so production wiring is unchanged. Added
+ * post-sprint to enable the Blended-mode sequencer spec â€” vi.mock is not
+ * supported for relative imports under the Angular unit-test system.
+ */
+export const ASK_BOTH_ADAPTER_FACTORY = new InjectionToken<
+  (providerId: ProviderId) => ProviderPortAdapterClass
+>('AskBothAdapterFactory', {
+  providedIn: 'root',
+  factory: () => getProviderAdapter,
+});
 
 /**
  * AD-13 Ask-Both sequencer. Owns the Sequential-With-Awareness flow
- * (Hitesh → Piyush-with-system-note), the shared AbortController per
- * user turn (AD-14), and — via `keepGoing()` — the one-round follow-up
+ * (Hitesh â†’ Piyush-with-system-note), the shared AbortController per
+ * user turn (AD-14), and â€” via `keepGoing()` â€” the one-round follow-up
  * per AD-9 `KEEP_GOING_ROUNDS`. Parallel mode is the FR-31 fallback.
  */
 @Injectable({ providedIn: 'root' })
@@ -85,8 +107,18 @@ export class AskBothSequencerService {
   private readonly keyVault = inject(KeyVaultService);
   private readonly personaRouting = inject(PersonaRoutingService);
   private readonly modelSelection = inject(ModelSelectionService);
+  private readonly modeService = inject(AskBothModeService);
+  private readonly adapterFactory = inject(ASK_BOTH_ADAPTER_FACTORY);
   private controller: AbortController | null = null;
   private lastUserMessage: string | null = null;
+
+  /**
+   * Per-instance analytics session identifier. The Ask-Both sequencer is
+   * `providedIn: 'root'`, so this UUID lasts for the SPA lifetime = the
+   * browser tab session. Emitted with `ask_both_blended_message_sent` per
+   * AC-6 to give observability into blended-usage per session vs per thread.
+   */
+  private readonly sessionId: string = this.uuid();
 
   async askBoth(userText: string): Promise<void> {
     if (this.inFlight()) return;
@@ -125,8 +157,11 @@ export class AskBothSequencerService {
     this.inFlight.set(true);
     this.controller = new AbortController();
 
-    if (ASK_BOTH_MODE_SELECTOR === 'parallel') {
+    const activeMode = this.modeService.get();
+    if (activeMode === 'parallel') {
       await this.dispatchParallel(thread);
+    } else if (activeMode === 'blended') {
+      await this.dispatchBlended(thread);
     } else {
       await this.dispatchSequential(thread);
     }
@@ -153,43 +188,52 @@ export class AskBothSequencerService {
     this.bridgeAnnouncement.set(null);
     this.controller = new AbortController();
 
-    // Each keep-going click runs a full Hitesh → Piyush round so the
-    // conversation stays alternating instead of piling multiple Hitesh
-    // turns after Piyush already spoke. Rebuild the system note between
-    // personas so Piyush sees Hitesh's fresh reply.
-    const buildNote = (currentThread: Thread): string => {
-      const [hiteshLast, piyushLast] = this.lastTwoAssistantTexts(
-        currentThread,
-      );
-      return ASK_BOTH_KEEP_GOING_SYSTEM_NOTE_TEMPLATE(
-        this.lastUserMessage ?? '',
-        hiteshLast,
-        piyushLast,
-      );
-    };
+    const activeMode = this.modeService.get();
 
-    const hiteshResult = await this.streamPersona(
-      'hitesh',
-      thread,
-      'ask-both-keep-going',
-      buildNote(thread),
-    );
-
-    if (!hiteshResult.errored && !this.controller?.signal.aborted) {
-      // Re-read thread so Piyush's system note includes Hitesh's just-appended
-      // message; storage is the source of truth per AD-6.
-      const refreshed = await this.storage.get<Thread>('chat:ask-both:v1');
-      if (refreshed) {
-        thread = refreshed;
-        this.bridgeAnnouncement.set(PRODUCT_COPY.askBothBridgeAnnouncement);
-        await this.pause(700);
-        this.bridgeAnnouncement.set(null);
-        await this.streamPersona(
-          'piyush',
-          thread,
-          'ask-both-keep-going',
-          buildNote(thread),
+    if (activeMode === 'blended') {
+      // AC-5: Blended keep-going runs another blended composition. The
+      // assembler's `composeAskBothBlended` detects last-msg role is
+      // assistant and synthesises the "continue with a fresh angle"
+      // user prompt automatically.
+      await this.dispatchBlended(thread);
+    } else {
+      // Sequential and Parallel keep-going both use the existing pair-round
+      // pattern so the conversation stays alternating and the parallel-mode
+      // observer still sees two fresh takes per click.
+      const buildNote = (currentThread: Thread): string => {
+        const [hiteshLast, piyushLast] = this.lastTwoAssistantTexts(
+          currentThread,
         );
+        return ASK_BOTH_KEEP_GOING_SYSTEM_NOTE_TEMPLATE(
+          this.lastUserMessage ?? '',
+          hiteshLast,
+          piyushLast,
+        );
+      };
+
+      const hiteshResult = await this.streamPersona(
+        'hitesh',
+        thread,
+        'ask-both-keep-going',
+        buildNote(thread),
+      );
+
+      if (!hiteshResult.errored && !this.controller?.signal.aborted) {
+        // Re-read thread so Piyush's system note includes Hitesh's just-appended
+        // message; storage is the source of truth per AD-6.
+        const refreshed = await this.storage.get<Thread>('chat:ask-both:v1');
+        if (refreshed) {
+          thread = refreshed;
+          this.bridgeAnnouncement.set(PRODUCT_COPY.askBothBridgeAnnouncement);
+          await this.pause(700);
+          this.bridgeAnnouncement.set(null);
+          await this.streamPersona(
+            'piyush',
+            thread,
+            'ask-both-keep-going',
+            buildNote(thread),
+          );
+        }
       }
     }
 
@@ -207,7 +251,7 @@ export class AskBothSequencerService {
   }
 
   private async dispatchSequential(thread: Thread): Promise<void> {
-    // Persona A — Hitesh
+    // Persona A â€” Hitesh
     const hiteshResult = await this.streamPersona(
       'hitesh',
       thread,
@@ -221,7 +265,7 @@ export class AskBothSequencerService {
     this.bridgeAnnouncement.set(PRODUCT_COPY.askBothBridgeAnnouncement);
     await this.pause(700);
 
-    // Persona B — Piyush (invoked even on Hitesh in-character refusal).
+    // Persona B â€” Piyush (invoked even on Hitesh in-character refusal).
     const systemNote = ASK_BOTH_SYSTEM_NOTE_TEMPLATE(
       personaDisplayName('hitesh'),
       hiteshResult.text,
@@ -231,7 +275,7 @@ export class AskBothSequencerService {
   }
 
   private async dispatchParallel(thread: Thread): Promise<void> {
-    // E9-S4 fallback — fire both providers concurrently, no system-note.
+    // E9-S4 fallback â€” fire both providers concurrently, no system-note.
     this.analytics.emit({
       name: 'parallel_fallback_triggered',
       payload: {},
@@ -240,6 +284,115 @@ export class AskBothSequencerService {
       this.streamPersona('hitesh', thread, 'ask-both-a', undefined),
       this.streamPersona('piyush', thread, 'ask-both-a', undefined),
     ]);
+  }
+
+  /**
+   * Post-sprint Blended dispatch (AC-4). Single LLM call, single bubble
+   * emission carrying `attributionLabel` (no per-persona attribution). Uses
+   * Hitesh's provider slot as the canonical carrier â€” blended is
+   * persona-agnostic at the prompt level but has to pick ONE provider
+   * adapter to talk to. Model / temp / topP come from Hitesh's model params
+   * (warmer generation profile matches the fusion voice-rule intent).
+   *
+   * `currentPersona` stays `null` so the UI streaming label falls through
+   * to the "Preparingâ€¦" fallback rather than showing "Hitesh is typingâ€¦" â€”
+   * `streamingLabel()` in `ask-both.component.ts` can layer the Blended
+   * label on top when `modeService.get() === 'blended'`.
+   */
+  private async dispatchBlended(thread: Thread): Promise<void> {
+    this.currentPersona.set(null);
+    this.currentText.set('');
+
+    const providerId = this.personaRouting.getProviderFor('hitesh');
+    const key = this.keyVault.getKeyForProvider(providerId);
+    if (!key) {
+      return;
+    }
+
+    const AdapterClass = this.adapterFactory(providerId);
+    const adapter: ProviderPort = new (
+      AdapterClass as unknown as new () => ProviderPort
+    )();
+
+    const composed = this.assembler.compose(
+      'hitesh',
+      thread,
+      'ask-both-blended',
+    );
+    const prompt = {
+      ...composed,
+      model: this.modelSelection.getModelFor(providerId),
+    };
+
+    let accumulated = '';
+    let errored = false;
+    let doneChunk: ChatChunk | null = null;
+
+    try {
+      for await (const chunk of adapter.streamChat(
+        prompt,
+        key,
+        this.controller!.signal,
+      )) {
+        if (chunk.type === 'delta' && chunk.text) {
+          accumulated += chunk.text;
+          this.currentText.set(accumulated);
+        } else if (chunk.type === 'done') {
+          doneChunk = chunk;
+          break;
+        } else if (chunk.type === 'error') {
+          errored = true;
+          break;
+        }
+      }
+    } catch {
+      errored = true;
+    }
+
+    if (!errored && doneChunk) {
+      const outputVerdict = await this.moderation.check(accumulated, 'output');
+      let finalText = accumulated;
+      if (!outputVerdict.allowed) {
+        finalText =
+          outputVerdict.suggested_refusal ||
+          blendedComposition.moderationFallbackTemplate;
+        this.analytics.emit({
+          name: 'moderation_blocked',
+          payload: { direction: 'output', category: outputVerdict.category },
+        });
+      }
+      const msg: Message = {
+        id: this.uuid(),
+        role: 'assistant',
+        content: finalText,
+        timestamp: Date.now(),
+        status: 'complete',
+        attributionLabel: blendedComposition.attributionLabel,
+      };
+      thread.messages.push(msg);
+      thread.updatedAt = msg.timestamp;
+      await this.storage.set('chat:ask-both:v1', thread);
+      this.threadUpdated$.next();
+      this.currentText.set('');
+
+      // AC-6 analytics â€” one event per blended send.
+      this.analytics.emit({
+        name: 'ask_both_blended_message_sent',
+        payload: {
+          sessionId: this.sessionId,
+          threadId: thread.id,
+          tokenEstimate: composed.meta.estimatedTokens,
+        },
+      });
+
+      // AC-10 regex smoke-test â€” miss fires `persona_regex_miss{persona:'blended'}`.
+      if (!hasBlendedSignature(finalText)) {
+        this.analytics.emit({
+          name: 'persona_regex_miss',
+          payload: { persona: 'blended' },
+        });
+      }
+    }
   }
 
   private async streamPersona(
@@ -257,7 +410,7 @@ export class AskBothSequencerService {
       return { text: '', errored: true };
     }
 
-    const AdapterClass = getProviderAdapter(providerId);
+    const AdapterClass = this.adapterFactory(providerId);
     const adapter: ProviderPort = new (
       AdapterClass as unknown as new () => ProviderPort
     )();
@@ -322,7 +475,7 @@ export class AskBothSequencerService {
       thread.updatedAt = msg.timestamp;
       await this.storage.set('chat:ask-both:v1', thread);
       // Notify listeners so the UI can promote the persisted message into
-      // its messages() list before the next persona's stream begins — avoids
+      // its messages() list before the next persona's stream begins â€” avoids
       // the "message jumped in" feel where multiple bubbles appeared at end.
       this.threadUpdated$.next();
       // Blank the live streaming bubble so it doesn't briefly show the
@@ -397,3 +550,4 @@ export class AskBothSequencerService {
       : Math.random().toString(36).slice(2);
   }
 }
+

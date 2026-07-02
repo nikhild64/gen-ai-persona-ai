@@ -197,6 +197,7 @@ export default tseslint.config(
       'src/personas/persona.registry.ts',
       'src/personas/hitesh.prompt.ts',
       'src/personas/piyush.prompt.ts',
+      'src/personas/blended.prompt.ts', // post-sprint Blended Ask-Both fusion composition (AD-22)
       'src/config/product-copy.ts',
     ],
     rules: {
@@ -213,6 +214,7 @@ export default tseslint.config(
       'src/domain/key-vault/key-vault.service.ts',
       'src/features/chat/chat.component.ts',
       'src/features/mode-switcher/mode-switcher.component.ts',
+      'src/features/ask-both/ask-both-mode.service.ts', // post-sprint: persists Ask-Both variant preference (AD-11 semantics)
     ],
     rules: {
       'no-restricted-globals': 'off',

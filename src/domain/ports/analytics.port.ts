@@ -30,13 +30,20 @@ export type AnalyticsEvent =
       };
     }
   | { name: 'ask_both_message_sent'; payload: { charCount: number } }
+  | {
+      name: 'ask_both_blended_message_sent';
+      payload: { sessionId: string; threadId: string; tokenEstimate: number };
+    }
   | { name: 'keep_going_clicked'; payload: Record<string, never> }
   | { name: 'byo_key_saved'; payload: { provider: ProviderId } }
   | {
       name: 'moderation_blocked';
       payload: { direction: 'input' | 'output'; category?: string };
     }
-  | { name: 'persona_regex_miss'; payload: { persona: PersonaId } }
+  | {
+      name: 'persona_regex_miss';
+      payload: { persona: PersonaId | 'blended' };
+    }
   | {
       name: 'summary_failed';
       payload: { provider: ProviderId; category: ChatChunkError };

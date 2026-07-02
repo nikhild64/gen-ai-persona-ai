@@ -22,6 +22,8 @@ export function expectedAssistantMessagesForMode(mode: PromptMode): number {
       return 0; // subsumed by ask-both-a
     case 'ask-both-keep-going':
       return 1; // one additional round on top of the already-counted A+B
+    case 'ask-both-blended':
+      return 1; // single fused-voice bubble per turn (one LLM call, one message)
     case 'summarize':
       return 0; // background operation — does not count toward user cap
     default:

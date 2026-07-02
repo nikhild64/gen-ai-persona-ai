@@ -1,11 +1,23 @@
 import type { PersonaId } from '../domain/types/persona';
 import type { ProviderId } from './provider-registry';
+import type { AskBothMode } from './feature-flags';
 
 const personaDisplayName = (p: PersonaId): string =>
   p === 'hitesh' ? 'Hitesh' : 'Piyush';
 
 const modeDisplayName = (m: 'solo' | 'ask-both'): string =>
   m === 'solo' ? 'Solo' : 'Ask Both';
+
+const askBothVariantDisplayName = (v: AskBothMode): string => {
+  switch (v) {
+    case 'sequential':
+      return 'Sequential';
+    case 'parallel':
+      return 'Parallel';
+    case 'blended':
+      return 'Blended';
+  }
+};
 
 const providerDisplayName = (p: ProviderId): string =>
   p === 'gemini' ? 'Gemini' : 'Groq';
@@ -15,6 +27,9 @@ export const personaSwitcherLabel = (p: PersonaId): string =>
 
 export const modeSwitcherLabel = (m: 'solo' | 'ask-both'): string =>
   `Switch mode — currently ${modeDisplayName(m)}`;
+
+export const askBothVariantToggleLabel = (v: AskBothMode): string =>
+  `Switch Ask-Both variant — currently ${askBothVariantDisplayName(v)}`;
 
 export const chatInputLabel = (p: PersonaId | null): string =>
   p ? `Message ${personaDisplayName(p)}` : 'Ask both personas';

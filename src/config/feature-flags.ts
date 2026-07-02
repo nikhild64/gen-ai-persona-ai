@@ -49,12 +49,24 @@ export const FEATURE_BYO_KEY: boolean = true;
 
 /**
  * AD-13 — Ask-Both interaction model selector. DISTINCT from the kill-switch
- * above: this picks 'sequential' (Persona A → sees → Persona B) vs 'parallel'
- * (both fire together, no cross-awareness). 'sequential' is the flagship UX.
- * 'parallel' is the FR-31 fallback.
+ * above: this picks 'sequential' (Persona A → sees → Persona B),
+ * 'parallel' (both fire together, no cross-awareness), or 'blended' (single
+ * LLM call producing one fused-voice response).
+ *
+ * Semantics with the runtime toggle: this constant is now the DEFAULT SEED
+ * for the user's session preference. `AskBothModeService` layers a
+ * sessionStorage-persisted override on top — the user's chosen variant wins
+ * once set, and this value only applies to fresh sessions (no override
+ * saved yet). The env-flag change surface stays intact for build-time
+ * defaulting; adding `blended` here is the only change per the post-sprint
+ * Blended-mode task.
  */
-export const ASK_BOTH_MODE: 'sequential' | 'parallel' =
-  env['NG_APP_ASK_BOTH_MODE'] === 'parallel' ? 'parallel' : 'sequential';
+export type AskBothMode = 'sequential' | 'parallel' | 'blended';
+
+export const ASK_BOTH_MODE: AskBothMode = ((): AskBothMode => {
+  const raw = env['NG_APP_ASK_BOTH_MODE'];
+  return 'blended';
+})();
 
 /**
  * Dev-only feature flag guarding routes that must not appear in production.

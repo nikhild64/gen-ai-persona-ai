@@ -19,6 +19,14 @@ const EVERY_EVENT: AnalyticsEvent[] = [
     payload: { persona: 'hitesh', mode: 'solo', charCount: 12 },
   },
   { name: 'ask_both_message_sent', payload: { charCount: 20 } },
+  {
+    name: 'ask_both_blended_message_sent',
+    payload: {
+      sessionId: 'session-uuid',
+      threadId: 'thread-uuid',
+      tokenEstimate: 1500,
+    },
+  },
   { name: 'keep_going_clicked', payload: {} },
   { name: 'byo_key_saved', payload: { provider: 'groq' } },
   {
@@ -26,6 +34,7 @@ const EVERY_EVENT: AnalyticsEvent[] = [
     payload: { direction: 'input', category: 'off_domain' },
   },
   { name: 'persona_regex_miss', payload: { persona: 'piyush' } },
+  { name: 'persona_regex_miss', payload: { persona: 'blended' } },
   {
     name: 'summary_failed',
     payload: { provider: 'gemini', category: 'server_error' },
@@ -64,6 +73,7 @@ describe('AnalyticsPort', () => {
         case 'mode_switched':
         case 'message_sent':
         case 'ask_both_message_sent':
+        case 'ask_both_blended_message_sent':
         case 'keep_going_clicked':
         case 'byo_key_saved':
         case 'moderation_blocked':
@@ -80,5 +90,33 @@ describe('AnalyticsPort', () => {
       }
     }
     expect(perNameHandled).toHaveLength(EVERY_EVENT.length);
+  });
+
+  it('carries a typed payload for the Blended Ask-Both event', () => {
+    const port = new InMemoryAnalytics();
+    port.emit({
+      name: 'ask_both_blended_message_sent',
+      payload: {
+        sessionId: 'sess-1',
+        threadId: 'thr-1',
+        tokenEstimate: 1234,
+      },
+    });
+    const event = port.received[0];
+    expect(event?.name).toBe('ask_both_blended_message_sent');
+    if (event?.name === 'ask_both_blended_message_sent') {
+      expect(event.payload.sessionId).toBe('sess-1');
+      expect(event.payload.threadId).toBe('thr-1');
+      expect(event.payload.tokenEstimate).toBe(1234);
+    }
+  });
+
+  it('accepts persona_regex_miss with the blended variant', () => {
+    const port = new InMemoryAnalytics();
+    port.emit({ name: 'persona_regex_miss', payload: { persona: 'blended' } });
+    const event = port.received[0];
+    if (event?.name === 'persona_regex_miss') {
+      expect(event.payload.persona).toBe('blended');
+    }
   });
 });

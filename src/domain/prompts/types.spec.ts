@@ -15,6 +15,8 @@ describe('PromptMode', () => {
           return 'abb';
         case 'ask-both-keep-going':
           return 'keep';
+        case 'ask-both-blended':
+          return 'blended';
         case 'summarize':
           return 'sum';
         default:
@@ -27,6 +29,7 @@ describe('PromptMode', () => {
       'ask-both-a',
       'ask-both-b',
       'ask-both-keep-going',
+      'ask-both-blended',
       'summarize',
     ];
     modes.forEach((m) => expect(() => label(m)).not.toThrow());

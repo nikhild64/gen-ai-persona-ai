@@ -65,6 +65,14 @@ export type ChatError = {
 /**
  * AD-10: `status` is REQUIRED when `role === 'assistant'`. Ad-hoc booleans
  * (e.g. `isStreaming`, `isCancelled`) are banned in favour of this discriminator.
+ *
+ * `attributionLabel` is a purely presentational override for the bubble
+ * header. Blended Ask-Both messages set it to something like
+ * `'Hitesh + Piyush'` — the message has no single-persona owner but the
+ * user should still see who authored it. When absent, `MessageBubble` falls
+ * back to `personaDisplayName(persona)` (or `'Assistant'` when `persona`
+ * is also absent). Additive/back-compat: pre-existing persisted messages
+ * carry no field and render unchanged.
  */
 export type Message = {
   id: string;
@@ -74,6 +82,7 @@ export type Message = {
   timestamp: number;
   status?: 'streaming' | 'complete' | 'cancelled' | 'error';
   error?: ChatError;
+  attributionLabel?: string;
 };
 
 /**

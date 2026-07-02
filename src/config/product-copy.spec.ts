@@ -31,4 +31,29 @@ describe('product-copy (AD-22 chrome separation)', () => {
     expect(PRODUCT_COPY.keyFormatHelper('groq')).toMatch(/gsk_/);
     expect(PRODUCT_COPY.retryAfterHint(30)).toContain('30s');
   });
+
+  it('AC-11: exposes the Ask-Both variant toggle labels (Sequential / Parallel / Blended)', () => {
+    expect(PRODUCT_COPY.askBothVariantLabels.sequential).toBe('Sequential');
+    expect(PRODUCT_COPY.askBothVariantLabels.parallel).toBe('Parallel');
+    expect(PRODUCT_COPY.askBothVariantLabels.blended).toBe('Blended');
+  });
+
+  it('AC-9: tooltip explains the 1-LLM-call cost multiplier vs 2 for the other variants', () => {
+    expect(PRODUCT_COPY.askBothVariantTooltip).toContain('1 LLM call');
+    expect(PRODUCT_COPY.askBothVariantTooltip).toContain('Sequential is 2');
+    expect(PRODUCT_COPY.askBothVariantTooltip).toContain('Parallel is 2');
+  });
+
+  it('AC-4: blended attribution label surfaces both mentors', () => {
+    expect(PRODUCT_COPY.askBothBlendedAttribution).toContain('Hitesh');
+    expect(PRODUCT_COPY.askBothBlendedAttribution).toContain('Piyush');
+  });
+
+  it('exposes a blended-specific streaming indicator label', () => {
+    expect(PRODUCT_COPY.streamingIndicatorAskBothBlended.length).toBeGreaterThan(
+      0,
+    );
+    expect(PRODUCT_COPY.streamingIndicatorAskBothBlended).toContain('Hitesh');
+    expect(PRODUCT_COPY.streamingIndicatorAskBothBlended).toContain('Piyush');
+  });
 });

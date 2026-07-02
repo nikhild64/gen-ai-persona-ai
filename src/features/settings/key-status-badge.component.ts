@@ -156,7 +156,7 @@ export class KeyStatusBadgeComponent {
       (p) => this.keyVault.getKeyForProvider(p) === null,
     );
     if (missing.length === 0) {
-      return `Blend: ${providers.map(providerName).join(' + ')}`;
+      return `Blend`;
     }
     return `Blend needs ${missing.map(providerName).join(' + ')} key${
       missing.length > 1 ? 's' : ''

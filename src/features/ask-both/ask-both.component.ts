@@ -24,6 +24,8 @@ import { KeyStatusBadgeComponent } from '../settings/key-status-badge.component'
 import { SettingsModalComponent } from '../settings/settings-modal.component';
 import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.component';
 import { AskBothSequencerService } from './ask-both-sequencer.service';
+import { AskBothModeService } from './ask-both-mode.service';
+import { AskBothModeToggleComponent } from './ask-both-mode-toggle.component';
 
 /**
  * FR-26/FR-27/FR-30 Ask-Both surface. The container carries
@@ -42,6 +44,7 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
     MessageBubbleComponent,
     StreamingIndicatorComponent,
     ModeSwitcherComponent,
+    AskBothModeToggleComponent,
     KeyStatusBadgeComponent,
     SettingsModalComponent,
     SettingsMenuEntryComponent,
@@ -52,6 +55,7 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
       <header class="banner">
         <h2>{{ bannerLabel }}</h2>
         <div class="banner-slots">
+          
           <app-key-status-badge
             [askBoth]="true"
             (clicked)="openSettings()"
@@ -253,6 +257,7 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
 })
 export class AskBothComponent implements OnDestroy {
   readonly sequencer = inject(AskBothSequencerService);
+  readonly modeService = inject(AskBothModeService);
   private readonly storage = inject(STORAGE_PORT);
   private readonly destroyRef = inject(DestroyRef);
   private readonly renderer = inject(Renderer2);
@@ -304,6 +309,13 @@ export class AskBothComponent implements OnDestroy {
   }
 
   streamingLabel(): string {
+    // Blended dispatches keep `activePersona` null (there is no single
+    // persona owner). Consult the active variant first so the label reads
+    // "Hitesh + Piyush are speaking as one…" instead of the generic
+    // "Preparing…" fallback.
+    if (this.modeService.get() === 'blended') {
+      return PRODUCT_COPY.streamingIndicatorAskBothBlended;
+    }
     const persona = this.sequencer.activePersona();
     if (persona === 'hitesh') return PRODUCT_COPY.streamingIndicatorAskBothA;
     if (persona === 'piyush') return PRODUCT_COPY.streamingIndicatorAskBothB;

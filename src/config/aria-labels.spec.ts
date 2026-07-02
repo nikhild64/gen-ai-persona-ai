@@ -12,6 +12,7 @@ import {
   disclaimerLinkLabel,
   personaCardLabel,
   keyStatusBadgeLabel,
+  askBothVariantToggleLabel,
 } from './aria-labels';
 
 describe('aria-labels (AD-20 per EXPERIENCE.md Accessibility Floor)', () => {
@@ -46,5 +47,17 @@ describe('aria-labels (AD-20 per EXPERIENCE.md Accessibility Floor)', () => {
     expect(keyStatusBadgeLabel('saved', 'gemini')).toContain('Gemini');
     expect(keyStatusBadgeLabel('saved', 'groq')).toContain('Groq');
     expect(keyStatusBadgeLabel('none')).toContain('No key');
+  });
+
+  it('AC-11: produces distinct Ask-Both variant toggle labels for each variant', () => {
+    expect(askBothVariantToggleLabel('sequential')).toContain('Sequential');
+    expect(askBothVariantToggleLabel('parallel')).toContain('Parallel');
+    expect(askBothVariantToggleLabel('blended')).toContain('Blended');
+    // All three labels announce the "Switch Ask-Both variant" purpose.
+    ['sequential', 'parallel', 'blended'].forEach((v) => {
+      expect(
+        askBothVariantToggleLabel(v as 'sequential' | 'parallel' | 'blended'),
+      ).toContain('Ask-Both variant');
+    });
   });
 });
