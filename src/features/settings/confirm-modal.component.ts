@@ -33,8 +33,6 @@ import { modalDismissLabel } from '../../config/aria-labels';
       [dismissableMask]="false"
       [style]="{ width: '400px' }"
       role="alertdialog"
-      [ariaCloseIconLabel]="modalDismissLabel"
-      [ariaLabelledBy]="'confirm-modal-title'"
       (onHide)="cancelled.emit()"
     >
       <ng-template pTemplate="header">
