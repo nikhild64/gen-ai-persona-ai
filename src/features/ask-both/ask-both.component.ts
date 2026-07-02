@@ -2,8 +2,11 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
+  ElementRef,
   OnDestroy,
   Renderer2,
+  ViewChild,
+  effect,
   inject,
   signal,
 } from '@angular/core';
@@ -18,6 +21,7 @@ import { StreamingIndicatorComponent } from '../../shared/streaming-indicator/st
 import { ModeSwitcherComponent } from '../mode-switcher/mode-switcher.component';
 import { KeyStatusBadgeComponent } from '../settings/key-status-badge.component';
 import { SettingsModalComponent } from '../settings/settings-modal.component';
+import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.component';
 import { AskBothSequencerService } from './ask-both-sequencer.service';
 
 /**
@@ -39,6 +43,7 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
     ModeSwitcherComponent,
     KeyStatusBadgeComponent,
     SettingsModalComponent,
+    SettingsMenuEntryComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -57,7 +62,7 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
 
       <app-settings-modal [(open)]="settingsOpen" />
 
-      <div class="message-list">
+      <div class="message-list" #messageList>
         @if (messages().length === 0) {
         <div class="joint-greeting" role="note">
           <p class="body">{{ askBothGreeting }}</p>
@@ -111,6 +116,7 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
             Ask both
           </button>
           }
+          <app-settings-menu-entry class="menu-entry-slot" />
         </div>
       </form>
     </section>
@@ -215,7 +221,12 @@ import { AskBothSequencerService } from './ask-both-sequencer.service';
       }
       .input-controls {
         display: flex;
+        align-items: center;
         gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+      .menu-entry-slot {
+        margin-left: auto;
       }
       .send-btn,
       .cancel-btn {
@@ -249,6 +260,8 @@ export class AskBothComponent implements OnDestroy {
   readonly bridgeMessage = this.sequencer.bridgeAnnouncement;
   readonly canKeepGoing = this.sequencer.canKeepGoing;
 
+  @ViewChild('messageList') messageListEl?: ElementRef<HTMLDivElement>;
+
   readonly bannerLabel = PRODUCT_COPY.askBothBannerLabel;
   readonly askBothGreeting = PRODUCT_COPY.askBothGreeting;
   readonly askBothGreetingHint = PRODUCT_COPY.askBothGreetingHint;
@@ -259,6 +272,18 @@ export class AskBothComponent implements OnDestroy {
     // Drive the mixed persona gradient defined in styles.scss.
     this.renderer.setAttribute(this.document.body, 'data-mode', 'ask-both');
     void this.loadThread();
+
+    // Auto-scroll to bottom on new messages / streaming updates. rAF defers
+    // the scroll until after Angular flushes the DOM update.
+    effect(() => {
+      this.messages();
+      this.sequencer.currentStreaming();
+      this.sequencer.inFlight();
+      requestAnimationFrame(() => {
+        const el = this.messageListEl?.nativeElement;
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    });
   }
 
   ngOnDestroy(): void {

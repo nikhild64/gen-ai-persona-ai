@@ -19,22 +19,17 @@ import { keyStatusBadgeLabel } from '../../config/aria-labels';
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    @if (state() === 'saved') {
-    <span class="badge saved" [attr.aria-label]="ariaLabel()">
-      <span class="dot" aria-hidden="true"></span>
-      <span>{{ label() }}</span>
-    </span>
-    } @else {
     <button
       type="button"
-      class="badge none"
+      class="badge"
+      [class.saved]="state() === 'saved'"
+      [class.none]="state() === 'none'"
       [attr.aria-label]="ariaLabel()"
       (click)="clicked.emit()"
     >
       <span class="dot" aria-hidden="true"></span>
       <span>{{ label() }}</span>
     </button>
-    }
   `,
   styles: [
     `
@@ -53,9 +48,17 @@ import { keyStatusBadgeLabel } from '../../config/aria-labels';
         border: 1px solid rgba(0, 0, 0, 0.1);
         background: rgba(255, 255, 255, 0.7);
         color: #292524;
+        cursor: pointer;
+        font: inherit;
+        transition:
+          background 0.15s ease,
+          border-color 0.15s ease;
+      }
+      .badge.saved:hover {
+        background: white;
+        border-color: var(--persona-accent, rgba(0, 0, 0, 0.2));
       }
       .badge.none {
-        cursor: pointer;
         color: #b45309;
         border-color: rgba(254, 215, 170, 0.9);
         background: rgba(255, 247, 237, 0.85);
@@ -63,6 +66,10 @@ import { keyStatusBadgeLabel } from '../../config/aria-labels';
       .badge.none:hover {
         background: #fff7ed;
         border-color: #fed7aa;
+      }
+      .badge:focus-visible {
+        outline: 2px solid var(--persona-accent, #0ea5e9);
+        outline-offset: 2px;
       }
       .dot {
         width: 8px;

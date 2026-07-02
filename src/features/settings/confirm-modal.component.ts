@@ -41,7 +41,7 @@ import { modalDismissLabel } from '../../config/aria-labels';
         </h2>
       </ng-template>
       <p class="body">{{ body() }}</p>
-      <ng-template pTemplate="footer">
+      <div class="action-row">
         <p-button
           #cancelBtn
           [label]="cancelLabel()"
@@ -53,7 +53,7 @@ import { modalDismissLabel } from '../../config/aria-labels';
           severity="danger"
           (onClick)="onConfirm()"
         ></p-button>
-      </ng-template>
+      </div>
     </p-dialog>
   `,
   styles: [
@@ -61,7 +61,12 @@ import { modalDismissLabel } from '../../config/aria-labels';
       .body {
         line-height: 1.5;
         color: #292524;
-        margin: 0;
+        margin: 0 0 1.25rem;
+      }
+      .action-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
       }
     `,
   ],

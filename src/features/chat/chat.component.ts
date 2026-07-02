@@ -9,6 +9,7 @@ import {
   effect,
   inject,
   signal,
+  untracked,
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -331,6 +332,9 @@ export class ChatComponent {
   readonly capReachedHint = PRODUCT_COPY.capReachedInputHint;
   readonly draft = signal('');
   readonly messages = signal<Message[]>([]);
+  /** Typewriter-revealed slice of `accumulatedText` — trails the raw stream
+   * so long provider chunks don't dump on-screen all at once. */
+  readonly displayedStreamingText = signal('');
 
   readonly inputDisabled = computed(
     () =>
@@ -363,7 +367,7 @@ export class ChatComponent {
     if (!this.orchestrator.inFlightStream() && !this.orchestrator.streamStalled()) {
       return null;
     }
-    const text = this.orchestrator.accumulatedText();
+    const text = this.displayedStreamingText();
     if (!text) return null;
     const id = this.orchestrator.activeAssistantMessageId() ?? 'streaming';
     return {
@@ -426,6 +430,48 @@ export class ChatComponent {
       if (text) {
         this.announcer.announce(`${this.personaName()} says: ${text}`);
       }
+    });
+
+    // Auto-scroll message list to the bottom whenever a new message lands
+    // OR the current streaming response gains tokens. rAF defers the scroll
+    // until after Angular flushes the DOM update.
+    effect(() => {
+      this.messages();
+      this.displayedStreamingText();
+      this.orchestrator.inFlightStream();
+      requestAnimationFrame(() => {
+        const el = this.messageListEl?.nativeElement;
+        if (el) el.scrollTop = el.scrollHeight;
+      });
+    });
+
+    // Typewriter reveal — the raw `accumulatedText` signal can jump by 100+
+    // chars per delta with providers like Gemini, so we trail it via an
+    // interval that reveals a smoothly scaling chunk each tick. When the
+    // stream ends we snap `displayedStreamingText` to the final value so it
+    // matches the persisted message before `reloadThread` swaps it in.
+    effect((onCleanup) => {
+      const inFlight = this.orchestrator.inFlightStream();
+
+      if (!inFlight) {
+        this.displayedStreamingText.set(
+          untracked(() => this.orchestrator.accumulatedText()),
+        );
+        return;
+      }
+
+      this.displayedStreamingText.set('');
+      const intervalId = setInterval(() => {
+        const target = this.orchestrator.accumulatedText();
+        const current = this.displayedStreamingText();
+        if (current.length >= target.length) return;
+        const remaining = target.length - current.length;
+        const perTick = Math.max(1, Math.ceil(remaining / 12));
+        this.displayedStreamingText.set(
+          target.slice(0, current.length + perTick),
+        );
+      }, 25);
+      onCleanup(() => clearInterval(intervalId));
     });
 
     // E6-S3 auto-open — the orchestrator fires this Subject whenever the

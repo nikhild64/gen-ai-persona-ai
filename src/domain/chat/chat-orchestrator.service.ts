@@ -31,6 +31,7 @@ import {
 } from '../context/turn-counting';
 import { PromptAssembler } from '../prompts/prompt-assembler.service';
 import { KeyVaultService } from '../key-vault/key-vault.service';
+import { PersonaRoutingService } from '../key-vault/persona-routing.service';
 import { ContextManager } from '../context/context-manager.service';
 import type { ProviderId } from '../../config/provider-registry';
 import type {
@@ -85,6 +86,7 @@ export class ChatOrchestrator {
   private readonly analytics = inject(ANALYTICS_PORT);
   private readonly assembler = inject(PromptAssembler);
   private readonly keyVault = inject(KeyVaultService);
+  private readonly personaRouting = inject(PersonaRoutingService);
   private readonly contextManager = inject(ContextManager);
   private readonly adapterFactory = inject(ADAPTER_FACTORY);
 
@@ -180,8 +182,8 @@ export class ChatOrchestrator {
     // Step 3 — compose prompt
     const prompt = this.assembler.compose(persona, thread, 'solo');
 
-    // Step 4 — key lookup
-    const providerId = PERSONA_REGISTRY[persona].providerId;
+    // Step 4 — key lookup (respect user's persona → provider override)
+    const providerId = this.personaRouting.getProviderFor(persona);
     const key = this.keyVault.getKeyForProvider(providerId);
     if (!key) {
       this.keyMissing$.next(persona);
@@ -371,7 +373,7 @@ export class ChatOrchestrator {
       this.analytics.emit({
         name: 'provider_429_surfaced',
         payload: {
-          provider: PERSONA_REGISTRY[persona].providerId,
+          provider: this.personaRouting.getProviderFor(persona),
           retryAfterSec: chunk.meta?.retryAfterSec,
         },
       });

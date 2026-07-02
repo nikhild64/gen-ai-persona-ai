@@ -22,8 +22,10 @@ export const DRIFT_REFRESH_CADENCE = 10;
 /** FR-21: max user+assistant messages per thread before cap-refusal fires. */
 export const MAX_TURNS_PER_THREAD = 40;
 
-/** FR-29: Ask-Both keep-going additional rounds per user click. */
-export const KEEP_GOING_ROUNDS = 1;
+/** FR-29: Ask-Both keep-going additional rounds per user click. Each round
+ *  runs a full Hitesh → Piyush pair, so `N` rounds gives up to `2N` extra
+ *  assistant messages beyond the initial ask. */
+export const KEEP_GOING_ROUNDS = 5;
 
 /** AD-4: no new chunk within this many ms => surface stall UI. */
 export const STREAM_STALL_TIMEOUT_MS = 30000;

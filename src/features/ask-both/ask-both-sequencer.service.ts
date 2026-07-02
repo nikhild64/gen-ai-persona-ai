@@ -23,6 +23,7 @@ import {
 import { PERSONA_REGISTRY, personaDisplayName } from '../../personas/persona.registry';
 import { PromptAssembler } from '../../domain/prompts/prompt-assembler.service';
 import { KeyVaultService } from '../../domain/key-vault/key-vault.service';
+import { PersonaRoutingService } from '../../domain/key-vault/persona-routing.service';
 import { getProviderAdapter } from '../../infrastructure/providers/provider.registry';
 import {
   STORAGE_PORT,
@@ -75,6 +76,7 @@ export class AskBothSequencerService {
   private readonly analytics = inject(ANALYTICS_PORT);
   private readonly assembler = inject(PromptAssembler);
   private readonly keyVault = inject(KeyVaultService);
+  private readonly personaRouting = inject(PersonaRoutingService);
   private controller: AbortController | null = null;
   private lastUserMessage: string | null = null;
 
@@ -131,7 +133,7 @@ export class AskBothSequencerService {
     if (this.keepGoingUsed() >= KEEP_GOING_ROUNDS) return;
     if (!this.hasCompletedTurn()) return;
 
-    const thread = await this.storage.get<Thread>('chat:ask-both:v1');
+    let thread = await this.storage.get<Thread>('chat:ask-both:v1');
     if (!thread) return;
 
     this.analytics.emit({
@@ -139,22 +141,46 @@ export class AskBothSequencerService {
       payload: {},
     });
     this.inFlight.set(true);
+    this.bridgeAnnouncement.set(null);
     this.controller = new AbortController();
 
-    const [hiteshLast, piyushLast] = this.lastTwoAssistantTexts(thread);
-    const systemNote = ASK_BOTH_KEEP_GOING_SYSTEM_NOTE_TEMPLATE(
-      this.lastUserMessage ?? '',
-      hiteshLast,
-      piyushLast,
-    );
+    // Each keep-going click runs a full Hitesh → Piyush round so the
+    // conversation stays alternating instead of piling multiple Hitesh
+    // turns after Piyush already spoke. Rebuild the system note between
+    // personas so Piyush sees Hitesh's fresh reply.
+    const buildNote = (currentThread: Thread): string => {
+      const [hiteshLast, piyushLast] = this.lastTwoAssistantTexts(
+        currentThread,
+      );
+      return ASK_BOTH_KEEP_GOING_SYSTEM_NOTE_TEMPLATE(
+        this.lastUserMessage ?? '',
+        hiteshLast,
+        piyushLast,
+      );
+    };
 
-    // A keep-going round: Hitesh responds to Piyush's take.
-    await this.streamPersona(
+    const hiteshResult = await this.streamPersona(
       'hitesh',
       thread,
       'ask-both-keep-going',
-      systemNote,
+      buildNote(thread),
     );
+
+    if (!hiteshResult.errored && !this.controller?.signal.aborted) {
+      // Re-read thread so Piyush's system note includes Hitesh's just-appended
+      // message; storage is the source of truth per AD-6.
+      const refreshed = await this.storage.get<Thread>('chat:ask-both:v1');
+      if (refreshed) {
+        thread = refreshed;
+        this.bridgeAnnouncement.set(PRODUCT_COPY.askBothBridgeAnnouncement);
+        await this.streamPersona(
+          'piyush',
+          thread,
+          'ask-both-keep-going',
+          buildNote(thread),
+        );
+      }
+    }
 
     this.keepGoingUsed.update((n) => n + 1);
     this.inFlight.set(false);
@@ -211,7 +237,7 @@ export class AskBothSequencerService {
     this.currentPersona.set(persona);
     this.currentText.set('');
 
-    const providerId = PERSONA_REGISTRY[persona].providerId;
+    const providerId = this.personaRouting.getProviderFor(persona);
     const key = this.keyVault.getKeyForProvider(providerId);
     if (!key) {
       return { text: '', errored: true };

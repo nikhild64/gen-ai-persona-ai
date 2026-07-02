@@ -26,18 +26,18 @@ export class GeminiAdapter implements ProviderPort {
     key: string,
     signal: AbortSignal,
   ): AsyncIterable<ChatChunk> {
-    const geminiBody = {
+    const systemText = request.messages
+      .filter((m) => m.role === 'system')
+      .map((m) => m.content)
+      .join('\n\n');
+
+    const geminiBody: Record<string, unknown> = {
       contents: request.messages
         .filter((m) => m.role !== 'system')
         .map((m) => ({
           role: m.role === 'assistant' ? 'model' : 'user',
           parts: [{ text: m.content }],
         })),
-      systemInstruction:
-        request.messages
-          .filter((m) => m.role === 'system')
-          .map((m) => m.content)
-          .join('\n\n') || undefined,
       generationConfig: {
         temperature: request.temperature,
         topP: request.topP,
@@ -47,6 +47,15 @@ export class GeminiAdapter implements ProviderPort {
         // Groq. LoggerService can warn in dev.
       },
     };
+
+    // Gemini expects `systemInstruction` as a Content object, NOT a bare
+    // string — sending a string returns HTTP 400. Only include the field
+    // when we actually have system text to pass.
+    if (systemText.length > 0) {
+      geminiBody['systemInstruction'] = {
+        parts: [{ text: systemText }],
+      };
+    }
 
     let response: Response;
     try {
@@ -75,6 +84,24 @@ export class GeminiAdapter implements ProviderPort {
     }
 
     if (!response.ok) {
+      // Best-effort surface the API's error text so debugging isn't blind.
+      // Body is intentionally read outside `mapHttpError` because that helper
+      // is sync and used elsewhere.
+      let apiMessage: string | undefined;
+      try {
+        const raw = await response.text();
+        const parsed = JSON.parse(raw) as {
+          error?: { message?: string; status?: string };
+        };
+        apiMessage = parsed?.error?.message ?? raw;
+      } catch {
+        /* ignore parse errors */
+      }
+      if (apiMessage) {
+        console.error(
+          `[gemini] ${response.status} ${response.statusText}: ${apiMessage}`,
+        );
+      }
       yield GeminiAdapter.mapHttpError(response);
       return;
     }
