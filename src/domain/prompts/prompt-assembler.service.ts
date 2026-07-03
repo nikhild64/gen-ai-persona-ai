@@ -30,8 +30,8 @@ import { assistantMessageCount } from '../context/turn-counting';
  */
 const RESPONSE_LENGTH_DIRECTIVE = [
   '# ---- RESPONSE LENGTH ----',
-  'Keep every answer short and chat-friendly:',
-  '  • Aim for 3-6 short sentences total, or a compact bullet list.',
+  'Keep every answer short and chat-friendly, if required longer can be given based on context:',
+  '  • Aim for 6-8 short sentences total, or a compact bullet list.',
   '  • One brief analogy or code snippet is fine; skip long ones.',
   '  • If the topic truly needs more depth, offer to expand instead of dumping it.',
   '  • No wall-of-text explanations. No repeating the question back verbatim.',
