@@ -1,0 +1,12 @@
+/* FR-10 — ≤300ms transition budget on persona theme changes.
+   `background-color`, `border-color`, `color`, `fill`, `stroke` are the
+   properties that reference persona custom vars in shared UI. */
+
+[data-persona] {
+  transition:
+    background-color 250ms ease-out,
+    border-color 250ms ease-out,
+    color 250ms ease-out,
+    fill 250ms ease-out,
+    stroke 250ms ease-out;
+}

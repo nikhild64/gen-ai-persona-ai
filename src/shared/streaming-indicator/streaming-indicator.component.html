@@ -1,0 +1,19 @@
+@if (!stalled()) {
+<div class="indicator" role="status" aria-live="polite">
+  <span class="dot"></span>
+  <span class="dot"></span>
+  <span class="dot"></span>
+  <span class="label">{{ label() }}</span>
+</div>
+} @else {
+<div class="stall-card" role="status" aria-live="polite">
+  <p class="stall-body">{{ stallBody }}</p>
+  <button
+    type="button"
+    class="stall-cancel"
+    (click)="cancelClicked.emit()"
+  >
+    {{ cancelLabel }}
+  </button>
+</div>
+}

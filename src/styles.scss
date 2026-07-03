@@ -1,0 +1,145 @@
+/* Global styles — chai-code-personas */
+
+/* PrimeIcons: icon font used across PrimeNG components */
+@use "shared/styles/accessibility";
+@use "shared/styles/personas";
+@use "shared/styles/transitions";
+@import "primeicons/primeicons.css";
+
+/* AD-20: global accessibility floor (.sr-only, :focus-visible, reduced-motion) */
+
+/* AD-17: persona theme tokens + FR-10 250ms transition */
+
+/* PrimeNG 21 themes are provided via providePrimeNG({ theme: { preset: Lara } })
+   in app.config.ts — no CSS import required for theme tokens. */
+
+/* Persona theming CSS variables and shared component styles are layered on
+   top of this file in later stories (E4-S2, E1-S1). */
+
+/* Registered custom properties enable smooth color interpolation on persona
+   swap. Fallbacks: browsers without @property support still render the
+   gradient — they just snap between states instead of tweening. */
+@property --surface-tint-top {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #fefaf3;
+}
+@property --surface-tint-bottom {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f2f6fc;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family:
+    system-ui,
+    -apple-system,
+    "Segoe UI",
+    Roboto,
+    "Helvetica Neue",
+    Arial,
+    sans-serif;
+}
+
+/* Landing / neutral surface — a subtle blend of the two persona hues so the
+   page never feels stark white. Individual chat routes override this via
+   the ChatComponent :host block. */
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(
+      ellipse 90% 60% at 15% 0%,
+      rgba(253, 230, 138, 0.35) 0%,
+      rgba(253, 230, 138, 0) 60%
+    ),
+    radial-gradient(
+      ellipse 90% 60% at 85% 100%,
+      rgba(191, 219, 254, 0.4) 0%,
+      rgba(191, 219, 254, 0) 60%
+    ),
+    linear-gradient(
+      180deg,
+      var(--surface-tint-top) 0%,
+      var(--surface-tint-bottom) 100%
+    );
+  background-attachment: fixed;
+  transition:
+    --surface-tint-top 300ms ease-out,
+    --surface-tint-bottom 300ms ease-out;
+}
+
+/* Persona-tinted surface — driven by [data-persona] set on <body> by the
+   ChatComponent host so the gradient fills the entire viewport (not just
+   the max-width chat column). Kept intentionally soft so long messages
+   still read comfortably against the tint. */
+body[data-persona="hitesh"] {
+  --surface-tint-top: #fffefa;
+  --surface-tint-bottom: #fff4d6;
+}
+body[data-persona="piyush"] {
+  --surface-tint-top: #fcfdff;
+  --surface-tint-bottom: #f0f5ff;
+}
+
+/* Persona-themed dialog chrome. `<p-dialog>` is appended to <body>, which
+   carries [data-persona] in solo chat routes, so --persona-accent cascades
+   into the dialog naturally. The primary (unsuffixed) action button and a
+   thin top accent bar pick up the persona colour; secondary / danger buttons
+   are left alone so intent stays clear. */
+.p-dialog {
+  border-top: 4px solid var(--persona-accent, #94a3b8);
+  transition: border-color 250ms ease-out;
+}
+.p-dialog
+  .p-button:not(.p-button-secondary):not(.p-button-danger):not(
+    .p-button-outlined
+  ):not(.p-button-text) {
+  background: var(--persona-accent, #2563eb);
+  border-color: var(--persona-accent, #2563eb);
+  color: #fff;
+}
+.p-dialog
+  .p-button:not(.p-button-secondary):not(.p-button-danger):not(
+    .p-button-outlined
+  ):not(.p-button-text):hover:not(:disabled) {
+  background: color-mix(in oklab, var(--persona-accent, #2563eb) 85%, black);
+  border-color: color-mix(in oklab, var(--persona-accent, #2563eb) 85%, black);
+}
+.p-dialog input:focus,
+.p-dialog .p-inputtext:focus,
+.p-dialog .p-select:focus-within {
+  border-color: var(--persona-accent, #2563eb) !important;
+  box-shadow: 0 0 0 3px
+    color-mix(in oklab, var(--persona-accent, #2563eb) 25%, transparent) !important;
+}
+
+/* Ask-both mode — soft diagonal blend of both persona hues, echoing the
+   fact that the room hosts both voices. Amber leans top-left (Hitesh side),
+   blue leans bottom-right (Piyush side). Driven by body[data-mode] set
+   from AskBothComponent. */
+body[data-mode="ask-both"] {
+  --surface-tint-top: #fffcf1;
+  --surface-tint-bottom: #eff3ff;
+  background:
+    radial-gradient(
+      ellipse 70% 55% at 12% 8%,
+      rgba(253, 224, 138, 0.45) 0%,
+      rgba(253, 224, 138, 0) 65%
+    ),
+    radial-gradient(
+      ellipse 70% 55% at 88% 92%,
+      rgba(191, 219, 254, 0.55) 0%,
+      rgba(191, 219, 254, 0) 65%
+    ),
+    linear-gradient(
+      135deg,
+      var(--surface-tint-top) 0%,
+      #fdfaf3 45%,
+      #f4f7fe 55%,
+      var(--surface-tint-bottom) 100%
+    );
+  background-attachment: fixed;
+}

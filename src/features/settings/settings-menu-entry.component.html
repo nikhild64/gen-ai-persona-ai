@@ -1,0 +1,16 @@
+<button
+  type="button"
+  class="entry"
+  [attr.aria-label]="clearAriaLabel"
+  (click)="modalOpen.set(true)"
+>
+  {{ menuLabel }}
+</button>
+<app-confirm-modal
+  [(open)]="modalOpen"
+  (confirmed)="onConfirmClear()"
+  (cancelled)="modalOpen.set(false)"
+/>
+@if (justCleared()) {
+<span class="toast" role="status">{{ clearedToast }}</span>
+}

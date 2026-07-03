@@ -1,0 +1,14 @@
+<div class="code-block-wrapper" [class.foregrounded]="foregrounded()">
+  <button
+    type="button"
+    class="copy-btn"
+    [attr.aria-label]="copyAriaLabel()"
+    (click)="copy()"
+  >
+    {{ copyState() === 'copied' ? 'Copied' : 'Copy' }}
+  </button>
+  @if (language()) {
+  <span class="language-tag">{{ language() }}</span>
+  }
+  <pre><code>{{ code() }}</code></pre>
+</div>

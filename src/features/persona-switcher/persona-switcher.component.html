@@ -1,0 +1,32 @@
+<div
+  class="track"
+  role="tablist"
+  [attr.aria-label]="ariaLabel()"
+  [attr.aria-disabled]="disabled() || null"
+>
+  @for (p of personas; track p) {
+  <button
+    type="button"
+    role="tab"
+    class="segment"
+    [attr.aria-selected]="p === activePersona()"
+    [attr.aria-disabled]="disabled() || null"
+    [attr.data-persona]="p"
+    [attr.tabindex]="p === activePersona() ? 0 : -1"
+    [attr.title]="disabled() ? disabledTooltip() : null"
+    [class.active]="p === activePersona()"
+    [class.disabled]="disabled()"
+    [disabled]="disabled()"
+    (click)="onSelect(p)"
+  >
+    <img
+      [src]="'/images/' + p + '.png'"
+      alt=""
+      width="18"
+      height="18"
+      class="avatar"
+    />
+    <span>{{ display(p) }}</span>
+  </button>
+  }
+</div>
