@@ -153,6 +153,8 @@ describe('ChatOrchestrator', () => {
     const thread = (await storage.get<Thread>('chat:musk:v1'))!;
     const last = thread.messages.at(-1);
     expect(last?.status).toBe('cancelled');
+    expect(orchestrator.accumulatedText()).toBe('');
+    expect(orchestrator.inFlightStream()).toBe(false);
   });
 
   it('exposes readonly signal views via .views', () => {

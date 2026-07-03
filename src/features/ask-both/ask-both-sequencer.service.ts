@@ -41,6 +41,10 @@ import { PRODUCT_COPY } from '../../config/product-copy';
 import { hasBlendedSignature } from '../../config/regex-patterns';
 import { AskBothModeService } from './ask-both-mode.service';
 import { BlendedPairService } from './blended-pair.service';
+import {
+  appendStreamToken,
+  yieldToUi,
+} from '../../shared/streaming-typewriter/stream-token';
 
 /**
  * Sequencer-local injection token letting tests swap the provider-registry
@@ -88,18 +92,31 @@ export class AskBothSequencerService {
   readonly activePersona: Signal<PersonaId | null> = this.currentPersona.asReadonly();
 
   readonly currentStreaming: Signal<Message | null> = computed(() => {
-    if (!this.inFlight() && !this.currentText()) return null;
-    const persona = this.currentPersona();
-    if (!persona) return null;
     const text = this.currentText();
     if (!text) return null;
+
+    const persona = this.currentPersona();
+    if (persona) {
+      return {
+        id: 'streaming',
+        role: 'assistant',
+        persona,
+        content: text,
+        timestamp: Date.now(),
+        status: 'streaming',
+      };
+    }
+
+    if (!this.inFlight()) return null;
+
+    const { a, b } = this.blendedPair.getPair();
     return {
       id: 'streaming',
       role: 'assistant',
-      persona,
       content: text,
       timestamp: Date.now(),
       status: 'streaming',
+      attributionLabel: buildBlendedComposition(a, b).attributionLabel,
     };
   });
 
@@ -177,7 +194,6 @@ export class AskBothSequencerService {
 
     this.inFlight.set(false);
     this.currentPersona.set(null);
-    this.currentText.set('');
     this.controller = null;
   }
 
@@ -249,7 +265,6 @@ export class AskBothSequencerService {
     this.keepGoingUsed.update((n) => n + 1);
     this.inFlight.set(false);
     this.currentPersona.set(null);
-    this.currentText.set('');
     this.controller = null;
   }
 
@@ -344,8 +359,9 @@ export class AskBothSequencerService {
         this.controller!.signal,
       )) {
         if (chunk.type === 'delta' && chunk.text) {
-          accumulated += chunk.text;
+          accumulated = appendStreamToken(accumulated, chunk.text);
           this.currentText.set(accumulated);
+          await yieldToUi();
         } else if (chunk.type === 'done') {
           doneChunk = chunk;
           break;
@@ -382,9 +398,8 @@ export class AskBothSequencerService {
       thread.updatedAt = msg.timestamp;
       await this.storage.set('chat:ask-both:v1', thread);
       this.threadUpdated$.next();
-      this.currentText.set('');
 
-      // AC-6 analytics â€” one event per blended send.
+      // AC-6 analytics — one event per blended send.
       this.analytics.emit({
         name: 'ask_both_blended_message_sent',
         payload: {
@@ -444,8 +459,9 @@ export class AskBothSequencerService {
         this.controller!.signal,
       )) {
         if (chunk.type === 'delta' && chunk.text) {
-          accumulated += chunk.text;
+          accumulated = appendStreamToken(accumulated, chunk.text);
           this.currentText.set(accumulated);
+          await yieldToUi();
         } else if (chunk.type === 'done') {
           doneChunk = chunk;
           break;

@@ -1,44 +1,30 @@
 import {
-
   ChangeDetectionStrategy,
-
   Component,
-
   computed,
-
   effect,
-
+  inject,
   input,
-
   model,
-
   output,
-
   signal,
-
   untracked,
-
 } from '@angular/core';
 
 import { Dialog } from 'primeng/dialog';
 
 import { Button } from 'primeng/button';
 
-
-
 import type { PersonaId } from '../../domain/types/persona';
-
 import { PERSONA_IDS } from '../../domain/types/persona';
-
+import type { CustomPersonaId } from '../../domain/types/custom-persona';
 import {
-
   PERSONA_REGISTRY,
-
   personaDisplayName,
-
 } from '../../personas/persona.registry';
-
 import { PRODUCT_COPY } from '../../config/product-copy';
+import { CustomPersonaStore } from '../../domain/custom-persona/custom-persona.store';
+import { PersonaAvatarSvgComponent } from '../../shared/persona-avatar-svg/persona-avatar-svg.component';
 
 
 
@@ -54,7 +40,7 @@ export type PersonaPickerMode = 'single' | 'unified';
 
   standalone: true,
 
-  imports: [Dialog, Button],
+  imports: [Dialog, Button, PersonaAvatarSvgComponent],
 
   changeDetection: ChangeDetectionStrategy.OnPush,
 
@@ -65,30 +51,25 @@ export type PersonaPickerMode = 'single' | 'unified';
 })
 
 export class PersonaPickerDialogComponent {
+  private readonly customPersonaStore = inject(CustomPersonaStore);
 
   readonly open = model<boolean>(false);
-
   readonly mode = input<PersonaPickerMode>('single');
-
   readonly disabled = input(false);
-
-
+  readonly showCustomPersonas = input(false);
 
   readonly activePersona = input<PersonaId | null>(null);
-
+  readonly activeCustomId = input<CustomPersonaId | null>(null);
   readonly initialPair = input<{ a: PersonaId; b: PersonaId } | null>(null);
 
-
-
   readonly personaPicked = output<PersonaId>();
-
+  readonly customPersonaPicked = output<CustomPersonaId>();
   readonly pairConfirmed = output<{ a: PersonaId; b: PersonaId }>();
 
-
-
   readonly personas = PERSONA_IDS;
-
   readonly registry = PERSONA_REGISTRY;
+  readonly customPersonas = this.customPersonaStore.personas;
+  readonly experimentalChip = PRODUCT_COPY.customPersonaExperimentalChip;
 
 
 
@@ -226,19 +207,12 @@ export class PersonaPickerDialogComponent {
 
 
   onTileClick(p: PersonaId): void {
-
     if (this.disabled()) return;
 
-
-
     if (this.mode() === 'single') {
-
       this.personaPicked.emit(p);
-
       this.open.set(false);
-
       return;
-
     }
 
 
@@ -264,10 +238,13 @@ export class PersonaPickerDialogComponent {
     }
 
     this.selection.set([current[0], p]);
-
   }
 
-
+  onCustomTileClick(id: CustomPersonaId): void {
+    if (this.disabled() || this.mode() !== 'single') return;
+    this.customPersonaPicked.emit(id);
+    this.open.set(false);
+  }
 
   onConfirmSolo(): void {
 

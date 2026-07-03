@@ -103,6 +103,10 @@ body[data-persona="newton"] {
   --surface-tint-top: #fffef8;
   --surface-tint-bottom: #fef3c7;
 }
+body[data-persona="custom"] {
+  --surface-tint-top: #fafaf9;
+  --surface-tint-bottom: #f5f5f4;
+}
 
 /* Persona-themed dialog chrome. `<p-dialog>` is appended to <body>, which
    carries [data-persona] in solo chat routes, so --persona-accent cascades
@@ -162,4 +166,29 @@ body[data-mode="ask-both"] {
       var(--surface-tint-bottom) 100%
     );
   background-attachment: fixed;
+}
+
+/* Conversation routes (solo chat + ask-both): lock the shell to the viewport
+   so only .message-list scrolls — not the page or the input area. */
+html:has(body.conversation-view) {
+  height: 100%;
+  overflow: hidden;
+}
+
+body.conversation-view {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+body.conversation-view .app-shell {
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+}
+
+body.conversation-view .app-main {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: hidden;
 }

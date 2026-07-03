@@ -136,7 +136,13 @@ export class SettingsModalComponent {
   }
 
   isSaved(id: ProviderId): boolean {
+    this.keyVault.revision();
     return this.keyVault.getKeyForProvider(id) !== null;
+  }
+
+  /** Saved key or a non-empty draft in the input field. */
+  canRefreshModels(id: ProviderId): boolean {
+    return this.isSaved(id) || !!(this.inputs()[id]?.trim());
   }
 
   slotStatus(id: ProviderId): string {
@@ -173,7 +179,10 @@ export class SettingsModalComponent {
   }
 
   onRefreshModels(provider: ProviderId): void {
-    void this.modelDiscovery.refresh(provider, /* force */ true);
+    const draft = this.inputs()[provider]?.trim();
+    const keyOverride = !this.isSaved(provider) ? draft : undefined;
+    if (!this.isSaved(provider) && !draft) return;
+    void this.modelDiscovery.refresh(provider, /* force */ true, keyOverride);
   }
 
   discoveryLoading(provider: ProviderId): boolean {

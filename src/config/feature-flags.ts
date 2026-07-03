@@ -47,6 +47,12 @@ export const FEATURE_MODERATION: boolean = readBooleanFlag(
  */
 export const FEATURE_BYO_KEY: boolean = true;
 
+/** Experimental custom persona creation on landing. Default ON. */
+export const FEATURE_CUSTOM_PERSONA: boolean = readBooleanFlag(
+  'NG_APP_FEATURE_CUSTOM_PERSONA',
+  true,
+);
+
 /**
  * AD-13 — Ask-Both interaction model selector. DISTINCT from the kill-switch
  * above: this picks 'sequential' (Persona A → sees → Persona B),

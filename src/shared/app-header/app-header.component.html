@@ -1,0 +1,31 @@
+<header class="app-header">
+  <div class="header-glow" aria-hidden="true"></div>
+  <div class="header-accent" aria-hidden="true"></div>
+
+  <div class="header-inner">
+    <a class="brand" routerLink="/" [attr.aria-label]="brandAriaLabel">
+      {{ brandName }}
+    </a>
+
+    <div class="header-actions">
+      <app-key-status-badge (clicked)="settings.openSettings()" />
+      <button
+        type="button"
+        class="gear-btn"
+        [attr.aria-label]="settingsAriaLabel"
+        (click)="settings.openSettings()"
+      >
+        <span class="pi pi-cog gear-icon" aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<app-settings-modal
+  [open]="settings.open()"
+  (openChange)="settings.open.set($event)"
+  [autoOpenMode]="settings.autoOpenMode()"
+  (autoOpenModeChange)="settings.autoOpenMode.set($event)"
+  (closedWithSave)="settings.notifySaved()"
+  (closedWithoutSave)="settings.notifyDismissed()"
+/>

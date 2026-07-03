@@ -14,6 +14,7 @@ export type StorageKey =
   | 'chat:einstein:v1'
   | 'chat:newton:v1'
   | 'chat:ask-both:v1'
+  | 'chat:custom-personas:v1'
   | 'settings:v1'
   | 'settings:ask-both-mode:v1'
   | 'settings:blended-pair:v1';

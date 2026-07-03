@@ -11,14 +11,14 @@ Status: ready-for-dev
 ## Story
 
 As a **solo developer**,
-I want **to verify in 30 minutes that a browser-direct `fetch('https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:streamGenerateContent?alt=sse', ...)` from origin `http://localhost:4200` returns a streaming SSE response without a CORS preflight failure**,
+I want **to verify in 30 minutes that a browser-direct `fetch('https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:streamGenerateContent?alt=sse', ...)` from origin `http://localhost:4200` returns a streaming SSE response without a CORS preflight failure**,
 So that **AD-5's Provider set holds (Gemini for Hitesh, Groq for Piyush, no server) OR I know Day 1 which fallback to take (single-provider variant OR Vercel serverless proxy) before any adapter code is written**.
 
 ## Acceptance Criteria
 
 **Given** a free-tier Gemini API key (`AIza...`) in the developer's clipboard,
 **When** the developer creates a bare-bones test file — either `evals/spike-zero-gemini-cors.ts` runnable via `tsx`, OR a plain `spike-zero.html` opened via `ng serve` at `http://localhost:4200/spike-zero.html`, OR a curl-equivalent in a browser DevTools Console at an `http://localhost:4200` origin —
-**Then** the file issues a POST to `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse` with headers `{ 'Content-Type': 'application/json', 'x-goog-api-key': KEY }` (NOT `Authorization: Bearer` — Google uses `x-goog-api-key` for API key auth) and body `{ contents: [{ role: 'user', parts: [{ text: 'Hi in one word' }] }] }`.
+**Then** the file issues a POST to `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:streamGenerateContent?alt=sse` with headers `{ 'Content-Type': 'application/json', 'x-goog-api-key': KEY }` (NOT `Authorization: Bearer` — Google uses `x-goog-api-key` for API key auth) and body `{ contents: [{ role: 'user', parts: [{ text: 'Hi in one word' }] }] }`.
 
 **Given** the fetch is issued,
 **When** the browser processes the request,
@@ -38,7 +38,7 @@ So that **AD-5's Provider set holds (Gemini for Hitesh, Groq for Piyush, no serv
 **When** the developer chooses a fallback branch,
 **Then** they pick ONE of the two options and log the choice to `.memlog.md`:
   - **Fallback (a) — Route Hitesh through Groq too (single-provider variant):** update `src/config/provider-registry.ts` `PROVIDER_DEFAULT_ROUTING` so `hitesh → 'groq'` (both personas use Groq). Note the Hinglish quality trade-off in `docs/prompt-engineering.md` at Epic 12. Log `spike_zero_gemini_cors_result: { succeeded: false, fallback: 'groq-only' }`.
-  - **Fallback (b) — Add minimal Vercel Serverless Function proxy for Gemini:** create `api/gemini.ts` at repo root (Vercel serverless format — Node runtime). The function reads the request body + `x-goog-api-key` header from the request and proxies to `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse` server-side, streaming the SSE response back to the client. `GeminiAdapter` (from Epic 2) POSTs to `/api/gemini` instead of `generativelanguage.googleapis.com` directly. Log `spike_zero_gemini_cors_result: { succeeded: false, fallback: 'vercel-proxy' }` and note that AD-1 (Pure-FE topology) has one narrow exception — this proxy — that must be documented in `bmad-prd update` at Epic 12 (adds a topology addendum, keeps everything else Pure-FE).
+  - **Fallback (b) — Add minimal Vercel Serverless Function proxy for Gemini:** create `api/gemini.ts` at repo root (Vercel serverless format — Node runtime). The function reads the request body + `x-goog-api-key` header from the request and proxies to `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:streamGenerateContent?alt=sse` server-side, streaming the SSE response back to the client. `GeminiAdapter` (from Epic 2) POSTs to `/api/gemini` instead of `generativelanguage.googleapis.com` directly. Log `spike_zero_gemini_cors_result: { succeeded: false, fallback: 'vercel-proxy' }` and note that AD-1 (Pure-FE topology) has one narrow exception — this proxy — that must be documented in `bmad-prd update` at Epic 12 (adds a topology addendum, keeps everything else Pure-FE).
 
 **Given** Outcome C persists after key + rate-limit retries,
 **When** 30 minutes have elapsed since spike start,
@@ -88,7 +88,7 @@ So that **AD-5's Provider set holds (Gemini for Hitesh, Groq for Piyush, no serv
 ```ts
 const KEY = process.env.GEMINI_KEY!;
 const res = await fetch(
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse',
+  'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:streamGenerateContent?alt=sse',
   {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-goog-api-key': KEY },
@@ -124,7 +124,7 @@ document.getElementById('go').onclick = async () => {
   out.textContent = 'sending...';
   try {
     const res = await fetch(
-      'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse',
+      'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:streamGenerateContent?alt=sse',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
@@ -156,7 +156,7 @@ Simplest — no file to write. Open any page on `localhost:4200`, open DevTools 
 
 ```js
 const key = 'AIza...';
-const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse', {
+const res = await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:streamGenerateContent?alt=sse', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
   body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: 'Hi' }] }] }),
@@ -199,9 +199,9 @@ If PASS: a follow-up assertion lands in E2-S1 (mock adapter + real network smoke
 
 ## Latest Tech Information
 
-- **Gemini API endpoint** as of 2026-07-02: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse`. Use `v1beta` (not `v1`) — the streaming SSE endpoint is under v1beta.
+- **Gemini API endpoint** as of 2026-07-02: `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:streamGenerateContent?alt=sse`. Use `v1beta` (not `v1`) — the streaming SSE endpoint is under v1beta.
 - **Auth header:** `x-goog-api-key: AIza...` (NOT `Authorization: Bearer`). The key format is `AIza[0-9A-Za-z_-]{35}`.
-- **Free tier (verify at spike time):** `gemini-2.5-flash` ~15 RPM / ~1500 RPD per Google project per https://ai.google.dev/gemini-api/docs/rate-limits. Volatile — if rate-limited during spike, retry with a fresh key.
+- **Free tier (verify at spike time):** `gemini-3.1-flash-lite` ~15 RPM / ~1500 RPD per Google project per https://ai.google.dev/gemini-api/docs/rate-limits. Volatile — if rate-limited during spike, retry with a fresh key.
 - **Browser CORS status (empirically unverified per architecture review):** third-party writeups are mixed; Google does not officially document browser-direct as supported. Spike-0 exists BECAUSE the answer isn't in the docs.
 - **If Fallback (b):** Vercel Serverless Functions in Node runtime use the `export default async function handler(req: VercelRequest, res: VercelResponse) { ... }` shape. For SSE streaming, set `res.setHeader('Content-Type', 'text/event-stream')`, `res.setHeader('Cache-Control', 'no-cache')`, then pipe/forward the upstream response body chunk-by-chunk.
 

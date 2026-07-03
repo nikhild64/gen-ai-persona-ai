@@ -17,7 +17,7 @@ So that **every downstream LLM call goes through one interface, adding a new pro
 
 **Given** Epic 0.5 outcome is known,
 **When** the developer authors `src/infrastructure/providers/gemini.adapter.ts` implementing `ProviderPort`,
-**Then** it exposes `static readonly PROVIDER_ID: ProviderId = 'gemini'` and `static readonly KEY_PATTERN: RegExp = /^AIza[0-9A-Za-z_-]{35}$/` per AD-3 + AD-11, and `streamChat(request, key, signal)` uses native `fetch` + `ReadableStream` + `TextDecoder` against `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse` (or `/api/gemini` if Spike-0 fallback (b) is active per E0.5-S1).
+**Then** it exposes `static readonly PROVIDER_ID: ProviderId = 'gemini'` and `static readonly KEY_PATTERN: RegExp = /^AIza[0-9A-Za-z_-]{35}$/` per AD-3 + AD-11, and `streamChat(request, key, signal)` uses native `fetch` + `ReadableStream` + `TextDecoder` against `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:streamGenerateContent?alt=sse` (or `/api/gemini` if Spike-0 fallback (b) is active per E0.5-S1).
 
 **Given** the Gemini adapter is drafted,
 **When** the developer authors `src/infrastructure/providers/groq.adapter.ts`,
@@ -44,7 +44,7 @@ So that **every downstream LLM call goes through one interface, adding a new pro
 **Then** the mock adapter accepts a scripted `ChatChunk[]` sequence and yields it via `AsyncIterable`, enabling deterministic unit tests without hitting real Gemini/Groq.
 
 **Given** all adapters and the registry exist,
-**When** the developer runs a manual smoke test — DevTools sessionStorage-inject a Gemini key, use `PROVIDER_REGISTRY.get('gemini').streamChat({messages: [{role: 'user', content: 'Hi in one word'}], model: 'gemini-2.5-flash'}, key, new AbortController().signal)` from the browser console,
+**When** the developer runs a manual smoke test — DevTools sessionStorage-inject a Gemini key, use `PROVIDER_REGISTRY.get('gemini').streamChat({messages: [{role: 'user', content: 'Hi in one word'}], model: 'gemini-3.1-flash-lite'}, key, new AbortController().signal)` from the browser console,
 **Then** the AsyncIterable yields at least one `{type: 'delta'}` chunk within 2 seconds and a `{type: 'done'}` chunk within 8 seconds — proves the fetch works end-to-end (or the Spike-0 fallback is correctly in play).
 
 **verifies:** AD-3 (ProviderPort SSOT + static PROVIDER_ID + KEY_PATTERN), AD-4 (uniform ChatChunk contract + closed error union), AD-5 (Provider set v1 = Gemini + Groq only)
@@ -58,7 +58,7 @@ So that **every downstream LLM call goes through one interface, adding a new pro
 The moment the architecture becomes real. Two production adapters + one mock adapter + one registry. This is the ONLY story in the sprint that touches Gemini or Groq SDK-shaped code — every downstream LLM call flows through this layer.
 
 **Spike-0 outcome matters:**
-- **If Spike PASSED (Outcome A):** `GeminiAdapter.streamChat` fetches `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse` directly. Standard AD-5 wiring.
+- **If Spike PASSED (Outcome A):** `GeminiAdapter.streamChat` fetches `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:streamGenerateContent?alt=sse` directly. Standard AD-5 wiring.
 - **If Fallback (a) fires (Groq-only):** `PROVIDER_DEFAULT_ROUTING.hitesh = 'groq'` already updated in E0.5-S1. `GeminiAdapter` STILL LANDS in this story (for future use + docs completeness), but the registry sends Hitesh through Groq at runtime.
 - **If Fallback (b) fires (Vercel proxy):** `GeminiAdapter.streamChat` fetches `/api/gemini` (relative same-origin URL) instead of `generativelanguage.googleapis.com`. `api/gemini.ts` already exists from E0.5-S1.
 
@@ -87,7 +87,7 @@ export class GeminiAdapter implements ProviderPort {
   private static readonly ENDPOINT =
     // If /api/gemini exists (Fallback b), use it; else direct
     '/api/gemini' /* Fallback (b) */ ||
-    'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:streamGenerateContent?alt=sse';
+    'https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:streamGenerateContent?alt=sse';
 
   async *streamChat(
     request: ChatRequest,
@@ -327,7 +327,7 @@ export const TEST_PROVIDER_REGISTRY: Map<ProviderId, ProviderPortAdapterClass> =
 
 - **AD-3:** `ProviderPort` is the sole interface; class-side `static PROVIDER_ID + KEY_PATTERN`; adapters constructed only via `PROVIDER_REGISTRY.get(id)` (ESLint from E0-S4 bans direct `*.adapter.ts` imports from features/domain).
 - **AD-4:** uniform `ChatChunk` contract; closed `ChatChunkError` union; NO `| string` escape hatch. `mapHttpError` maps to one of the 8 union members.
-- **AD-5:** ships EXACTLY `GeminiAdapter` (`gemini-2.5-flash`) + `GroqAdapter` (`openai/gpt-oss-120b`). OpenAI + Anthropic deferred per Deferred list.
+- **AD-5:** ships EXACTLY `GeminiAdapter` (`gemini-3.1-flash-lite`) + `GroqAdapter` (`openai/gpt-oss-120b`). OpenAI + Anthropic deferred per Deferred list.
 - **AD-11:** `static KEY_PATTERN` is the class-side contract the redaction registry (E6-S1) reads from. Adding a provider without `KEY_PATTERN` fails TypeScript compilation via the `ProviderPortAdapterClass` interface.
 - **AD-14:** `AbortSignal` propagates to `fetch`; on abort, adapter emits `{ type: 'error', meta: { error: 'aborted', retryable: false } }` and releases the reader.
 
@@ -361,7 +361,7 @@ src/infrastructure/providers/
   const { PROVIDER_REGISTRY } = window.__DEBUG_PROVIDERS__; // expose in dev per app.config.ts
   const gemini = new (PROVIDER_REGISTRY.get('gemini'))();
   const ctrl = new AbortController();
-  for await (const chunk of gemini.streamChat({messages:[{role:'user',content:'Hi in one word'}], model:'gemini-2.5-flash'}, 'AIza...', ctrl.signal)) {
+  for await (const chunk of gemini.streamChat({messages:[{role:'user',content:'Hi in one word'}], model:'gemini-3.1-flash-lite'}, 'AIza...', ctrl.signal)) {
     console.log(chunk);
   }
   ```

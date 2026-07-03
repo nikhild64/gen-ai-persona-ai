@@ -28,7 +28,7 @@ describe('ProviderPort', () => {
     const chunks: ChatChunk[] = [];
     const controller = new AbortController();
     const req: ChatRequest = {
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.1-flash-lite',
       messages: [{ role: 'user', content: 'test' }],
     };
     for await (const chunk of adapter.streamChat(

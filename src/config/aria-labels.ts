@@ -24,6 +24,8 @@ const providerDisplayName = (p: ProviderId): string =>
 export const personaSwitcherLabel = (p: PersonaId): string =>
   `Switch persona — currently ${personaDisplayName(p)}`;
 
+export const brandHomeLabel = 'Council — back to home';
+
 export const modeSwitcherLabel = (m: 'solo' | 'ask-both'): string =>
   `Switch mode — currently ${modeDisplayName(m)}`;
 
@@ -43,6 +45,9 @@ export const disclaimerLinkLabel =
 
 export const personaCardLabel = (p: PersonaId): string =>
   `Chat with ${personaDisplayName(p)}`;
+
+export const customPersonaCardLabel = (fullName: string): string =>
+  `Chat with ${fullName} (custom persona)`;
 
 export const keyStatusBadgeLabel = (
   state: 'saved' | 'none',

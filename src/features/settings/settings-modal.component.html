@@ -77,10 +77,10 @@
         type="button"
         class="refresh-btn"
         [attr.aria-label]="'Refresh ' + slot.label + ' model list'"
-        [disabled]="!isSaved(slot.id) || discovery.loading"
+        [disabled]="!canRefreshModels(slot.id) || discovery.loading"
         [title]="
-          !isSaved(slot.id)
-            ? 'Save a key to fetch live models'
+          !canRefreshModels(slot.id)
+            ? 'Paste a key to fetch live models'
             : 'Refresh model list from ' + slot.label
         "
         (click)="onRefreshModels(slot.id)"

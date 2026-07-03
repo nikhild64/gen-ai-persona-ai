@@ -18,6 +18,40 @@
   padding: 0.25rem 0;
 }
 
+.custom-section {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.section-label {
+  margin: 0 0 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #92400e;
+}
+
+.experimental-badge {
+  position: absolute;
+  top: 0.45rem;
+  left: 0.45rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(245, 158, 11, 0.22);
+  color: #92400e;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.persona-tile--custom .avatar,
+.persona-tile--custom app-persona-avatar-svg {
+  border-radius: 50%;
+}
+
 .persona-tile {
   position: relative;
   display: flex;

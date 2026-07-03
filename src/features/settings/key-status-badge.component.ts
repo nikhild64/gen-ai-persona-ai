@@ -42,6 +42,9 @@ export class KeyStatusBadgeComponent {
    *  persona. Omit for ask-both / neutral surfaces. */
   readonly persona = input<PersonaId | null>(null);
 
+  /** When set (custom persona chat), overrides provider resolution. */
+  readonly providerOverride = input<ProviderId | null>(null);
+
   /** Ask-both mode. When true, the badge reflects the combined routing of
    *  both personas. Ignored when `persona` is set. */
   readonly askBoth = input<boolean>(false);
@@ -50,6 +53,8 @@ export class KeyStatusBadgeComponent {
    *  surface. One entry for solo (or ask-both where both personas share a
    *  provider); two entries when ask-both blends providers. */
   readonly relevantProviders = computed<ProviderId[]>(() => {
+    const override = this.providerOverride();
+    if (override) return [this.personaRouting.getProviderForCustom(override)];
     const p = this.persona();
     if (p) return [this.personaRouting.getProviderFor(p)];
     if (this.askBoth()) {
@@ -62,6 +67,7 @@ export class KeyStatusBadgeComponent {
   });
 
   readonly state = computed<'saved' | 'none'>(() => {
+    this.keyVault.revision();
     const providers = this.relevantProviders();
     if (providers.length === 0) return 'none';
     // All required providers must have a saved key for the badge to read
@@ -73,6 +79,7 @@ export class KeyStatusBadgeComponent {
   });
 
   readonly label = computed(() => {
+    this.keyVault.revision();
     const providers = this.relevantProviders();
     if (providers.length === 0) return PRODUCT_COPY.keyStatusNoKeyLabel;
     if (providers.length === 1) {

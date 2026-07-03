@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { STORAGE_PORT } from '../../domain/chat/di-tokens';
 import { CHAT_STORAGE_KEYS } from '../../config/storage-keys';
 import { PERSONA_IDS } from '../../domain/types/persona';
+import { CustomPersonaThreadService } from '../../domain/custom-persona/custom-persona-thread.service';
 
 /**
  * FR-15 — clears all chat threads then navigates back to landing.
@@ -12,12 +13,14 @@ import { PERSONA_IDS } from '../../domain/types/persona';
 export class StartNewSessionService {
   private readonly storage = inject(STORAGE_PORT);
   private readonly router = inject(Router);
+  private readonly customThreads = inject(CustomPersonaThreadService);
 
   async clearAllThreads(): Promise<void> {
     for (const id of PERSONA_IDS) {
       await this.storage.delete(CHAT_STORAGE_KEYS[id]);
     }
     await this.storage.delete('chat:ask-both:v1');
+    await this.customThreads.clearAllThreads();
   }
 
   async clearAndReturnHome(): Promise<void> {

@@ -43,6 +43,47 @@
 .bubble-body {
   word-break: break-word;
 }
+.bubble-body.is-streaming .bubble-content {
+  display: inline;
+  animation: stream-body-in 0.22s ease-out;
+}
+.stream-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1.05em;
+  margin-left: 2px;
+  border-radius: 1px;
+  background: var(--persona-accent, #78716c);
+  vertical-align: text-bottom;
+  animation: stream-caret-blink 1.05s ease-in-out infinite;
+}
+@keyframes stream-body-in {
+  from {
+    opacity: 0.88;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes stream-caret-blink {
+  0%,
+  45% {
+    opacity: 1;
+  }
+  55%,
+  100% {
+    opacity: 0.2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bubble-body.is-streaming .bubble-content {
+    animation: none;
+  }
+  .stream-caret {
+    animation: none;
+    opacity: 0.65;
+  }
+}
 .bubble-body :first-child {
   margin-top: 0;
 }

@@ -39,7 +39,7 @@ describe('PromptMode', () => {
 describe('OutboundPrompt shape', () => {
   it('extends ChatRequest with a meta block', () => {
     const p: OutboundPrompt = {
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.1-flash-lite',
       messages: [{ role: 'user', content: 'hi' }],
       meta: {
         mode: 'solo',

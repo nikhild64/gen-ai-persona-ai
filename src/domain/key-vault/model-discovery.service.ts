@@ -64,9 +64,15 @@ export class ModelDiscoveryService {
   }
 
   /** Fetches live models for `provider` if we have a key and either haven't
-   *  fetched yet OR `force` is true. */
-  async refresh(provider: ProviderId, force = false): Promise<void> {
-    const key = this.keyVault.getKeyForProvider(provider);
+   *  fetched yet OR `force` is true. Pass `keyOverride` to probe a draft
+   *  key from the settings input before it is saved. */
+  async refresh(
+    provider: ProviderId,
+    force = false,
+    keyOverride?: string,
+  ): Promise<void> {
+    const key =
+      keyOverride?.trim() || this.keyVault.getKeyForProvider(provider);
     if (!key) return;
 
     const current = this._state()[provider];
@@ -125,7 +131,7 @@ export class ModelDiscoveryService {
     }
     const body = (await res.json()) as {
       models?: Array<{
-        name?: string; // "models/gemini-2.5-flash"
+        name?: string; // "models/gemini-3.1-flash-lite"
         displayName?: string;
         description?: string;
         supportedGenerationMethods?: string[];
@@ -241,7 +247,7 @@ export class ModelDiscoveryService {
 // ---------- helpers ----------
 
 function prettifyId(id: string): string {
-  // "gemini-2.5-flash-lite" → "Gemini 2.5 Flash Lite"
+  // "gemini-3.1-flash-lite-lite" → "Gemini 2.5 Flash Lite"
   // "openai/gpt-oss-120b"   → "openai/gpt oss 120b" (kept lowercase for
   //                            path-y ids so users can still spot the coord)
   const withoutSlash = id.replace(/[-_]+/g, ' ');

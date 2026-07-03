@@ -14,7 +14,12 @@
     }
   </header>
   }
-  <div class="bubble-body" [innerHTML]="renderedContent()"></div>
+  <div class="bubble-body" [class.is-streaming]="message().status === 'streaming'">
+    <span class="bubble-content" [innerHTML]="renderedContent()"></span>
+    @if (message().status === 'streaming') {
+    <span class="stream-caret" aria-hidden="true"></span>
+    }
+  </div>
   @if (message().status === 'cancelled') {
   <footer class="bubble-status cancelled-badge">
     {{ cancelledLabel }}

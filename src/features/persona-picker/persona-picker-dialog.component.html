@@ -50,6 +50,37 @@
     }
   </div>
 
+  @if (mode() === 'single' && showCustomPersonas() && customPersonas().length) {
+  <section class="custom-section" aria-label="Experimental personas">
+    <h3 class="section-label">{{ experimentalChip }}</h3>
+    <div
+      class="persona-grid"
+      role="listbox"
+      aria-label="Experimental personas"
+    >
+      @for (cp of customPersonas(); track cp.id) {
+      <button
+        type="button"
+        class="persona-tile persona-tile--custom"
+        role="option"
+        [class.active]="activeCustomId() === cp.id"
+        [attr.aria-selected]="activeCustomId() === cp.id"
+        [disabled]="disabled()"
+        (click)="onCustomTileClick(cp.id)"
+      >
+        <span class="experimental-badge">{{ experimentalChip }}</span>
+        <app-persona-avatar-svg
+          [displayName]="cp.fullDisplayName"
+          [size]="72"
+        />
+        <span class="name">{{ cp.fullDisplayName }}</span>
+        <span class="tagline">{{ cp.tagline }}</span>
+      </button>
+      }
+    </div>
+  </section>
+  }
+
   @if (mode() === 'unified') {
   <div class="picker-actions" role="group" aria-label="Confirm selection">
     <p class="selection-hint">{{ selectionHint() }}</p>

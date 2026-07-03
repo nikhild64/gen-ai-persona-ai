@@ -21,6 +21,7 @@ const providerKeyPrefixHint = (p: ProviderId): string =>
 export const PRODUCT_COPY = {
   // ─── LANDING ─────────────────────────────────────────────────────────────
   landingHeroTitle: 'Council — advisors from across time.',
+  brandName: 'Council',
   landingHeroSubheader:
     'Seven AI parody personas — pick one, or blend any two advisors.',
   landingCtaLabel: 'Start chatting',
@@ -40,6 +41,34 @@ export const PRODUCT_COPY = {
   landingDisclaimerBand:
     'AI parody personas — not affiliated with or endorsed by the real individuals or their estates. Educational research project exploring LLM-based persona modeling. All persona content is derived from publicly available materials and used under fair use for non-commercial educational purposes. Takedown requests honored immediately.',
   continueHint: 'Bring your own key to continue.',
+  landingApiKeyHint:
+    'Paste a Gemini or Groq API key to chat or create custom personas.',
+  landingSettingsButtonLabel: 'API key & settings',
+
+  // ─── CUSTOM PERSONA (EXPERIMENTAL) ───────────────────────────────────────
+  customPersonaExperimentalChip: 'Experimental',
+  customPersonaExperimentalDisclaimer:
+    'This persona was generated on your device and may be less polished than curated advisors.',
+  createPersonaCardTitle: 'Create persona',
+  createPersonaCardTagline:
+    'Describe a real person — Council builds a voice from your input.',
+  createPersonaCardCta: 'Generate',
+  createPersonaDialogTitle: 'Create persona (Experimental)',
+  createPersonaDialogSubtitle:
+    'Enter a name (required) and optional details. Your API key generates the persona locally — nothing is sent to our servers.',
+  createPersonaNameLabel: 'Person name',
+  createPersonaDetailsLabel: 'Extra details (optional)',
+  createPersonaCreateLabel: 'Create persona',
+  createPersonaCancelLabel: 'Cancel',
+  createPersonaNoKeyMessage:
+    'An API key is required to generate a persona. Add your Gemini or Groq key, then try again.',
+  createPersonaAddKeyButtonLabel: 'Add API key',
+  createPersonaErrorGeneric:
+    'Could not generate — check your API key in Settings or add more details.',
+  deleteCustomPersonaTitle: 'Delete this persona?',
+  deleteCustomPersonaBody: (name: string): string =>
+    `Remove ${name} and its chat history from this browser. This cannot be undone.`,
+  deleteCustomPersonaConfirm: 'Delete',
 
   // ─── FOOTER (AD-22 disclaimer + takedown affordance, every route) ────────
   footerDisclaimer:

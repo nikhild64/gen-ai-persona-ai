@@ -25,5 +25,11 @@ const TIER_COPY: Record<
 /** In-chat banner copy keyed by registry `disclaimerTier` (V2 Phase 5). */
 export const personaChatDisclaimer = (persona: PersonaId): string => {
   const { disclaimerTier, fullDisplayName } = PERSONA_REGISTRY[persona];
-  return TIER_COPY[disclaimerTier](fullDisplayName, persona);
+  return disclaimerTierCopy(disclaimerTier, fullDisplayName, persona);
 };
+
+export const disclaimerTierCopy = (
+  tier: PersonaDisclaimerTier,
+  fullName: string,
+  persona?: PersonaId,
+): string => TIER_COPY[tier](fullName, persona ?? 'musk');

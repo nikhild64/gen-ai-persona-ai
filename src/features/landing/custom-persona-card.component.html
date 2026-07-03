@@ -1,0 +1,32 @@
+<a
+  class="custom-persona-card"
+  [routerLink]="chatUrl()"
+  [attr.aria-label]="ariaLabel()"
+>
+  <button
+    type="button"
+    class="delete-btn"
+    [attr.aria-label]="'Delete ' + persona().fullDisplayName"
+    (click)="onDeleteClick($event)"
+  >
+    ×
+  </button>
+  <app-persona-avatar-svg
+    [displayName]="persona().fullDisplayName"
+    [size]="96"
+  />
+  <div class="body">
+    <span class="era-badge">{{ persona().era }}</span>
+    <h2>{{ persona().fullDisplayName }}</h2>
+    <p class="tagline">{{ persona().tagline }}</p>
+  </div>
+  <span class="cta">{{ ctaLabel }}</span>
+</a>
+
+<app-confirm-modal
+  [(open)]="deleteConfirmOpen"
+  [title]="deleteTitle"
+  [body]="deleteBody()"
+  [confirmLabel]="deleteConfirmLabel"
+  (confirmed)="onDeleteConfirmed()"
+/>

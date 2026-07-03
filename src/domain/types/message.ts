@@ -89,9 +89,11 @@ export type Message = {
  * AD-10: canonical persisted-thread shape. `rollingSummary` is `string | null`
  * (not `string | undefined`) — `null` explicitly means "not yet generated".
  */
+export type ThreadScope = PersonaId | 'ask-both' | `custom:${string}`;
+
 export type Thread = {
   id: string;
-  scope: PersonaId | 'ask-both';
+  scope: ThreadScope;
   messages: Message[];
   rollingSummary: string | null;
   turnsSinceLastSummary: number;

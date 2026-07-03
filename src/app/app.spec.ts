@@ -6,6 +6,9 @@ import { describe, beforeEach, it, expect } from 'vitest';
 
 import { AriaAnnouncerComponent } from '../shared/aria-announcer/aria-announcer.component';
 import { AppFooterComponent } from '../shared/app-footer/app-footer.component';
+import { AppHeaderComponent } from '../shared/app-header/app-header.component';
+import { ANALYTICS_PORT, STORAGE_PORT } from '../domain/chat/di-tokens';
+import { InMemoryStorageAdapter } from '../domain/chat/testing/in-memory-storage.adapter';
 
 /**
  * Inline mirror of `App` so this spec runs under both `ng test` and raw
@@ -15,11 +18,12 @@ import { AppFooterComponent } from '../shared/app-footer/app-footer.component';
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, AriaAnnouncerComponent, AppFooterComponent],
+  imports: [RouterOutlet, AriaAnnouncerComponent, AppFooterComponent, AppHeaderComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-aria-announcer />
     <div class="app-shell">
+      <app-header />
       <div class="app-main">
         <router-outlet />
       </div>
@@ -34,7 +38,12 @@ describe('App', () => {
     TestBed.resetTestingModule();
     await TestBed.configureTestingModule({
       imports: [AppTestHarness],
-      providers: [provideRouter([]), provideNoopAnimations()],
+      providers: [
+        provideRouter([]),
+        provideNoopAnimations(),
+        { provide: STORAGE_PORT, useClass: InMemoryStorageAdapter },
+        { provide: ANALYTICS_PORT, useValue: { emit: () => {} } },
+      ],
     }).compileComponents();
   });
 

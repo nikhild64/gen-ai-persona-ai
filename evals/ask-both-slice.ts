@@ -174,7 +174,7 @@ async function judgeSlice(
   const judge = new (cls as unknown as new () => ProviderPort)();
   const judgePrompt = {
     model:
-      cfg.judgeProvider === 'gemini' ? 'gemini-2.5-flash' : 'openai/gpt-oss-120b',
+      cfg.judgeProvider === 'gemini' ? 'gemini-3.1-flash-lite' : 'openai/gpt-oss-120b',
     messages: [
       {
         role: 'system' as const,

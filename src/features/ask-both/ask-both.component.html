@@ -2,10 +2,6 @@
   <header class="banner">
     <h2>{{ bannerLabel }}</h2>
     <div class="banner-slots">
-      <app-key-status-badge
-        [askBoth]="true"
-        (clicked)="openSettings()"
-      />
       <app-mode-switcher
         activeMode="ask-both"
         [disabled]="sequencer.inFlight()"
@@ -55,13 +51,6 @@
     (pairConfirmed)="onBlendPairConfirmed($event)"
   />
 
-  <app-settings-modal
-    [(open)]="settingsOpen"
-    [(autoOpenMode)]="settingsAutoOpen"
-    (closedWithSave)="onSettingsSaved()"
-    (closedWithoutSave)="onSettingsDismissed()"
-  />
-
   <div class="message-list" #messageList>
     @if (messages().length === 0) {
     <div class="joint-greeting" role="note">
@@ -71,11 +60,11 @@
     }
     @for (msg of messages(); track msg.id) {
     <app-message-bubble [message]="msg" />
-    } @if (sequencer.currentStreaming(); as streaming) {
+    } @if (streamingBubble(); as streaming) {
     <app-message-bubble [message]="streaming" />
     } @if (bridgeMessage(); as bridge) {
     <div class="bridge" role="note">{{ bridge }}</div>
-    } @if (sequencer.inFlight() && !sequencer.currentStreaming()) {
+    } @if (showStreamingIndicator()) {
     <app-streaming-indicator [label]="streamingLabel()" />
     } @if (canKeepGoing()) {
     <button

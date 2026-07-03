@@ -25,6 +25,6 @@ export const PROVIDER_DEFAULT_ROUTING: Record<PersonaId, ProviderId> = {
 export const ASK_BOTH_SUMMARY_PROVIDER_ID: ProviderId = 'gemini';
 
 export const PROVIDER_DEFAULT_MODELS: Record<ProviderId, string> = {
-  gemini: 'gemini-2.5-flash',
+  gemini: 'gemini-3.1-flash-lite',
   groq: 'openai/gpt-oss-120b',
 };

@@ -1,4 +1,5 @@
 import type { PersonaId } from '../types/persona';
+import type { CustomPersonaId } from '../types/custom-persona';
 import type { ProviderId } from './provider.port';
 import type { ChatChunkError } from '../types/message';
 
@@ -15,7 +16,10 @@ export type AnalyticsEvent =
   | { name: 'persona_selected'; payload: { persona: PersonaId } }
   | {
       name: 'persona_switched';
-      payload: { from: PersonaId; to: PersonaId };
+      payload: {
+        from: PersonaId | CustomPersonaId;
+        to: PersonaId | CustomPersonaId;
+      };
     }
   | {
       name: 'mode_switched';
@@ -24,7 +28,7 @@ export type AnalyticsEvent =
   | {
       name: 'message_sent';
       payload: {
-        persona: PersonaId;
+        persona: PersonaId | 'custom';
         mode: 'solo' | 'ask-both';
         charCount: number;
       };
@@ -55,7 +59,7 @@ export type AnalyticsEvent =
   | { name: 'parallel_fallback_triggered'; payload: Record<string, never> }
   | {
       name: 'stream_stall_detected';
-      payload: { persona: PersonaId; elapsedMs: number };
+      payload: { persona: PersonaId | 'custom'; elapsedMs: number };
     }
   | {
       name: 'spike_zero_gemini_cors_result';

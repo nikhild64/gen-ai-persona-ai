@@ -21,12 +21,12 @@ export type AvailableModel = {
 export const AVAILABLE_MODELS: Record<ProviderId, AvailableModel[]> = {
   gemini: [
     {
-      id: 'gemini-2.5-flash',
+      id: 'gemini-3.1-flash-lite',
       label: 'Gemini 2.5 Flash',
       hint: 'Fast + cheap · default',
     },
     {
-      id: 'gemini-2.5-flash-lite',
+      id: 'gemini-3.1-flash-lite-lite',
       label: 'Gemini 2.5 Flash Lite',
       hint: 'Cheapest · shorter answers',
     },

@@ -2,7 +2,7 @@
 
 **Date:** 2026-07-02  
 **Research Type:** Domain (Persona Study for LLM Chat App)  
-**Provider preference:** Gemini (`gemini-2.5-flash`) — deceased public figure; low refusal risk.
+**Provider preference:** Gemini (`gemini-3.1-flash-lite`) — deceased public figure; low refusal risk.
 
 ---
 

@@ -15,11 +15,12 @@ describe('storage-keys (AD-6 closed union)', () => {
       'chat:einstein:v1',
       'chat:newton:v1',
       'chat:ask-both:v1',
+      'chat:custom-personas:v1',
       'settings:v1',
       'settings:ask-both-mode:v1',
       'settings:blended-pair:v1',
     ];
-    expect(keys).toHaveLength(11);
+    expect(keys).toHaveLength(12);
     keys.forEach((k) => expect(k.length).toBeGreaterThan(0));
   });
 

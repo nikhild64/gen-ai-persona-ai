@@ -36,7 +36,7 @@ describe('GeminiAdapter.streamChat', () => {
   afterEach(() => vi.restoreAllMocks());
 
   const request: ChatRequest = {
-    model: 'gemini-2.5-flash',
+    model: 'gemini-3.1-flash-lite',
     messages: [{ role: 'user', content: 'Hi' }],
     temperature: 0.7,
   };
@@ -66,7 +66,7 @@ describe('GeminiAdapter.streamChat', () => {
     expect(deltas.map((c) => c.text).join('')).toBe('Hello world');
     const done = out.find((c) => c.type === 'done');
     expect(done?.meta?.tokens).toBe(5);
-    expect(done?.meta?.model).toBe('gemini-2.5-flash');
+    expect(done?.meta?.model).toBe('gemini-3.1-flash-lite');
   });
 
   it('maps HTTP 429 to quota_exhausted with retryable=true', async () => {

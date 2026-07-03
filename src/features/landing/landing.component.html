@@ -16,6 +16,30 @@
 
   }
 
+
+
+  @for (cp of customPersonas(); track cp.id) {
+
+  <app-custom-persona-card
+
+    [persona]="cp"
+
+    (deleteRequested)="onDeleteCustomPersona($event)"
+
+  />
+
+  }
+
+
+
+  @if (customPersonaEnabled) {
+
+  <app-create-persona-card (createRequested)="openCreateDialog()" />
+
+  }
+
+
+
   @if (askBothEnabled) {
 
   <app-ask-both-card (blendRequested)="openPicker()" />
@@ -23,6 +47,10 @@
   }
 
 </section>
+
+
+
+<app-create-persona-dialog [(open)]="createDialogOpen" />
 
 
 

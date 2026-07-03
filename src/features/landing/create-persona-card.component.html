@@ -1,0 +1,16 @@
+<button
+  type="button"
+  class="create-persona-card"
+  [attr.aria-label]="title + ' — ' + tagline"
+  (click)="createRequested.emit()"
+>
+  <span class="experimental-badge">{{ badge }}</span>
+  <div class="icon-stack" aria-hidden="true">
+    <span class="spark">✦</span>
+  </div>
+  <div class="body">
+    <h2>{{ title }}</h2>
+    <p class="tagline">{{ tagline }}</p>
+  </div>
+  <span class="cta">{{ ctaLabel }}</span>
+</button>

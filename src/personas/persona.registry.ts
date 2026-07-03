@@ -48,6 +48,8 @@ export type PersonaRegistryEntry = {
   tagline: string;
   era: PersonaEra;
   disclaimerTier: PersonaDisclaimerTier;
+  /** Runtime custom personas supply this; builtins use voiceReminderFor(). */
+  voiceReminder?: string;
 };
 
 export const PERSONA_REGISTRY: Record<PersonaId, PersonaRegistryEntry> = {

@@ -5,6 +5,7 @@ import {
   FEATURE_ROLLING_SUMMARY,
   FEATURE_MODERATION,
   FEATURE_BYO_KEY,
+  FEATURE_CUSTOM_PERSONA,
   ASK_BOTH_MODE,
 } from './feature-flags';
 
@@ -13,6 +14,7 @@ describe('feature-flags (AD-1 build-time, AD-13 mode selector)', () => {
     expect(FEATURE_ASK_BOTH_MODE).toBe(true);
     expect(FEATURE_ROLLING_SUMMARY).toBe(true);
     expect(FEATURE_MODERATION).toBe(true);
+    expect(FEATURE_CUSTOM_PERSONA).toBe(true);
   });
 
   it('keeps FEATURE_BYO_KEY unconditionally true (vestigial per PRD §11.3)', () => {

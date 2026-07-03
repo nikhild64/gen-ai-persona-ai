@@ -12,7 +12,7 @@ describe('model-params (V2)', () => {
 
   it('populates Jobs Gemini params', () => {
     const p = PERSONA_MODEL_PARAMS.jobs;
-    expect(p.modelName).toBe('gemini-2.5-flash');
+    expect(p.modelName).toBe('gemini-3.1-flash-lite');
     expect(p.temperature).toBe(0.55);
   });
 

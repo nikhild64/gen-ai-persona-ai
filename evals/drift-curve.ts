@@ -173,7 +173,7 @@ async function judgeResponse(
   const prompt = {
     model: PERSONA_REGISTRY[persona].providerId === 'gemini'
       ? 'openai/gpt-oss-120b'
-      : 'gemini-2.5-flash',
+      : 'gemini-3.1-flash-lite',
     messages: [
       {
         role: 'system' as const,

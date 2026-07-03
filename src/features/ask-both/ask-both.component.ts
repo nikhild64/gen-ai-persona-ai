@@ -24,14 +24,17 @@ import { buildBlendedComposition } from '../../personas/blended.prompt';
 import { MessageBubbleComponent } from '../../shared/message-bubble/message-bubble.component';
 import { StreamingIndicatorComponent } from '../../shared/streaming-indicator/streaming-indicator.component';
 import { ModeSwitcherComponent } from '../mode-switcher/mode-switcher.component';
-import { KeyStatusBadgeComponent } from '../settings/key-status-badge.component';
-import { SettingsModalComponent } from '../settings/settings-modal.component';
 import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.component';
 import { PersonaPickerDialogComponent } from '../persona-picker/persona-picker-dialog.component';
 import { AskBothSequencerService } from './ask-both-sequencer.service';
 import { AskBothModeService } from './ask-both-mode.service';
-import { BlendedPairService } from './blended-pair.service';
 import { PersonaRoutingService } from '../../domain/key-vault/persona-routing.service';
+import { AppSettingsService } from '../../shared/app-settings/app-settings.service';
+import { BlendedPairService } from './blended-pair.service';
+import {
+  createStreamingTypewriterController,
+  type StreamingTypewriterController,
+} from '../../shared/streaming-typewriter/streaming-typewriter';
 
 @Component({
   selector: 'app-ask-both',
@@ -41,8 +44,6 @@ import { PersonaRoutingService } from '../../domain/key-vault/persona-routing.se
     MessageBubbleComponent,
     StreamingIndicatorComponent,
     ModeSwitcherComponent,
-    KeyStatusBadgeComponent,
-    SettingsModalComponent,
     SettingsMenuEntryComponent,
     PersonaPickerDialogComponent,
   ],
@@ -55,16 +56,17 @@ export class AskBothComponent implements OnDestroy {
   readonly modeService = inject(AskBothModeService);
   readonly blendedPair = inject(BlendedPairService);
   private readonly personaRouting = inject(PersonaRoutingService);
+  private readonly appSettings = inject(AppSettingsService);
   private readonly storage = inject(STORAGE_PORT);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   private readonly renderer = inject(Renderer2);
   private readonly document = inject(DOCUMENT);
+  private readonly streamDisplay: StreamingTypewriterController =
+    createStreamingTypewriterController(this.destroyRef);
 
   readonly draft = signal('');
   readonly messages = signal<Message[]>([]);
-  readonly settingsOpen = signal(false);
-  readonly settingsAutoOpen = signal(false);
   readonly pickerOpen = signal(false);
   private queuedText: string | null = null;
   readonly bridgeMessage = this.sequencer.bridgeAnnouncement;
@@ -87,24 +89,84 @@ export class AskBothComponent implements OnDestroy {
     ).attributionLabel,
   );
 
+  readonly streamingBubble = computed<Message | null>(() => {
+    const text = this.streamDisplay.displayed();
+    const target = this.sequencer.currentText();
+    const streaming = this.sequencer.inFlight();
+    const catchingUp =
+      target.length > 0 && text.length > 0 && text.length < target.length;
+
+    if (!streaming && !catchingUp) return null;
+    if (!text) return null;
+
+    const persona = this.sequencer.activePersona();
+    if (persona) {
+      return {
+        id: 'streaming',
+        role: 'assistant',
+        persona,
+        content: text,
+        timestamp: Date.now(),
+        status: 'streaming',
+      };
+    }
+
+    return {
+      id: 'streaming',
+      role: 'assistant',
+      content: text,
+      timestamp: Date.now(),
+      status: 'streaming',
+      attributionLabel: this.pairAttribution(),
+    };
+  });
+
+  readonly showStreamingIndicator = computed(
+    () => this.sequencer.inFlight() && !this.streamDisplay.displayed(),
+  );
+
   constructor() {
+    this.renderer.addClass(this.document.body, 'conversation-view');
     this.renderer.setAttribute(this.document.body, 'data-mode', 'ask-both');
     void this.loadThread();
 
+    this.streamDisplay.bind({
+      target: () => this.sequencer.currentText(),
+      streaming: () => this.sequencer.inFlight(),
+    });
+
     this.sequencer.threadUpdated$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => void this.reloadThread());
+      .subscribe(() => {
+        if (!this.sequencer.inFlight()) return;
+        void this.reloadThread();
+      });
 
     this.sequencer.keyMissing$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        this.settingsAutoOpen.set(true);
-        this.settingsOpen.set(true);
+        this.appSettings.openSettings({ auto: true });
+      });
+
+    this.appSettings.saved$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(({ wasAuto }) => {
+        if (wasAuto && this.queuedText) {
+          const text = this.queuedText;
+          this.queuedText = null;
+          this.dispatchSend(text);
+        }
+      });
+
+    this.appSettings.dismissed$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.queuedText = null;
       });
 
     effect(() => {
       this.messages();
-      this.sequencer.currentStreaming();
+      this.streamDisplay.displayed();
       this.sequencer.inFlight();
       requestAnimationFrame(() => {
         const el = this.messageListEl?.nativeElement;
@@ -114,6 +176,7 @@ export class AskBothComponent implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.renderer.removeClass(this.document.body, 'conversation-view');
     this.renderer.removeAttribute(this.document.body, 'data-mode');
   }
 
@@ -146,8 +209,7 @@ export class AskBothComponent implements OnDestroy {
 
     if (!this.personaRouting.hasAnyProviderKey()) {
       this.queuedText = text;
-      this.settingsAutoOpen.set(true);
-      this.settingsOpen.set(true);
+      this.appSettings.openSettings({ auto: true });
       return;
     }
 
@@ -158,21 +220,6 @@ export class AskBothComponent implements OnDestroy {
     if (this.sequencer.inFlight()) return;
     this.draft.set(question);
     this.onSend();
-  }
-
-  onSettingsSaved(): void {
-    const wasAuto = this.settingsAutoOpen();
-    this.settingsAutoOpen.set(false);
-    if (wasAuto && this.queuedText) {
-      const text = this.queuedText;
-      this.queuedText = null;
-      this.dispatchSend(text);
-    }
-  }
-
-  onSettingsDismissed(): void {
-    this.settingsAutoOpen.set(false);
-    this.queuedText = null;
   }
 
   private dispatchSend(text: string): void {
@@ -186,16 +233,18 @@ export class AskBothComponent implements OnDestroy {
       },
     ]);
     this.draft.set('');
-    this.sequencer
+    void this.sequencer
       .askBoth(text)
+      .then(() => this.streamDisplay.drain())
       .then(() => void this.reloadThread())
       .catch(() => void this.reloadThread());
   }
 
   onKeepGoing(): void {
     if (this.sequencer.inFlight()) return;
-    this.sequencer
+    void this.sequencer
       .keepGoing()
+      .then(() => this.streamDisplay.drain())
       .then(() => void this.reloadThread())
       .catch(() => void this.reloadThread());
   }
@@ -209,10 +258,6 @@ export class AskBothComponent implements OnDestroy {
 
   onModeSwitched(): void {
     /* mode-switcher performs the navigation itself. */
-  }
-
-  openSettings(): void {
-    this.settingsOpen.set(true);
   }
 
   private async loadThread(): Promise<void> {

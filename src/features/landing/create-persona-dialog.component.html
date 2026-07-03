@@ -1,0 +1,76 @@
+<p-dialog
+  [(visible)]="open"
+  [modal]="true"
+  [closable]="!generating()"
+  [dismissableMask]="false"
+  [style]="{ width: '520px', 'max-height': '90vh' }"
+  [contentStyle]="{ 'max-height': '65vh', 'overflow-y': 'auto' }"
+  (onHide)="onHide()"
+>
+  <ng-template pTemplate="header">
+    <div class="modal-header">
+      <span class="experimental-badge">{{ title }}</span>
+      <p class="subtitle">{{ subtitle }}</p>
+    </div>
+  </ng-template>
+
+  <div class="form">
+    @if (needsKey()) {
+    <div class="key-banner" role="alert">
+      <p>{{ noKeyMessage }}</p>
+      <button type="button" class="key-banner-btn" (click)="openSettings()">
+        {{ addKeyLabel }}
+      </button>
+    </div>
+    }
+
+    <label class="field">
+      <span class="lbl">{{ nameLabel }}</span>
+      <input
+        pInputText
+        type="text"
+        [placeholder]="'e.g. Ada Lovelace'"
+        [ngModel]="name()"
+        [ngModelOptions]="{ standalone: true }"
+        [disabled]="generating()"
+        (ngModelChange)="name.set($event)"
+      />
+    </label>
+
+    <label class="field">
+      <span class="lbl">{{ detailsLabel }}</span>
+      <textarea
+        pTextarea
+        rows="4"
+        [placeholder]="'Optional — era, field, notable works, speaking style…'"
+        [ngModel]="details()"
+        [ngModelOptions]="{ standalone: true }"
+        [disabled]="generating()"
+        (ngModelChange)="details.set($event)"
+      ></textarea>
+    </label>
+
+    @if (error() && !needsKey()) {
+    <p class="error" role="alert">{{ error() }}</p>
+    }
+
+    <div class="action-row">
+      <p-button
+        [label]="cancelLabel"
+        severity="secondary"
+        [disabled]="generating()"
+        (onClick)="onCancel()"
+      />
+      @if (needsKey()) {
+      <p-button [label]="addKeyLabel" (onClick)="openSettings()" />
+      } @else {
+      <p-button
+        [label]="createLabel"
+        [loading]="generating()"
+        [disabled]="!canGenerate()"
+        (onClick)="onGenerate()"
+      />
+      }
+    </div>
+  </div>
+</p-dialog>

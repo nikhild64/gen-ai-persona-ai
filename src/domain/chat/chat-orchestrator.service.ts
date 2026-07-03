@@ -18,12 +18,8 @@ import type {
 import type { StorageKey } from '../../config/storage-keys';
 import { CHAT_STORAGE_KEYS } from '../../config/storage-keys';
 import { PERSONA_REGISTRY } from '../../personas/persona.registry';
-import {
-  HITESH_REGEX,
-  JOBS_REGEX,
-  MUSK_REGEX,
-  PIYUSH_REGEX,
-} from '../../config/regex-patterns';
+import type { PersonaRegistryEntry } from '../../personas/persona.registry';
+import { MUSK_REGEX, JOBS_REGEX } from '../../config/regex-patterns';
 import {
   STREAM_STALL_TIMEOUT_MS,
   MAX_TURNS_PER_THREAD,
@@ -48,11 +44,15 @@ import {
   MODERATION_PORT,
   ANALYTICS_PORT,
 } from './di-tokens';
+import type { ChatPersonaRef } from '../types/custom-persona';
+import { builtinRef } from '../types/custom-persona';
+import { PersonaResolverService } from '../personas/persona-resolver.service';
+import { CustomPersonaThreadService } from '../custom-persona/custom-persona-thread.service';
+import {
+  appendStreamToken,
+  yieldToUi,
+} from '../../shared/streaming-typewriter/stream-token';
 
-/**
- * Injection token letting tests swap the provider-registry lookup for a mock.
- * Default provider is `getProviderAdapter` from `provider.registry.ts`.
- */
 export const ADAPTER_FACTORY = new InjectionToken<
   (providerId: ProviderId) => ProviderPortAdapterClass
 >('AdapterFactory', {
@@ -60,30 +60,18 @@ export const ADAPTER_FACTORY = new InjectionToken<
   factory: () => getProviderAdapter,
 });
 
-/**
- * AD-3/AD-4/AD-7/AD-8/AD-10/AD-12/AD-14/AD-15/AD-19 hub. The only class that
- * calls `PROVIDER_REGISTRY.get(...).streamChat(...)`. Feature components inject
- * this service and call `sendMessage(persona, text)`; everything else — input
- * moderation, prompt composition, key lookup, streaming, stall detection,
- * output moderation with retry-once, message persistence, regex smoke-test,
- * analytics emission — happens here.
- */
 @Injectable({ providedIn: 'root' })
 export class ChatOrchestrator {
-  // Reactive state consumed by UI (E2-S4 chat component)
   readonly accumulatedText: WritableSignal<string> = signal('');
   readonly inFlightStream: WritableSignal<boolean> = signal(false);
   readonly streamStalled: WritableSignal<boolean> = signal(false);
   readonly activeAssistantMessageId: WritableSignal<string | null> = signal(
     null,
   );
-  /** E7-S1: true once max-turn cap fires; input disables until thread is cleared. */
   readonly capReached: WritableSignal<boolean> = signal(false);
-  /** E7-S2: seconds carried in a provider 429 Retry-After header, if any. */
   readonly retryAfterSec: WritableSignal<number | null> = signal(null);
 
-  /** E6-S3 subscribes to auto-open the settings modal when a key is missing. */
-  readonly keyMissing$: Subject<PersonaId> = new Subject<PersonaId>();
+  readonly keyMissing$: Subject<ChatPersonaRef> = new Subject<ChatPersonaRef>();
 
   private readonly storage = inject(STORAGE_PORT);
   private readonly moderation = inject(MODERATION_PORT);
@@ -94,14 +82,12 @@ export class ChatOrchestrator {
   private readonly modelSelection = inject(ModelSelectionService);
   private readonly contextManager = inject(ContextManager);
   private readonly adapterFactory = inject(ADAPTER_FACTORY);
+  private readonly resolver = inject(PersonaResolverService);
+  private readonly customThreads = inject(CustomPersonaThreadService);
 
   private currentAbort: AbortController | null = null;
   private stallTimer: ReturnType<typeof setTimeout> | null = null;
 
-  /**
-   * Read-only view of the reactive signals. Kept as `Signal<T>` (not
-   * `WritableSignal<T>`) so consumers can't mutate.
-   */
   readonly views: {
     accumulatedText: Signal<string>;
     inFlightStream: Signal<boolean>;
@@ -115,29 +101,49 @@ export class ChatOrchestrator {
   };
 
   sendMessage(persona: PersonaId, text: string): Observable<never> {
+    return this.sendMessageRef(builtinRef(persona), text);
+  }
+
+  sendMessageRef(ref: ChatPersonaRef, text: string): Observable<never> {
     return new Observable<never>((sub) => {
-      this.dispatch(persona, text).then(
+      this.dispatch(ref, text).then(
         () => sub.complete(),
         (err) => sub.error(err),
       );
-      return () => this.cancelInFlight();
+      return () => this.abortStream();
     });
   }
 
+  /** Abort the provider stream and clear in-flight UI state. */
   cancelInFlight(): void {
+    this.abortStream();
+    this.clearStreamPresentation();
+  }
+
+  private abortStream(): void {
     this.currentAbort?.abort();
     this.currentAbort = null;
     this.clearStallTimer();
   }
 
-  private async dispatch(persona: PersonaId, text: string): Promise<void> {
-    // Step 1 — input moderation
+  private clearStreamPresentation(): void {
+    this.inFlightStream.set(false);
+    this.streamStalled.set(false);
+    this.accumulatedText.set('');
+    this.activeAssistantMessageId.set(null);
+  }
+
+  private async dispatch(ref: ChatPersonaRef, text: string): Promise<void> {
+    const entry = this.resolver.resolve(ref);
+    if (!entry) return;
+
     const inputVerdict = await this.moderation.check(text, 'input');
     if (!inputVerdict.allowed) {
       await this.renderRefusal(
-        persona,
+        ref,
+        entry,
         this.pickRefusalTemplate(
-          persona,
+          entry,
           inputVerdict.category,
           inputVerdict.suggested_refusal,
         ),
@@ -149,37 +155,34 @@ export class ChatOrchestrator {
       return;
     }
 
-    // Step 2 — append user message
-    const thread = await this.getOrCreateThread(persona);
+    const thread = await this.getOrCreateThread(ref);
 
-    // E7-S1: max-turn cap check before touching the provider.
     if (
       assistantMessageCount(thread) + expectedAssistantMessagesForMode('solo') >
       MAX_TURNS_PER_THREAD
     ) {
-      const capContent = PERSONA_REGISTRY[persona].prompt.capRefusalTemplate;
+      const capContent = entry.prompt.capRefusalTemplate;
       const capMsg: Message = {
         id: this.uuid(),
         role: 'assistant',
-        persona,
         content: capContent,
+        attributionLabel: entry.fullDisplayName,
         timestamp: Date.now(),
         status: 'complete',
+        ...(ref.kind === 'builtin' ? { persona: ref.id } : {}),
       };
       thread.messages.push(capMsg);
       thread.updatedAt = capMsg.timestamp;
-      await this.storage.set(this.threadKeyFor(persona), thread);
+      await this.persistThread(ref, thread);
       this.capReached.set(true);
       this.accumulatedText.set(capContent);
       return;
     }
 
-    // Key lookup before persisting the user turn — avoids orphan messages
-    // when no provider key is configured (UI opens settings instead).
-    const providerId = this.personaRouting.getProviderFor(persona);
+    const providerId = this.providerFor(ref, entry);
     const key = this.keyVault.getKeyForProvider(providerId);
     if (!key) {
-      this.keyMissing$.next(persona);
+      this.keyMissing$.next(ref);
       return;
     }
 
@@ -191,22 +194,18 @@ export class ChatOrchestrator {
     };
     thread.messages.push(userMsg);
     thread.updatedAt = userMsg.timestamp;
-    await this.storage.set(this.threadKeyFor(persona), thread);
+    await this.persistThread(ref, thread);
 
-    // Step 3 — compose prompt
-    const composed = this.assembler.compose(persona, thread, 'solo');
+    const composed =
+      ref.kind === 'builtin'
+        ? this.assembler.compose(ref.id, thread, 'solo')
+        : this.assembler.composeFromEntry(entry, thread);
 
-    // Persona params carry a persona-tied default model that assumes the
-    // persona's default provider. Override with the user-selected model for
-    // this provider (falls back to PROVIDER_DEFAULT_MODELS when the user
-    // hasn't picked one) so cross-provider routing + model selection both
-    // work.
     const prompt = {
       ...composed,
       model: this.modelSelection.getModelFor(providerId),
     };
 
-    // Step 5-7 — abort controller + stream
     const AdapterClass = this.adapterFactory(providerId);
     const adapter: ProviderPort = new (
       AdapterClass as unknown as new () => ProviderPort
@@ -219,7 +218,7 @@ export class ChatOrchestrator {
     this.accumulatedText.set('');
     this.inFlightStream.set(true);
     this.streamStalled.set(false);
-    this.armStallTimer(persona);
+    this.armStallTimer(ref);
 
     let accumulated = '';
     let doneChunk: ChatChunk | null = null;
@@ -231,10 +230,13 @@ export class ChatOrchestrator {
         key,
         controller.signal,
       )) {
-        this.resetStallTimer(persona);
+        this.resetStallTimer(ref);
         if (chunk.type === 'delta' && chunk.text) {
-          accumulated += chunk.text;
-          this.accumulatedText.set(accumulated);
+          if (!controller.signal.aborted) {
+            accumulated = appendStreamToken(accumulated, chunk.text);
+            this.accumulatedText.set(accumulated);
+          }
+          await yieldToUi();
         } else if (chunk.type === 'done') {
           doneChunk = chunk;
           break;
@@ -246,11 +248,26 @@ export class ChatOrchestrator {
     } finally {
       this.clearStallTimer();
       this.inFlightStream.set(false);
+      if (controller.signal.aborted) {
+        this.clearStreamPresentation();
+      }
+    }
+
+    if (
+      !errorChunk &&
+      !doneChunk &&
+      controller.signal.aborted
+    ) {
+      errorChunk = {
+        type: 'error',
+        meta: { error: 'aborted', retryable: false },
+      };
     }
 
     if (errorChunk) {
       await this.handleAdapterError(
-        persona,
+        ref,
+        entry,
         errorChunk,
         assistantMsgId,
         accumulated,
@@ -260,61 +277,63 @@ export class ChatOrchestrator {
     }
 
     if (doneChunk) {
-      // Step 8 — output moderation with retry-once
       const finalText = await this.checkOutputWithRetry(
-        persona,
+        ref,
+        entry,
         accumulated,
-        assistantMsgId,
       );
-      // Step 9 — persist assistant message
       const assistantMsg: Message = {
         id: assistantMsgId,
         role: 'assistant',
-        persona,
         content: finalText,
+        attributionLabel: entry.fullDisplayName,
         timestamp: Date.now(),
         status: 'complete',
+        ...(ref.kind === 'builtin' ? { persona: ref.id } : {}),
       };
       thread.messages.push(assistantMsg);
       thread.updatedAt = assistantMsg.timestamp;
-      await this.storage.set(this.threadKeyFor(persona), thread);
+      await this.persistThread(ref, thread);
 
-      // Step 10 — regex smoke-test (AD-19 observation-only)
-      const regex = persona === 'musk' ? MUSK_REGEX : JOBS_REGEX;
-      if (!regex.test(finalText)) {
-        this.analytics.emit({
-          name: 'persona_regex_miss',
-          payload: { persona },
-        });
+      if (ref.kind === 'builtin') {
+        const regex = ref.id === 'musk' ? MUSK_REGEX : JOBS_REGEX;
+        if (!regex.test(finalText)) {
+          this.analytics.emit({
+            name: 'persona_regex_miss',
+            payload: { persona: ref.id },
+          });
+        }
       }
 
       this.analytics.emit({
         name: 'message_sent',
-        payload: { persona, mode: 'solo', charCount: text.length },
+        payload: {
+          persona: ref.kind === 'builtin' ? ref.id : 'custom',
+          mode: 'solo',
+          charCount: text.length,
+        },
       });
 
-      // Fire-and-forget rolling-summary trigger per AD-9. Main chat is not
-      // blocked; any failure surfaces only as a `summary_failed` analytics
-      // event.
-      void this.contextManager.onTurnComplete(this.threadKeyFor(persona));
+      void this.contextManager.onTurnComplete(
+        this.summaryStorageKey(ref),
+        ref.kind === 'custom' ? ref.id : undefined,
+      );
     }
   }
 
   private async checkOutputWithRetry(
-    persona: PersonaId,
+    ref: ChatPersonaRef,
+    entry: PersonaRegistryEntry,
     accumulated: string,
-    _assistantMsgId: string,
   ): Promise<string> {
     const first = await this.moderation.check(accumulated, 'output');
     if (first.allowed) return accumulated;
-    // Retry-once: E8-S2 will re-invoke the adapter; for the orchestrator
-    // shape (this story) we treat a still-blocked verdict as final refusal.
     const second = await this.moderation.check(accumulated, 'output');
     if (second.allowed) return accumulated;
 
     const template =
-      this.pickRefusalTemplate(persona, first.category, first.suggested_refusal) ||
-      PERSONA_REGISTRY[persona].prompt.selfIdentificationResponse;
+      this.pickRefusalTemplate(entry, first.category, first.suggested_refusal) ||
+      entry.prompt.selfIdentificationResponse;
     this.analytics.emit({
       name: 'moderation_blocked',
       payload: { direction: 'output', category: first.category },
@@ -323,20 +342,20 @@ export class ChatOrchestrator {
     return template;
   }
 
-  private armStallTimer(persona: PersonaId): void {
+  private armStallTimer(_ref: ChatPersonaRef): void {
     this.clearStallTimer();
     this.stallTimer = setTimeout(() => {
       this.streamStalled.set(true);
       this.analytics.emit({
         name: 'stream_stall_detected',
-        payload: { persona, elapsedMs: STREAM_STALL_TIMEOUT_MS },
+        payload: { persona: 'custom', elapsedMs: STREAM_STALL_TIMEOUT_MS },
       });
     }, STREAM_STALL_TIMEOUT_MS);
   }
 
-  private resetStallTimer(persona: PersonaId): void {
+  private resetStallTimer(ref: ChatPersonaRef): void {
     if (this.streamStalled()) this.streamStalled.set(false);
-    this.armStallTimer(persona);
+    this.armStallTimer(ref);
   }
 
   private clearStallTimer(): void {
@@ -347,65 +366,59 @@ export class ChatOrchestrator {
   }
 
   private async handleAdapterError(
-    persona: PersonaId,
+    ref: ChatPersonaRef,
+    entry: PersonaRegistryEntry,
     chunk: ChatChunk,
     msgId: string,
     partial: string,
     thread: Thread,
   ): Promise<void> {
     const kind: ChatChunkError = chunk.meta?.error ?? 'unknown';
+    const msgBase = {
+      id: msgId,
+      role: 'assistant' as const,
+      attributionLabel: entry.fullDisplayName,
+      timestamp: Date.now(),
+      ...(ref.kind === 'builtin' ? { persona: ref.id } : {}),
+    };
+
     if (kind === 'aborted') {
-      // AD-14 — mark message cancelled with partial content preserved
       const msg: Message = {
-        id: msgId,
-        role: 'assistant',
-        persona,
+        ...msgBase,
         content: partial,
-        timestamp: Date.now(),
         status: 'cancelled',
       };
       thread.messages.push(msg);
       thread.updatedAt = msg.timestamp;
-      await this.storage.set(this.threadKeyFor(persona), thread);
+      await this.persistThread(ref, thread);
       return;
     }
 
     if (kind === 'quota_exhausted') {
-      // E7-S2 — In-Character 429 surfacing.
-      const template = PERSONA_REGISTRY[persona].prompt.quotaExhaustedTemplate;
+      const template = entry.prompt.quotaExhaustedTemplate;
       const msg: Message = {
-        id: msgId,
-        role: 'assistant',
-        persona,
+        ...msgBase,
         content: template || partial,
-        timestamp: Date.now(),
         status: 'complete',
       };
       thread.messages.push(msg);
       thread.updatedAt = msg.timestamp;
-      await this.storage.set(this.threadKeyFor(persona), thread);
+      await this.persistThread(ref, thread);
       this.accumulatedText.set(msg.content);
-      // Always publish a retry-after so the UI banner is visible; providers
-      // often omit the Retry-After header on 429 for free tiers. 30s is a
-      // reasonable default hold.
       this.retryAfterSec.set(chunk.meta?.retryAfterSec ?? 30);
       this.analytics.emit({
         name: 'provider_429_surfaced',
         payload: {
-          provider: this.personaRouting.getProviderFor(persona),
+          provider: this.providerFor(ref, entry),
           retryAfterSec: chunk.meta?.retryAfterSec,
         },
       });
       return;
     }
 
-    // Other error kinds — persist an error-status message so the UI can render a red bubble.
     const msg: Message = {
-      id: msgId,
-      role: 'assistant',
-      persona,
+      ...msgBase,
       content: partial,
-      timestamp: Date.now(),
       status: 'error',
       error: {
         kind,
@@ -416,15 +429,15 @@ export class ChatOrchestrator {
     };
     thread.messages.push(msg);
     thread.updatedAt = msg.timestamp;
-    await this.storage.set(this.threadKeyFor(persona), thread);
+    await this.persistThread(ref, thread);
   }
 
   private pickRefusalTemplate(
-    persona: PersonaId,
+    entry: PersonaRegistryEntry,
     category?: string,
     suggested?: string,
   ): string {
-    const p = PERSONA_REGISTRY[persona].prompt;
+    const p = entry.prompt;
     switch (category) {
       case 'jailbreak':
         return p.promptInjectionTemplate || suggested || '';
@@ -443,34 +456,71 @@ export class ChatOrchestrator {
   }
 
   private async renderRefusal(
-    persona: PersonaId,
+    ref: ChatPersonaRef,
+    entry: PersonaRegistryEntry,
     template: string,
   ): Promise<void> {
-    const thread = await this.getOrCreateThread(persona);
+    const thread = await this.getOrCreateThread(ref);
     const msg: Message = {
       id: this.uuid(),
       role: 'assistant',
-      persona,
       content: template,
+      attributionLabel: entry.fullDisplayName,
       timestamp: Date.now(),
       status: 'complete',
+      ...(ref.kind === 'builtin' ? { persona: ref.id } : {}),
     };
     thread.messages.push(msg);
     thread.updatedAt = msg.timestamp;
-    await this.storage.set(this.threadKeyFor(persona), thread);
+    await this.persistThread(ref, thread);
     this.accumulatedText.set(template);
   }
 
-  private threadKeyFor(persona: PersonaId): StorageKey {
-    return CHAT_STORAGE_KEYS[persona];
+  private providerFor(
+    ref: ChatPersonaRef,
+    entry: PersonaRegistryEntry,
+  ): ProviderId {
+    if (ref.kind === 'builtin') {
+      return this.personaRouting.getProviderFor(ref.id);
+    }
+    return this.personaRouting.getProviderForCustom(entry.providerId);
   }
 
-  private async getOrCreateThread(persona: PersonaId): Promise<Thread> {
-    const existing = await this.storage.get<Thread>(this.threadKeyFor(persona));
+  private summaryStorageKey(ref: ChatPersonaRef): StorageKey {
+    if (ref.kind === 'builtin') {
+      return CHAT_STORAGE_KEYS[ref.id];
+    }
+    return 'chat:custom-personas:v1';
+  }
+
+  private async persistThread(ref: ChatPersonaRef, thread: Thread): Promise<void> {
+    if (ref.kind === 'builtin') {
+      await this.storage.set(CHAT_STORAGE_KEYS[ref.id], thread);
+      return;
+    }
+    await this.customThreads.saveThread(ref.id, thread);
+  }
+
+  async getOrCreateThread(ref: ChatPersonaRef): Promise<Thread> {
+    if (ref.kind === 'builtin') {
+      const existing = await this.storage.get<Thread>(CHAT_STORAGE_KEYS[ref.id]);
+      if (existing) return existing;
+      return {
+        id: this.uuid(),
+        scope: ref.id,
+        messages: [],
+        rollingSummary: null,
+        turnsSinceLastSummary: 0,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      };
+    }
+
+    const existing = await this.customThreads.getThread(ref.id);
     if (existing) return existing;
     return {
       id: this.uuid(),
-      scope: persona,
+      scope: ref.id,
       messages: [],
       rollingSummary: null,
       turnsSinceLastSummary: 0,

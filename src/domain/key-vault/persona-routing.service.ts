@@ -50,9 +50,20 @@ export class PersonaRoutingService {
   /** Resolved provider for outbound calls (honours single-key fallback). */
   getProviderFor(persona: PersonaId): ProviderId {
     const configured = this._routing()[persona];
-    const sole = this.soleAvailableProvider();
+    const sole = this.soleAvailableProviderInternal();
     if (sole) return sole;
     return configured;
+  }
+
+  /** Provider for a custom persona record (stored providerId + sole-key fallback). */
+  getProviderForCustom(storedProvider: ProviderId): ProviderId {
+    const sole = this.soleAvailableProviderInternal();
+    if (sole) return sole;
+    return storedProvider;
+  }
+
+  hasKeyForProvider(providerId: ProviderId): boolean {
+    return this.keyVault.getKeyForProvider(providerId) !== null;
   }
 
   /** True when the effective provider for this persona has a saved key. */
@@ -78,7 +89,11 @@ export class PersonaRoutingService {
     this.persist();
   }
 
-  private soleAvailableProvider(): ProviderId | null {
+  soleAvailableProvider(): ProviderId | null {
+    return this.soleAvailableProviderInternal();
+  }
+
+  private soleAvailableProviderInternal(): ProviderId | null {
     const hasGemini = this.keyVault.getKeyForProvider('gemini') !== null;
     const hasGroq = this.keyVault.getKeyForProvider('groq') !== null;
     if (hasGemini && !hasGroq) return 'gemini';

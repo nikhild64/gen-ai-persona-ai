@@ -20,6 +20,9 @@ import { PromptAssembler } from '../prompts/prompt-assembler.service';
 import { KeyVaultService } from '../key-vault/key-vault.service';
 import { assistantMessageCount } from './turn-counting';
 import { estimateTokens } from './token-estimator';
+import type { CustomPersonaId } from '../types/custom-persona';
+import { CustomPersonaThreadService } from '../custom-persona/custom-persona-thread.service';
+import { isCustomPersonaId } from '../types/custom-persona';
 
 /**
  * AD-9 rolling summary generator with the hybrid (turn-count + token-budget)
@@ -36,11 +39,17 @@ export class ContextManager {
   private readonly keyVault = inject(KeyVaultService);
   private readonly personaRouting = inject(PersonaRoutingService);
   private readonly modelSelection = inject(ModelSelectionService);
+  private readonly customThreads = inject(CustomPersonaThreadService);
 
-  async onTurnComplete(threadKey: StorageKey): Promise<void> {
+  async onTurnComplete(
+    threadKey: StorageKey,
+    customPersonaId?: CustomPersonaId,
+  ): Promise<void> {
     if (!FEATURE_ROLLING_SUMMARY) return;
 
-    const thread = await this.storage.get<Thread>(threadKey);
+    const thread = customPersonaId
+      ? await this.customThreads.getThread(customPersonaId)
+      : await this.storage.get<Thread>(threadKey);
     if (!thread) return;
 
     const turnCount = assistantMessageCount(thread);
@@ -56,16 +65,22 @@ export class ContextManager {
     if (!primary && !safetyNet) {
       thread.turnsSinceLastSummary += 1;
       thread.updatedAt = Date.now();
-      await this.storage.set(threadKey, thread);
+      await this.persistThread(threadKey, thread, customPersonaId);
       return;
     }
 
     const persona: PersonaId =
-      thread.scope === 'ask-both' ? 'musk' : thread.scope;
+      thread.scope === 'ask-both'
+        ? 'musk'
+        : isCustomPersonaId(thread.scope)
+          ? 'einstein'
+          : thread.scope;
     const providerId: ProviderId =
       thread.scope === 'ask-both'
         ? ASK_BOTH_SUMMARY_PROVIDER_ID
-        : this.personaRouting.getProviderFor(persona);
+        : isCustomPersonaId(thread.scope)
+          ? this.personaRouting.getProviderForCustom('gemini')
+          : this.personaRouting.getProviderFor(persona);
     const key = this.keyVault.getKeyForProvider(providerId);
     if (!key) return;
 
@@ -115,6 +130,18 @@ export class ContextManager {
     thread.rollingSummary = summaryText.trim();
     thread.turnsSinceLastSummary = 0;
     thread.updatedAt = Date.now();
+    await this.persistThread(threadKey, thread, customPersonaId);
+  }
+
+  private async persistThread(
+    threadKey: StorageKey,
+    thread: Thread,
+    customPersonaId?: CustomPersonaId,
+  ): Promise<void> {
+    if (customPersonaId) {
+      await this.customThreads.saveThread(customPersonaId, thread);
+      return;
+    }
     await this.storage.set(threadKey, thread);
   }
 

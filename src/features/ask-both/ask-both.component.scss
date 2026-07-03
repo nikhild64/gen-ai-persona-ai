@@ -1,5 +1,9 @@
 :host {
-  display: block;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  width: 100%;
 }
 .pair-picker {
   display: flex;
@@ -90,14 +94,18 @@
 }
 .room {
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  height: calc(100vh - 3rem);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
   max-width: 960px;
   margin: 0 auto;
   padding: 0 1rem;
-  gap: 1rem;
+  gap: 0.65rem;
+  overflow: hidden;
 }
 .banner {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -121,6 +129,8 @@
 }
 .message-list {
   overflow-y: auto;
+  min-height: 0;
+  overscroll-behavior: contain;
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
@@ -189,8 +199,10 @@
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  flex-shrink: 0;
   padding: 0.75rem 0 1rem;
   border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: rgba(250, 250, 249, 0.75);
 }
 .input-area textarea {
   width: 100%;
@@ -198,7 +210,7 @@
   border: 1px solid rgba(0, 0, 0, 0.12);
   border-radius: 8px;
   font: inherit;
-  resize: vertical;
+  resize: none;
   min-height: 60px;
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(4px);

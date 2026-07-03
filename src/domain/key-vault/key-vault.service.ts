@@ -26,12 +26,18 @@ export class KeyVaultService {
   private readonly _current: WritableSignal<ProviderId | null> =
     signal<ProviderId | null>(null);
 
+  /** Bumped on every save/clear so consumers can react to key changes. */
+  private readonly _revision = signal(0);
+
   readonly currentProvider: Signal<ProviderId | null> = this._current.asReadonly();
-  readonly hasKey = computed(
-    () =>
+  readonly revision: Signal<number> = this._revision.asReadonly();
+  readonly hasKey = computed(() => {
+    this._revision();
+    return (
       this.getKeyForProvider('gemini') !== null ||
-      this.getKeyForProvider('groq') !== null,
-  );
+      this.getKeyForProvider('groq') !== null
+    );
+  });
 
   constructor() {
     for (const p of ['gemini', 'groq'] as ProviderId[]) {
@@ -49,6 +55,7 @@ export class KeyVaultService {
   setKey(provider: ProviderId, key: string): void {
     localStoreSet(KeyVaultService.storageKey(provider), key);
     this._current.set(provider);
+    this._revision.update((n) => n + 1);
   }
 
   saveKeyForProvider(provider: ProviderId, key: string): void {
@@ -64,6 +71,7 @@ export class KeyVaultService {
         ) ?? null;
       this._current.set(fallback);
     }
+    this._revision.update((n) => n + 1);
   }
 
   clearKeyForProvider(provider: ProviderId): void {

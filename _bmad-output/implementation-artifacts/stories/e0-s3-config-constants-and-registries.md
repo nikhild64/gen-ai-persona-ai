@@ -187,7 +187,7 @@ export type PersonaModelParams = ChatRequestParams & { modelName: string };
 
 export const PERSONA_MODEL_PARAMS: Record<PersonaId, PersonaModelParams> = {
   hitesh: {
-    modelName: 'gemini-2.5-flash',
+    modelName: 'gemini-3.1-flash-lite',
     temperature: 0.75,
     topP: 0.95,
     maxOutputTokens: 1200,

@@ -41,7 +41,7 @@ So that **every outbound LLM call — Solo chat, Ask-Both (later), Rolling Summa
 
 **Given** the assembler is called,
 **When** the developer inspects the returned `ChatRequest`,
-**Then** `model: 'gemini-2.5-flash'` (for Hitesh) or `model: 'openai/gpt-oss-120b'` (for Piyush) is set from `PERSONA_REGISTRY[persona].providerId` + `PERSONA_MODEL_PARAMS[persona].modelName`, and all model parameters (temperature, top_p, freq/presence penalties, max_output_tokens) come from `PERSONA_MODEL_PARAMS[persona]` per AD-3 + Addendum §B.4.
+**Then** `model: 'gemini-3.1-flash-lite'` (for Hitesh) or `model: 'openai/gpt-oss-120b'` (for Piyush) is set from `PERSONA_REGISTRY[persona].providerId` + `PERSONA_MODEL_PARAMS[persona].modelName`, and all model parameters (temperature, top_p, freq/presence penalties, max_output_tokens) come from `PERSONA_MODEL_PARAMS[persona]` per AD-3 + Addendum §B.4.
 
 **Given** the assembler needs `fewShots` content to compose Block 4 of the 9-block prompt,
 **When** the developer authors `src/personas/hitesh.prompt.ts` and `src/personas/piyush.prompt.ts`,
@@ -327,7 +327,7 @@ src/personas/
   - Compose with 20-message thread + `rollingSummary = "..."` → block 6 has the summary string verbatim; block 7 has last 8 messages.
   - Compose with `mode: 'summarize'` throws (not-yet-implemented) — later stories add cases.
   - Compose with fake mode `('foo' as PromptMode)` triggers `assertNever` runtime throw.
-  - `OutboundPrompt.model === 'gemini-2.5-flash'` for Hitesh; `'openai/gpt-oss-120b'` for Piyush.
+  - `OutboundPrompt.model === 'gemini-3.1-flash-lite'` for Hitesh; `'openai/gpt-oss-120b'` for Piyush.
   - `OutboundPrompt.temperature === 0.75` (Hitesh); `0.55` (Piyush) per Addendum §B.4.
 - `src/personas/hitesh.prompt.spec.ts` + `src/personas/piyush.prompt.spec.ts`:
   - `PERSONA_REGISTRY.hitesh.prompt.fewShots.length === 3`.
@@ -358,7 +358,7 @@ E5-S1 replaces without changing the signature.
 - `PERSONA_REGISTRY[persona].prompt.identityBlock` + `voiceRules` + `selfVerificationChecklist` are populated verbatim from Addendum §C.2/§C.3.
 - `PERSONA_REGISTRY[persona].prompt.fewShots` is `[]` empty placeholder — THIS STORY populates it.
 - `PERSONA_REGISTRY[persona].prompt.refusalRules` is `''` empty — assembler concatenates the empty string (E8-S1 fills in later).
-- `PERSONA_MODEL_PARAMS[persona].modelName` = `'gemini-2.5-flash'` or `'openai/gpt-oss-120b'`.
+- `PERSONA_MODEL_PARAMS[persona].modelName` = `'gemini-3.1-flash-lite'` or `'openai/gpt-oss-120b'`.
 - `VERBATIM_TAIL_LENGTH = 8` in `src/config/context-config.ts`.
 
 **E0-S4 (Lint):**

@@ -192,7 +192,7 @@ function buildJudgePrompt(item: GoldenPrompt, responseText: string) {
   const userContent =
     `Prompt: ${item.text}\n\n--- Response to grade ---\n${responseText}\n--- End response ---`;
   return {
-    model: item.persona === 'hitesh' ? 'openai/gpt-oss-120b' : 'gemini-2.5-flash',
+    model: item.persona === 'hitesh' ? 'openai/gpt-oss-120b' : 'gemini-3.1-flash-lite',
     messages: [
       { role: 'system' as const, content: systemContent },
       { role: 'user' as const, content: userContent },
