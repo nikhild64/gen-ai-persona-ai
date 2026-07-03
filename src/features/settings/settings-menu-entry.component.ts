@@ -34,7 +34,7 @@ export class SettingsMenuEntryComponent {
   readonly clearAriaLabel = clearSessionButtonLabel;
 
   async onConfirmClear(): Promise<void> {
-    await this.startNewSession.clearAndReturnHome();
+    await this.startNewSession.clearInPlace();
     this.justCleared.set(true);
     setTimeout(() => this.justCleared.set(false), 2000);
   }

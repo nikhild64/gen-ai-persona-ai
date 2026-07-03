@@ -1,0 +1,42 @@
+:host {
+  display: block;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.app-header {
+  min-height: 3rem;
+  background: rgba(255, 252, 247, 0.82);
+  backdrop-filter: blur(10px) saturate(1.1);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.7) inset;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 1.25rem;
+}
+
+.brand {
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #1c1917;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.brand:hover {
+  color: #78350f;
+}
+
+.brand:focus-visible {
+  outline: 2px solid var(--persona-accent, #292524);
+  outline-offset: 3px;
+  border-radius: 4px;
+}

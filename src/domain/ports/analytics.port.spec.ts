@@ -43,6 +43,16 @@ const EVERY_EVENT: AnalyticsEvent[] = [
     name: 'provider_429_surfaced',
     payload: { provider: 'groq', retryAfterSec: 30 },
   },
+  {
+    name: 'provider_rate_limit_fallback',
+    payload: {
+      persona: 'hitesh',
+      fromProvider: 'gemini',
+      fromModel: 'gemini-3.1-flash-lite',
+      toProvider: 'groq',
+      toModel: 'openai/gpt-oss-120b',
+    },
+  },
   { name: 'parallel_fallback_triggered', payload: {} },
   {
     name: 'stream_stall_detected',
@@ -80,6 +90,7 @@ describe('AnalyticsPort', () => {
         case 'persona_regex_miss':
         case 'summary_failed':
         case 'provider_429_surfaced':
+        case 'provider_rate_limit_fallback':
         case 'parallel_fallback_triggered':
         case 'stream_stall_detected':
         case 'spike_zero_gemini_cors_result':

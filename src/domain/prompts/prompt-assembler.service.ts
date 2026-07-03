@@ -4,6 +4,7 @@ import type { PersonaId } from '../types/persona';
 import { assertNever } from '../types/persona';
 import type {
   ChatRequest,
+  Message,
   PromptMessage,
   Thread,
 } from '../types/message';
@@ -30,7 +31,7 @@ import { assistantMessageCount } from '../context/turn-counting';
 const RESPONSE_LENGTH_DIRECTIVE = [
   '# ---- RESPONSE LENGTH ----',
   'Keep every answer short and chat-friendly:',
-  '  • Aim for 3-6 short sentences total, or a compact bullet list.',
+  '  • Aim for 6-8 short sentences total, or a compact bullet list.',
   '  • One brief analogy or code snippet is fine; skip long ones.',
   '  • If the topic truly needs more depth, offer to expand instead of dumping it.',
   '  • No wall-of-text explanations. No repeating the question back verbatim.',
@@ -99,17 +100,15 @@ export class PromptAssembler {
     systemNote: string | undefined,
   ): OutboundPrompt {
     const systemContent = this.buildSystemBlock(persona, thread, null);
-    const lastMessage = thread.messages[thread.messages.length - 1];
-    const currentUserText =
-      lastMessage && lastMessage.role === 'user' ? lastMessage.content : '';
-
+    const history = this.buildNativeHistory(thread);
     const messages: PromptMessage[] = [
       { role: 'system', content: systemContent },
       ...(systemNote && systemNote.length > 0
         ? [{ role: 'system' as const, content: systemNote }]
         : []),
-      { role: 'user', content: `<user_message>${currentUserText}</user_message>` },
+      ...history,
     ];
+    const historyText = history.map((m) => m.content).join('\n');
 
     return {
       messages,
@@ -124,7 +123,7 @@ export class PromptAssembler {
         hasSummary: !!thread.rollingSummary,
         hasDriftRefresh: false,
         estimatedTokens: estimateTokens(
-          systemContent + (systemNote ?? '') + currentUserText,
+          systemContent + (systemNote ?? '') + historyText,
         ),
       },
     };
@@ -152,15 +151,16 @@ export class PromptAssembler {
   ): OutboundPrompt {
     const systemContent = this.buildBlendedSystemBlock(thread);
     const lastMessage = thread.messages[thread.messages.length - 1];
-    const currentUserText =
+    const appendUser =
       lastMessage && lastMessage.role === 'user'
-        ? lastMessage.content
+        ? undefined
         : 'Continue this Blended discussion with a second fused-voice take — offer a fresh angle or expand on a point you glossed. Keep the same warm-hook + reductive-breakdown + build-push structure.';
-    const userContent = `<user_message>${currentUserText}</user_message>`;
+    const history = this.buildNativeHistory(thread, { appendUser });
+    const historyText = history.map((m) => m.content).join('\n');
 
     const messages: PromptMessage[] = [
       { role: 'system', content: systemContent },
-      { role: 'user', content: userContent },
+      ...history,
     ];
 
     return {
@@ -175,7 +175,7 @@ export class PromptAssembler {
         mode: 'ask-both-blended',
         hasSummary: !!thread.rollingSummary,
         hasDriftRefresh: false,
-        estimatedTokens: estimateTokens(systemContent + userContent),
+        estimatedTokens: estimateTokens(systemContent + historyText),
       },
     };
   }
@@ -187,16 +187,17 @@ export class PromptAssembler {
     systemNote: string | undefined,
   ): OutboundPrompt {
     const systemContent = this.buildSystemBlock(persona, thread, null);
+    const history = this.buildNativeHistory(thread, {
+      appendUser: 'Respond with your additional take.',
+    });
     const messages: PromptMessage[] = [
       { role: 'system', content: systemContent },
       ...(systemNote && systemNote.length > 0
         ? [{ role: 'system' as const, content: systemNote }]
         : []),
-      {
-        role: 'user',
-        content: '<user_message>Respond with your additional take.</user_message>',
-      },
+      ...history,
     ];
+    const historyText = history.map((m) => m.content).join('\n');
     return {
       messages,
       model: params.modelName,
@@ -209,7 +210,7 @@ export class PromptAssembler {
         mode: 'ask-both-keep-going',
         hasSummary: !!thread.rollingSummary,
         hasDriftRefresh: false,
-        estimatedTokens: estimateTokens(systemContent + (systemNote ?? '')),
+        estimatedTokens: estimateTokens(systemContent + (systemNote ?? '') + historyText),
       },
     };
   }
@@ -230,15 +231,12 @@ export class PromptAssembler {
       : null;
 
     const systemContent = this.buildSystemBlock(persona, thread, driftBlock);
-
-    const lastMessage = thread.messages[thread.messages.length - 1];
-    const currentUserText =
-      lastMessage && lastMessage.role === 'user' ? lastMessage.content : '';
-    const userContent = `<user_message>${currentUserText}</user_message>`;
+    const history = this.buildNativeHistory(thread);
+    const historyText = history.map((m) => m.content).join('\n');
 
     const messages: PromptMessage[] = [
       { role: 'system', content: systemContent },
-      { role: 'user', content: userContent },
+      ...history,
     ];
 
     const chat: ChatRequest = {
@@ -257,7 +255,7 @@ export class PromptAssembler {
         mode: 'solo',
         hasSummary: !!thread.rollingSummary,
         hasDriftRefresh: shouldInjectDrift && driftBlock !== null,
-        estimatedTokens: estimateTokens(systemContent + userContent),
+        estimatedTokens: estimateTokens(systemContent + historyText),
       },
     };
   }
@@ -337,21 +335,6 @@ export class PromptAssembler {
       : '(none)');
     parts.push('\n---\n');
 
-    parts.push('# ---- VERBATIM TAIL (last N turns) ----');
-    // Exclude the current user message (last one) — that goes into Block 9.
-    const totalMsgs = thread.messages.length;
-    const tailEnd = Math.max(0, totalMsgs - 1);
-    const tailStart = Math.max(0, tailEnd - VERBATIM_TAIL_LENGTH);
-    const tail = thread.messages.slice(tailStart, tailEnd);
-    if (tail.length === 0) {
-      parts.push('(no prior turns)');
-    } else {
-      for (const m of tail) {
-        parts.push(`${m.role}: ${m.content}`);
-      }
-    }
-    parts.push('\n---\n');
-
     if (driftRefresh) {
       parts.push(driftRefresh);
       parts.push('\n---\n');
@@ -410,28 +393,53 @@ export class PromptAssembler {
     );
     parts.push('\n---\n');
 
-    parts.push('# ---- VERBATIM TAIL (last N turns) ----');
-    const totalMsgs = thread.messages.length;
-    // Exclude the last message from the tail when it's a user message
-    // (goes into Block 9 via `<user_message>`); include it when it's an
-    // assistant message so Keep-Going Blended sees its own prior take.
-    const lastMsg = thread.messages[totalMsgs - 1];
-    const dropLast = lastMsg?.role === 'user';
-    const tailEnd = Math.max(0, dropLast ? totalMsgs - 1 : totalMsgs);
-    const tailStart = Math.max(0, tailEnd - VERBATIM_TAIL_LENGTH);
-    const tail = thread.messages.slice(tailStart, tailEnd);
-    if (tail.length === 0) {
-      parts.push('(no prior turns)');
-    } else {
-      for (const m of tail) {
-        parts.push(`${m.role}: ${m.content}`);
-      }
-    }
-    parts.push('\n---\n');
-
     parts.push('# ---- PRE-RESPONSE SELF-VERIFICATION ----');
     parts.push(blendedComposition.selfVerificationChecklist);
 
     return parts.join('\n');
+  }
+
+  /**
+   * Maps the last `VERBATIM_TAIL_LENGTH` persisted turns into native
+   * chat-api roles. User turns stay wrapped in `<user_message>` delimiters;
+   * assistant turns pass through as `role:'assistant'`.
+   */
+  private buildNativeHistory(
+    thread: Thread,
+    options?: { appendUser?: string },
+  ): PromptMessage[] {
+    const eligible = thread.messages.filter((m) => this.isEligibleForHistory(m));
+    const capped = eligible.slice(-VERBATIM_TAIL_LENGTH);
+    const history: PromptMessage[] = capped.map((m) =>
+      this.threadMessageToPromptMessage(m),
+    );
+
+    if (options?.appendUser) {
+      history.push({
+        role: 'user',
+        content: `<user_message>${options.appendUser}</user_message>`,
+      });
+    }
+
+    if (history.length === 0) {
+      history.push({ role: 'user', content: '<user_message></user_message>' });
+    }
+
+    return history;
+  }
+
+  private isEligibleForHistory(message: Message): boolean {
+    if (message.role === 'user') return true;
+    return !message.status || message.status === 'complete';
+  }
+
+  private threadMessageToPromptMessage(message: Message): PromptMessage {
+    if (message.role === 'user') {
+      return {
+        role: 'user',
+        content: `<user_message>${message.content}</user_message>`,
+      };
+    }
+    return { role: 'assistant', content: message.content };
   }
 }

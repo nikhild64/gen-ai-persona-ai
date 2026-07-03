@@ -7,6 +7,9 @@
  * semantics as AD-11 BYO-Key vault) recording the user's chosen Ask-Both
  * variant (Sequential | Parallel | Blended) so the selection survives
  * within-tab reloads.
+ *
+ * `settings:model-selection:v1` persists per-provider model overrides
+ * (Gemini / Groq) for the tab session. API keys remain in-memory only.
  */
 export type StorageKey =
   | 'chat:hitesh:v1'
@@ -15,5 +18,6 @@ export type StorageKey =
   | 'settings:v1'
   | 'settings:ask-both-mode:v1'
   | 'settings:persona-routing:v1'
+  | 'settings:model-selection:v1'
   | 'settings:model-discovery-cache:v1'
   | 'settings:last-active-solo:v1';

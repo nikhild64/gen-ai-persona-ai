@@ -1,21 +1,23 @@
 import { Injectable, inject } from '@angular/core';
-import { Router } from '@angular/router';
+import { Subject } from 'rxjs';
 
 import { STORAGE_PORT } from '../../domain/chat/di-tokens';
 import { ChatOrchestrator } from '../../domain/chat/chat-orchestrator.service';
 import { AskBothSequencerService } from '../../features/ask-both/ask-both-sequencer.service';
 
 /**
- * FR-15 — clears all three chat threads then navigates back to landing.
- * `chat:ask-both:v1` is deleted defensively; Epic 9 populates that key
- * eventually, but deleting a missing key is a no-op.
+ * FR-15 — clears all three chat threads. Components subscribe to
+ * `sessionCleared$` to re-seed UI on the current route instead of navigating away.
  */
 @Injectable({ providedIn: 'root' })
 export class StartNewSessionService {
   private readonly storage = inject(STORAGE_PORT);
-  private readonly router = inject(Router);
   private readonly orchestrator = inject(ChatOrchestrator);
   private readonly askBothSequencer = inject(AskBothSequencerService);
+  private readonly cleared$ = new Subject<void>();
+
+  /** Fires after threads are wiped and orchestrator state is reset. */
+  readonly sessionCleared$ = this.cleared$.asObservable();
 
   async clearAllThreads(): Promise<void> {
     await this.storage.delete('chat:hitesh:v1');
@@ -25,8 +27,9 @@ export class StartNewSessionService {
     this.askBothSequencer.resetSessionState();
   }
 
-  async clearAndReturnHome(): Promise<void> {
+  /** Clear history and notify the active chat surface to re-seed in place. */
+  async clearInPlace(): Promise<void> {
     await this.clearAllThreads();
-    await this.router.navigateByUrl('/');
+    this.cleared$.next();
   }
 }

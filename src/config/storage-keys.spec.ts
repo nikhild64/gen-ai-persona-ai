@@ -11,10 +11,11 @@ describe('storage-keys (AD-6 closed union)', () => {
       'settings:v1',
       'settings:ask-both-mode:v1',
       'settings:persona-routing:v1',
+      'settings:model-selection:v1',
       'settings:model-discovery-cache:v1',
       'settings:last-active-solo:v1',
     ];
-    expect(keys).toHaveLength(8);
+    expect(keys).toHaveLength(9);
     keys.forEach((k) => expect(k.length).toBeGreaterThan(0));
   });
 

@@ -29,11 +29,15 @@ import {
   assistantMessageCount,
   expectedAssistantMessagesForMode,
 } from '../context/turn-counting';
+import {
+  appendStreamToken,
+  yieldToUi,
+} from '../../shared/streaming-typewriter/stream-token';
 import { PromptAssembler } from '../prompts/prompt-assembler.service';
 import { KeyVaultService } from '../key-vault/key-vault.service';
 import { PersonaRoutingService } from '../key-vault/persona-routing.service';
-import { ModelSelectionService } from '../key-vault/model-selection.service';
 import { ContextManager } from '../context/context-manager.service';
+import { ProviderStreamRunnerService } from './provider-stream-runner.service';
 import type { ProviderId } from '../../config/provider-registry';
 import type {
   ProviderPort,
@@ -74,6 +78,8 @@ export class ChatOrchestrator {
   readonly activeAssistantMessageId: WritableSignal<string | null> = signal(
     null,
   );
+  /** Persona owning the current/last in-flight stream — guards cross-persona UI bleed. */
+  readonly activeStreamPersona: WritableSignal<PersonaId | null> = signal(null);
   /** E7-S1: true once max-turn cap fires; input disables until thread is cleared. */
   readonly capReached: WritableSignal<boolean> = signal(false);
   /** E7-S2: seconds carried in a provider 429 Retry-After header, if any. */
@@ -90,12 +96,14 @@ export class ChatOrchestrator {
   private readonly assembler = inject(PromptAssembler);
   private readonly keyVault = inject(KeyVaultService);
   private readonly personaRouting = inject(PersonaRoutingService);
-  private readonly modelSelection = inject(ModelSelectionService);
   private readonly contextManager = inject(ContextManager);
+  private readonly streamRunner = inject(ProviderStreamRunnerService);
   private readonly adapterFactory = inject(ADAPTER_FACTORY);
 
   private currentAbort: AbortController | null = null;
   private stallTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Bumped on cancel — in-flight dispatch() exits before touching stream UI. */
+  private dispatchEpoch = 0;
 
   /**
    * Read-only view of the reactive signals. Kept as `Signal<T>` (not
@@ -135,18 +143,30 @@ export class ChatOrchestrator {
     this.pendingKeyMissing.set(false);
     this.accumulatedText.set('');
     this.activeAssistantMessageId.set(null);
+    this.activeStreamPersona.set(null);
     this.streamStalled.set(false);
   }
 
   cancelInFlight(): void {
+    this.dispatchEpoch += 1;
     this.currentAbort?.abort();
     this.currentAbort = null;
     this.clearStallTimer();
+    // Drop any partial stream so persona/mode switches cannot replay the
+    // previous advisor's text through the typewriter.
+    this.accumulatedText.set('');
+    this.activeAssistantMessageId.set(null);
+    this.activeStreamPersona.set(null);
+    this.inFlightStream.set(false);
+    this.streamStalled.set(false);
   }
 
   private async dispatch(persona: PersonaId, text: string): Promise<void> {
+    const epoch = this.dispatchEpoch;
+
     // Step 1 — input moderation
     const inputVerdict = await this.moderation.check(text, 'input');
+    if (this.isDispatchStale(epoch)) return;
     if (!inputVerdict.allowed) {
       await this.renderRefusal(
         persona,
@@ -165,6 +185,7 @@ export class ChatOrchestrator {
 
     // Step 2 — append user message
     const thread = await this.getOrCreateThread(persona);
+    if (this.isDispatchStale(epoch)) return;
 
     // E7-S1: max-turn cap check before touching the provider.
     if (
@@ -207,56 +228,56 @@ export class ChatOrchestrator {
     thread.messages.push(userMsg);
     thread.updatedAt = userMsg.timestamp;
     await this.storage.set(this.threadKeyFor(persona), thread);
+    if (this.isDispatchStale(epoch)) return;
 
     // Step 3 — compose prompt
     const composed = this.assembler.compose(persona, thread, 'solo');
 
-    const prompt = {
-      ...composed,
-      model: this.modelSelection.getModelFor(providerId),
-    };
-
-    // Step 5-7 — abort controller + stream
-    const AdapterClass = this.adapterFactory(providerId);
-    const adapter: ProviderPort = new (
-      AdapterClass as unknown as new () => ProviderPort
-    )();
+    if (this.isDispatchStale(epoch)) return;
 
     this.currentAbort = new AbortController();
     const controller = this.currentAbort;
     const assistantMsgId = this.uuid();
     this.activeAssistantMessageId.set(assistantMsgId);
+    this.activeStreamPersona.set(persona);
     this.accumulatedText.set('');
     this.inFlightStream.set(true);
     this.streamStalled.set(false);
     this.armStallTimer(persona);
 
-    let accumulated = '';
-    let doneChunk: ChatChunk | null = null;
-    let errorChunk: ChatChunk | null = null;
-
-    try {
-      for await (const chunk of adapter.streamChat(
-        prompt,
-        key,
-        controller.signal,
-      )) {
+    const streamResult = await this.streamRunner.streamWithRateLimitFallback({
+      persona,
+      composed,
+      initialProvider: providerId,
+      signal: controller.signal,
+      adapterFactory: this.adapterFactory,
+      onDelta: (text) => {
         this.resetStallTimer(persona);
-        if (chunk.type === 'delta' && chunk.text) {
-          accumulated += chunk.text;
-          this.accumulatedText.set(accumulated);
-        } else if (chunk.type === 'done') {
-          doneChunk = chunk;
-          break;
-        } else if (chunk.type === 'error') {
-          errorChunk = chunk;
-          break;
+        if (!controller.signal.aborted) {
+          this.accumulatedText.set(text);
         }
-      }
-    } finally {
-      this.clearStallTimer();
-      this.inFlightStream.set(false);
+      },
+      onRetryAttempt: () => {
+        this.resetStallTimer(persona);
+      },
+    });
+
+    this.clearStallTimer();
+    this.inFlightStream.set(false);
+
+    if (this.isDispatchStale(epoch) || controller.signal.aborted) {
+      return;
     }
+
+    const {
+      accumulated,
+      doneChunk,
+      errorChunk,
+      adapter,
+      prompt,
+      key: streamKey,
+      usedFallback,
+    } = streamResult;
 
     if (errorChunk) {
       await this.handleAdapterError(
@@ -291,6 +312,10 @@ export class ChatOrchestrator {
       return;
     }
 
+    if (usedFallback) {
+      this.retryAfterSec.set(null);
+    }
+
     // Step 8 — output moderation with retry-once (re-invokes provider once)
     const finalText = await this.checkOutputWithRetry(
       persona,
@@ -298,7 +323,7 @@ export class ChatOrchestrator {
       assistantMsgId,
       adapter,
       prompt,
-      key,
+      streamKey,
       controller,
     );
     // Step 9 — persist assistant message
@@ -332,6 +357,10 @@ export class ChatOrchestrator {
     void this.contextManager.onTurnComplete(this.threadKeyFor(persona));
   }
 
+  private isDispatchStale(epoch: number): boolean {
+    return epoch !== this.dispatchEpoch;
+  }
+
   private async checkOutputWithRetry(
     persona: PersonaId,
     accumulated: string,
@@ -352,8 +381,9 @@ export class ChatOrchestrator {
         controller.signal,
       )) {
         if (chunk.type === 'delta' && chunk.text) {
-          retryAccumulated += chunk.text;
+          retryAccumulated = appendStreamToken(retryAccumulated, chunk.text);
           this.accumulatedText.set(retryAccumulated);
+          await yieldToUi();
         } else if (chunk.type === 'done' || chunk.type === 'error') {
           break;
         }

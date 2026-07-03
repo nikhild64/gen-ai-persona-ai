@@ -6,6 +6,7 @@ import {
   OnDestroy,
   Renderer2,
   ViewChild,
+  computed,
   effect,
   inject,
   signal,
@@ -20,11 +21,15 @@ import { PRODUCT_COPY } from '../../config/product-copy';
 import { MessageBubbleComponent } from '../../shared/message-bubble/message-bubble.component';
 import { StreamingIndicatorComponent } from '../../shared/streaming-indicator/streaming-indicator.component';
 import { ModeSwitcherComponent } from '../mode-switcher/mode-switcher.component';
-import { KeyStatusBadgeComponent } from '../settings/key-status-badge.component';
-import { SettingsModalComponent } from '../settings/settings-modal.component';
 import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.component';
 import { AskBothSequencerService } from './ask-both-sequencer.service';
 import { AskBothModeService } from './ask-both-mode.service';
+import { StartNewSessionService } from '../settings/start-new-session.service';
+import { AppSettingsService } from '../../shared/app-settings/app-settings.service';
+import {
+  createStreamingTypewriterController,
+  type StreamingTypewriterController,
+} from '../../shared/streaming-typewriter/streaming-typewriter';
 
 /**
  * FR-26/FR-27/FR-30 Ask-Both surface. The container carries
@@ -43,9 +48,6 @@ import { AskBothModeService } from './ask-both-mode.service';
     MessageBubbleComponent,
     StreamingIndicatorComponent,
     ModeSwitcherComponent,
-    
-    KeyStatusBadgeComponent,
-    SettingsModalComponent,
     SettingsMenuEntryComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,11 +61,13 @@ export class AskBothComponent implements OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   private readonly renderer = inject(Renderer2);
   private readonly document = inject(DOCUMENT);
+  private readonly startNewSession = inject(StartNewSessionService);
+  private readonly appSettings = inject(AppSettingsService);
+  private readonly streamDisplay: StreamingTypewriterController =
+    createStreamingTypewriterController(this.destroyRef);
 
   readonly draft = signal('');
   readonly messages = signal<Message[]>([]);
-  readonly settingsOpen = signal(false);
-  readonly settingsAutoOpen = signal(false);
   readonly bridgeMessage = this.sequencer.bridgeAnnouncement;
   readonly canKeepGoing = this.sequencer.canKeepGoing;
 
@@ -73,34 +77,81 @@ export class AskBothComponent implements OnDestroy {
   readonly askBothGreeting = PRODUCT_COPY.askBothGreeting;
   readonly askBothGreetingHint = PRODUCT_COPY.askBothGreetingHint;
   readonly inputPlaceholder = PRODUCT_COPY.askBothInputPlaceholder;
+  readonly starterQuestions = PRODUCT_COPY.askBothStarterQuestions;
   readonly keepGoingLabel = PRODUCT_COPY.keepGoingButtonLabel;
+
+  readonly streamingBubble = computed<Message | null>(() => {
+    const text = this.streamDisplay.displayed();
+    const target = this.sequencer.currentText();
+    const streaming = this.sequencer.inFlight();
+    const catchingUp =
+      target.length > 0 && text.length > 0 && text.length < target.length;
+
+    if (!streaming && !catchingUp) return null;
+    if (!text) return null;
+
+    const persona = this.sequencer.activePersona();
+    if (persona) {
+      return {
+        id: 'streaming',
+        role: 'assistant',
+        persona,
+        content: text,
+        timestamp: Date.now(),
+        status: 'streaming',
+      };
+    }
+
+    return {
+      id: 'streaming',
+      role: 'assistant',
+      content: text,
+      timestamp: Date.now(),
+      status: 'streaming',
+      attributionLabel: PRODUCT_COPY.askBothBlendedAttribution,
+    };
+  });
+
+  readonly showStreamingIndicator = computed(
+    () => this.sequencer.inFlight() && !this.streamDisplay.displayed(),
+  );
 
   constructor() {
     // Drive the mixed persona gradient defined in styles.scss.
     this.renderer.setAttribute(this.document.body, 'data-mode', 'ask-both');
     void this.loadThread();
 
-    // Incremental refresh: sequencer fires threadUpdated$ after every write
-    // (user message, Hitesh's completion, Piyush's completion, keep-going
-    // completions). Reload immediately so each persona's message settles
-    // into the list as soon as it's persisted instead of all appearing at
-    // the end.
+    this.streamDisplay.bind({
+      target: () => this.sequencer.currentText(),
+      streaming: () => this.sequencer.inFlight(),
+    });
+
     this.sequencer.threadUpdated$
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => void this.reloadThread());
+      .subscribe(() => {
+        if (!this.sequencer.inFlight()) return;
+        void this.reloadThread();
+      });
 
     this.sequencer.keyMissing$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        this.settingsAutoOpen.set(true);
-        this.settingsOpen.set(true);
+        this.appSettings.openSettings({ auto: true });
+      });
+
+    this.startNewSession.sessionCleared$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.streamDisplay.reset();
+        this.messages.set([]);
+        this.draft.set('');
       });
 
     // Auto-scroll to bottom on new messages / streaming updates. rAF defers
     // the scroll until after Angular flushes the DOM update.
     effect(() => {
       this.messages();
-      this.sequencer.currentStreaming();
+      this.streamDisplay.displayed();
       this.sequencer.inFlight();
       requestAnimationFrame(() => {
         const el = this.messageListEl?.nativeElement;
@@ -127,13 +178,15 @@ export class AskBothComponent implements OnDestroy {
     return 'Preparing…';
   }
 
+  onStarterChip(question: string): void {
+    if (this.sequencer.inFlight()) return;
+    this.draft.set(question);
+    this.onSend();
+  }
+
   onSend(): void {
     const text = this.draft().trim();
     if (!text || this.sequencer.inFlight()) return;
-    // Optimistic local push so the user's own message lands immediately —
-    // sequencer's own storage-write will fire threadUpdated$ shortly after
-    // and reconcile with the authoritative persisted version (matching id
-    // isn't required; reloadThread replaces the whole list).
     this.messages.update((m) => [
       ...m,
       {
@@ -144,16 +197,18 @@ export class AskBothComponent implements OnDestroy {
       },
     ]);
     this.draft.set('');
-    this.sequencer
+    void this.sequencer
       .askBoth(text)
+      .then(() => this.streamDisplay.drain())
       .then(() => void this.reloadThread())
       .catch(() => void this.reloadThread());
   }
 
   onKeepGoing(): void {
     if (this.sequencer.inFlight()) return;
-    this.sequencer
+    void this.sequencer
       .keepGoing()
+      .then(() => this.streamDisplay.drain())
       .then(() => void this.reloadThread())
       .catch(() => void this.reloadThread());
   }
@@ -167,10 +222,6 @@ export class AskBothComponent implements OnDestroy {
 
   onModeSwitched(): void {
     /* mode-switcher performs the navigation itself. */
-  }
-
-  openSettings(): void {
-    this.settingsOpen.set(true);
   }
 
   private async loadThread(): Promise<void> {

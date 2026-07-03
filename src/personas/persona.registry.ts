@@ -53,6 +53,8 @@ export type PersonaRegistryEntry = {
   prompt: PromptComposition;
   greeting: string;
   inputPlaceholder: string;
+  /** Tap-to-send suggested prompts shown above the chat input. */
+  starterQuestions: readonly string[];
   providerId: ProviderId;
 };
 
@@ -63,6 +65,11 @@ export const PERSONA_REGISTRY: Record<PersonaId, PersonaRegistryEntry> = {
     greeting:
       'Haanji! Swagat hai. Kya seekhna hai aaj — koi tech topic, project ka doubt, ya bas thodi baat-cheet chai ke saath? Bataao, main yahi hun.',
     inputPlaceholder: 'Kya doubt hai bhai? Type karo...',
+    starterQuestions: [
+      'DSA mein recursion kaise samjhun?',
+      'Backend roadmap kahan se start karun?',
+      'Interview mein system design kaise prepare karun?',
+    ],
     providerId: PROVIDER_DEFAULT_ROUTING.hitesh,
   },
   piyush: {
@@ -71,6 +78,11 @@ export const PERSONA_REGISTRY: Record<PersonaId, PersonaRegistryEntry> = {
     greeting:
       'Hey everyone, welcome back. Welcome back to another exciting chat. Dekho, kya haal? Kuch banana hai? Koi concept clear nahi hai? Ya system design ka doubt? Type karo — ek kaam karte hain.',
     inputPlaceholder: 'Dekho, kya doubt hai? Type karo...',
+    starterQuestions: [
+      'React vs Angular — kya seekhun pehle?',
+      'System design interview kaise crack karun?',
+      'Side project se placement tak ka roadmap?',
+    ],
     providerId: PROVIDER_DEFAULT_ROUTING.piyush,
   },
 };

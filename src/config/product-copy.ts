@@ -19,6 +19,9 @@ const providerKeyPrefixHint = (p: ProviderId): string =>
   p === 'gemini' ? 'AIza…' : 'gsk_…';
 
 export const PRODUCT_COPY = {
+  // ─── BRAND ───────────────────────────────────────────────────────────────
+  brandName: 'Live Personas AI',
+
   // ─── LANDING ─────────────────────────────────────────────────────────────
   landingHeroTitle: 'Chat with Hitesh and Piyush.',
   landingHeroSubheader:
@@ -76,7 +79,7 @@ export const PRODUCT_COPY = {
   // ─── START-NEW-SESSION MODAL ─────────────────────────────────────────────
   startNewSessionTitle: 'Start a new session?',
   startNewSessionBody:
-    'This clears the current thread. Your API key stays in this browser session.',
+    'This clears the current thread on this page. Your API key stays in this browser session.',
   startNewSessionConfirmLabel: 'Start new',
   startNewSessionCancelLabel: 'Keep going',
   sessionClearedToast: 'Chat cleared. New session started.',
@@ -110,6 +113,11 @@ export const PRODUCT_COPY = {
   askBothBridgeAnnouncement:
     "Piyush is now responding to Hitesh's take.",
   askBothInputPlaceholder: 'Dono se poocho — kya doubt hai?',
+  askBothStarterQuestions: [
+    'How should I approach a hard technical decision?',
+    'What matters more — speed or craft?',
+    'How do I stay focused when everything feels urgent?',
+  ],
 
   // ─── KEEP-GOING / CAP / RATE LIMIT ───────────────────────────────────────
   keepGoingButtonLabel: 'Keep going',

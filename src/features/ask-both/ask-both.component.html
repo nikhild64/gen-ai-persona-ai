@@ -2,11 +2,6 @@
   <header class="banner">
     <h2>{{ bannerLabel }}</h2>
     <div class="banner-slots">
-
-      <app-key-status-badge
-        [askBoth]="true"
-        (clicked)="openSettings()"
-      />
       <app-mode-switcher
         activeMode="ask-both"
         [disabled]="sequencer.inFlight()"
@@ -14,11 +9,6 @@
       />
     </div>
   </header>
-
-  <app-settings-modal
-    [(open)]="settingsOpen"
-    [(autoOpenMode)]="settingsAutoOpen"
-  />
 
   <div class="message-list" #messageList>
     @if (messages().length === 0) {
@@ -29,11 +19,11 @@
     }
     @for (msg of messages(); track msg.id) {
     <app-message-bubble [message]="msg" />
-    } @if (sequencer.currentStreaming(); as streaming) {
+    } @if (streamingBubble(); as streaming) {
     <app-message-bubble [message]="streaming" />
     } @if (bridgeMessage(); as bridge) {
     <div class="bridge" role="note">{{ bridge }}</div>
-    } @if (sequencer.inFlight() && !sequencer.currentStreaming()) {
+    } @if (showStreamingIndicator()) {
     <app-streaming-indicator [label]="streamingLabel()" />
     } @if (canKeepGoing()) {
     <button
@@ -48,6 +38,20 @@
   </div>
 
   <form class="input-area" (ngSubmit)="onSend()">
+    @if (starterQuestions.length) {
+    <div class="starter-chips" role="group" aria-label="Suggested questions for Ask Both">
+      @for (q of starterQuestions; track q) {
+      <button
+        type="button"
+        class="starter-chip"
+        [disabled]="sequencer.inFlight()"
+        (click)="onStarterChip(q)"
+      >
+        {{ q }}
+      </button>
+      }
+    </div>
+    }
     <textarea
       rows="2"
       [placeholder]="inputPlaceholder"

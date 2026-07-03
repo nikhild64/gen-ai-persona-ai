@@ -9,7 +9,6 @@ import {
   effect,
   inject,
   signal,
-  untracked,
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -36,9 +35,13 @@ import { StreamingIndicatorComponent } from '../../shared/streaming-indicator/st
 import { AriaAnnouncerService } from '../../shared/aria-announcer/aria-announcer.component';
 import { SettingsMenuEntryComponent } from '../settings/settings-menu-entry.component';
 import { PersonaSwitcherComponent } from '../persona-switcher/persona-switcher.component';
-import { SettingsModalComponent } from '../settings/settings-modal.component';
-import { KeyStatusBadgeComponent } from '../settings/key-status-badge.component';
 import { ModeSwitcherComponent } from '../mode-switcher/mode-switcher.component';
+import { StartNewSessionService } from '../settings/start-new-session.service';
+import { AppSettingsService } from '../../shared/app-settings/app-settings.service';
+import {
+  createStreamingTypewriterController,
+  type StreamingTypewriterController,
+} from '../../shared/streaming-typewriter/streaming-typewriter';
 
 const LAST_ACTIVE_SOLO_KEY: StorageKey = 'settings:last-active-solo:v1';
 
@@ -57,8 +60,6 @@ const LAST_ACTIVE_SOLO_KEY: StorageKey = 'settings:last-active-solo:v1';
     StreamingIndicatorComponent,
     SettingsMenuEntryComponent,
     PersonaSwitcherComponent,
-    SettingsModalComponent,
-    KeyStatusBadgeComponent,
     ModeSwitcherComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -74,18 +75,23 @@ export class ChatComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly renderer = inject(Renderer2);
   private readonly document = inject(DOCUMENT);
+  private readonly startNewSession = inject(StartNewSessionService);
+  private readonly appSettings = inject(AppSettingsService);
+  private readonly streamDisplay: StreamingTypewriterController =
+    createStreamingTypewriterController(this.destroyRef);
 
-  readonly settingsOpen = signal(false);
-  readonly settingsAutoOpen = signal(false);
+  readonly settingsOpen = this.appSettings.open;
+  readonly settingsAutoOpen = this.appSettings.autoOpenMode;
   private queuedText: string | null = null;
+  /** Bumped on persona switch so stale send callbacks cannot reload the wrong thread. */
+  private sendGeneration = 0;
+  /** Guards async loadThread/reloadThread against out-of-order persona switches. */
+  private threadLoadGeneration = 0;
 
   readonly sendAriaLabel = sendButtonLabel;
   readonly capReachedHint = PRODUCT_COPY.capReachedInputHint;
   readonly draft = signal('');
   readonly messages = signal<Message[]>([]);
-  /** Typewriter-revealed slice of `accumulatedText` — trails the raw stream
-   * so long provider chunks don't dump on-screen all at once. */
-  readonly displayedStreamingText = signal('');
 
   readonly inputDisabled = computed(
     () =>
@@ -114,12 +120,24 @@ export class ChatComponent {
   );
   readonly inputAriaLabel = computed(() => chatInputLabel(this.activePersona()));
 
+  readonly starterQuestions = computed(
+    () => PERSONA_REGISTRY[this.activePersona()].starterQuestions,
+  );
+
   readonly streamingBubble = computed<Message | null>(() => {
-    if (!this.orchestrator.inFlightStream() && !this.orchestrator.streamStalled()) {
+    if (this.orchestrator.activeStreamPersona() !== this.activePersona()) {
       return null;
     }
-    const text = this.displayedStreamingText();
+    const text = this.streamDisplay.displayed();
+    const target = this.orchestrator.accumulatedText();
+    const streaming =
+      this.orchestrator.inFlightStream() || this.orchestrator.streamStalled();
+    const catchingUp =
+      target.length > 0 && text.length > 0 && text.length < target.length;
+
+    if (!streaming && !catchingUp) return null;
     if (!text) return null;
+
     const id = this.orchestrator.activeAssistantMessageId() ?? 'streaming';
     return {
       id,
@@ -134,7 +152,7 @@ export class ChatComponent {
   readonly showStreamingIndicator = computed(
     () =>
       (this.orchestrator.inFlightStream() &&
-        !this.orchestrator.accumulatedText()) ||
+        !this.streamDisplay.displayed()) ||
       this.orchestrator.streamStalled(),
   );
 
@@ -157,11 +175,36 @@ export class ChatComponent {
       .subscribe((data) => {
         const persona = (data?.['persona'] as PersonaId | undefined) ?? 'hitesh';
         if (persona !== this.activePersona()) {
+          this.sendGeneration += 1;
+          this.threadLoadGeneration += 1;
           this.orchestrator.cancelInFlight();
+          this.streamDisplay.reset();
+          this.messages.set([]);
+          this.draft.set('');
         }
         this.activePersona.set(persona);
-        void this.loadThread();
+        const loadGen = this.threadLoadGeneration;
+        void this.loadThread(persona, loadGen);
       });
+
+    this.startNewSession.sessionCleared$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.sendGeneration += 1;
+        this.threadLoadGeneration += 1;
+        this.streamDisplay.reset();
+        this.messages.set([]);
+        this.draft.set('');
+        const persona = this.activePersona();
+        const loadGen = this.threadLoadGeneration;
+        void this.seedGreeting(persona, loadGen);
+      });
+
+    this.streamDisplay.bind({
+      target: () => this.orchestrator.accumulatedText(),
+      streaming: () =>
+        this.orchestrator.inFlightStream() || this.orchestrator.streamStalled(),
+    });
 
     // Sync body[data-persona] so the full-viewport gradient in styles.scss
     // tracks the active persona. Effect fires on activePersona() changes and
@@ -188,41 +231,12 @@ export class ChatComponent {
     // until after Angular flushes the DOM update.
     effect(() => {
       this.messages();
-      this.displayedStreamingText();
+      this.streamDisplay.displayed();
       this.orchestrator.inFlightStream();
       requestAnimationFrame(() => {
         const el = this.messageListEl?.nativeElement;
         if (el) el.scrollTop = el.scrollHeight;
       });
-    });
-
-    // Typewriter reveal — the raw `accumulatedText` signal can jump by 100+
-    // chars per delta with providers like Gemini, so we trail it via an
-    // interval that reveals a smoothly scaling chunk each tick. When the
-    // stream ends we snap `displayedStreamingText` to the final value so it
-    // matches the persisted message before `reloadThread` swaps it in.
-    effect((onCleanup) => {
-      const inFlight = this.orchestrator.inFlightStream();
-
-      if (!inFlight) {
-        this.displayedStreamingText.set(
-          untracked(() => this.orchestrator.accumulatedText()),
-        );
-        return;
-      }
-
-      this.displayedStreamingText.set('');
-      const intervalId = setInterval(() => {
-        const target = this.orchestrator.accumulatedText();
-        const current = this.displayedStreamingText();
-        if (current.length >= target.length) return;
-        const remaining = target.length - current.length;
-        const perTick = Math.max(1, Math.ceil(remaining / 12));
-        this.displayedStreamingText.set(
-          target.slice(0, current.length + perTick),
-        );
-      }, 25);
-      onCleanup(() => clearInterval(intervalId));
     });
 
     // E6-S3 auto-open — the orchestrator fires this Subject whenever the
@@ -231,9 +245,16 @@ export class ChatComponent {
     this.orchestrator.keyMissing$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
-        this.settingsAutoOpen.set(true);
-        this.settingsOpen.set(true);
+        this.appSettings.openSettings({ auto: true });
       });
+
+    this.appSettings.saved$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.onSettingsSaved());
+
+    this.appSettings.dismissed$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((wasAuto) => this.onSettingsDismissed(wasAuto));
 
     // Track last-active-solo persona so the mode-switcher can restore it
     // when the user comes back from Ask-Both.
@@ -247,9 +268,6 @@ export class ChatComponent {
     });
   }
 
-  openSettings(): void {
-    this.settingsOpen.set(true);
-  }
 
   onSettingsSaved(): void {
     const wasAuto = this.settingsAutoOpen();
@@ -257,23 +275,38 @@ export class ChatComponent {
     if (wasAuto && this.queuedText) {
       const text = this.queuedText;
       this.queuedText = null;
+      const generation = ++this.sendGeneration;
       this.orchestrator
         .sendMessage(this.activePersona(), text)
         .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
-          complete: () => void this.reloadThread(),
-          error: () => void this.reloadThread(),
+          complete: () => {
+            if (generation !== this.sendGeneration) return;
+            void this.streamDisplay.drain().then(() => {
+              if (generation !== this.sendGeneration) return;
+              void this.reloadThread();
+            });
+          },
+          error: () => {
+            if (generation !== this.sendGeneration) return;
+            void this.reloadThread();
+          },
         });
     }
   }
 
-  onSettingsDismissed(): void {
-    const wasAuto = this.settingsAutoOpen();
+  onSettingsDismissed(wasAuto = this.settingsAutoOpen()): void {
     this.settingsAutoOpen.set(false);
     if (wasAuto) {
       this.queuedText = null;
       void this.router.navigateByUrl('/');
     }
+  }
+
+  onStarterChip(question: string): void {
+    if (this.inputDisabled()) return;
+    this.draft.set(question);
+    this.onSend();
   }
 
   onSend(): void {
@@ -293,22 +326,31 @@ export class ChatComponent {
     ]);
     this.draft.set('');
 
+    const generation = ++this.sendGeneration;
     this.orchestrator
       .sendMessage(this.activePersona(), text)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         complete: () => {
-          if (!this.orchestrator.pendingKeyMissing()) {
-            this.queuedText = null;
-          }
+          if (generation !== this.sendGeneration) return;
+          void this.streamDisplay.drain().then(() => {
+            if (generation !== this.sendGeneration) return;
+            if (!this.orchestrator.pendingKeyMissing()) {
+              this.queuedText = null;
+            }
+            void this.reloadThread();
+          });
+        },
+        error: () => {
+          if (generation !== this.sendGeneration) return;
           void this.reloadThread();
         },
-        error: () => void this.reloadThread(),
       });
   }
 
   onCancel(): void {
     this.orchestrator.cancelInFlight();
+    this.streamDisplay.reset();
   }
 
   onKeyDown(event: KeyboardEvent): void {
@@ -318,48 +360,68 @@ export class ChatComponent {
     }
   }
 
-  private async loadThread(): Promise<void> {
-    const thread = await this.storage.get<Thread>(this.threadKey());
+  private async loadThread(
+    forPersona: PersonaId,
+    loadGen: number,
+  ): Promise<void> {
+    const key = this.threadKeyFor(forPersona);
+    const thread = await this.storage.get<Thread>(key);
+    if (!this.isLoadCurrent(forPersona, loadGen)) return;
     if (thread && thread.messages.length > 0) {
       this.messages.set([...thread.messages]);
     } else {
-      await this.seedGreeting();
+      await this.seedGreeting(forPersona, loadGen);
     }
   }
 
   private async reloadThread(): Promise<void> {
+    const persona = this.activePersona();
+    const loadGen = this.threadLoadGeneration;
     const thread = await this.storage.get<Thread>(this.threadKey());
+    if (!this.isLoadCurrent(persona, loadGen)) return;
     if (thread) this.messages.set([...thread.messages]);
   }
 
-  private async seedGreeting(): Promise<void> {
-    const persona = this.activePersona();
-    const greeting = PERSONA_REGISTRY[persona].greeting;
+  private isLoadCurrent(forPersona: PersonaId, loadGen: number): boolean {
+    return (
+      loadGen === this.threadLoadGeneration &&
+      forPersona === this.activePersona()
+    );
+  }
+
+  private async seedGreeting(
+    forPersona: PersonaId,
+    loadGen: number,
+  ): Promise<void> {
+    const greeting = PERSONA_REGISTRY[forPersona].greeting;
     const msg: Message = {
       id: this.uuid(),
       role: 'assistant',
-      persona,
+      persona: forPersona,
       content: greeting,
       timestamp: Date.now(),
       status: 'complete',
     };
     const thread: Thread = {
       id: this.uuid(),
-      scope: persona,
+      scope: forPersona,
       messages: [msg],
       rollingSummary: null,
       turnsSinceLastSummary: 0,
       createdAt: msg.timestamp,
       updatedAt: msg.timestamp,
     };
-    await this.storage.set(this.threadKey(), thread);
+    await this.storage.set(this.threadKeyFor(forPersona), thread);
+    if (!this.isLoadCurrent(forPersona, loadGen)) return;
     this.messages.set([msg]);
   }
 
+  private threadKeyFor(persona: PersonaId): StorageKey {
+    return persona === 'hitesh' ? 'chat:hitesh:v1' : 'chat:piyush:v1';
+  }
+
   private threadKey(): StorageKey {
-    return this.activePersona() === 'hitesh'
-      ? 'chat:hitesh:v1'
-      : 'chat:piyush:v1';
+    return this.threadKeyFor(this.activePersona());
   }
 
   private uuid(): string {

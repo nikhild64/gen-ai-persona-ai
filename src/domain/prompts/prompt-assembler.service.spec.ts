@@ -29,7 +29,7 @@ function msg(role: 'user' | 'assistant', text: string, n: number): Message {
 describe('PromptAssembler solo mode', () => {
   const assembler = new PromptAssembler();
 
-  it('returns 2 messages (system + user) and wraps current user message in XML delimiters', () => {
+  it('returns system + native user history and wraps user turns in XML delimiters', () => {
     const thread = threadFrom([msg('user', 'hello', 1)]);
     const out = assembler.compose('hitesh', thread, 'solo');
     expect(out.messages).toHaveLength(2);
@@ -38,6 +38,28 @@ describe('PromptAssembler solo mode', () => {
     expect(out.messages[1]?.content).toBe(
       '<user_message>hello</user_message>',
     );
+  });
+
+  it('emits alternating native user/assistant history for multi-turn threads', () => {
+    const thread = threadFrom([
+      msg('user', 'first question', 1),
+      msg('assistant', 'first answer', 2),
+      msg('user', 'follow up', 3),
+    ]);
+    const out = assembler.compose('hitesh', thread, 'solo');
+    expect(out.messages).toHaveLength(4);
+    expect(out.messages[1]).toEqual({
+      role: 'user',
+      content: '<user_message>first question</user_message>',
+    });
+    expect(out.messages[2]).toEqual({
+      role: 'assistant',
+      content: 'first answer',
+    });
+    expect(out.messages[3]).toEqual({
+      role: 'user',
+      content: '<user_message>follow up</user_message>',
+    });
   });
 
   it('sources model + params from PERSONA_MODEL_PARAMS (Hitesh → gemini)', () => {
@@ -66,11 +88,12 @@ describe('PromptAssembler solo mode', () => {
     expect(out.meta.estimatedTokens).toBeGreaterThan(0);
   });
 
-  it('injects rolling summary + last-8 verbatim tail when thread is long', () => {
+  it('injects rolling summary in system and recent turns as native history', () => {
     const messages: Message[] = [];
     for (let i = 0; i < 20; i += 1) {
       messages.push(msg(i % 2 === 0 ? 'user' : 'assistant', `m-${i}`, i));
     }
+    messages.push(msg('user', 'current-q', 20));
     const thread: Thread = {
       ...threadFrom(messages),
       rollingSummary: 'PRIOR SUMMARY OF 12 TURNS',
@@ -78,10 +101,12 @@ describe('PromptAssembler solo mode', () => {
     const out = assembler.compose('hitesh', thread, 'solo');
     const system = out.messages[0]?.content ?? '';
     expect(system).toContain('PRIOR SUMMARY OF 12 TURNS');
-    // Tail is last 8 messages excluding the current user (which is message index 19)
-    expect(system).toContain('m-11');
-    expect(system).toContain('m-18');
-    expect(system).not.toContain('m-10');
+    expect(system).not.toContain('VERBATIM TAIL');
+    const history = out.messages.slice(1);
+    expect(history.some((m) => m.content.includes('m-18'))).toBe(true);
+    expect(history.some((m) => m.content.includes('current-q'))).toBe(true);
+    expect(history.some((m) => m.content.includes('m-10'))).toBe(false);
+    expect(history.some((m) => m.content.includes('m-11'))).toBe(false);
   });
 
   it('embeds fewShots block from persona registry', () => {
@@ -138,7 +163,7 @@ describe('PromptAssembler ask-both-blended mode (post-sprint)', () => {
     expect(out.meta.mode).toBe('ask-both-blended');
   });
 
-  it('AC-3: system block preserves AD-8 9-block order sourced from blended composition', () => {
+  it('AC-3: system block preserves AD-8 block order sourced from blended composition', () => {
     const thread = threadFrom([msg('user', 'hi', 1)]);
     const out = assembler.compose('hitesh', thread, 'ask-both-blended');
     const system = out.messages[0]?.content ?? '';
@@ -150,11 +175,9 @@ describe('PromptAssembler ask-both-blended mode (post-sprint)', () => {
       fewShots: system.indexOf('FEW-SHOT EXAMPLES'),
       reminder: system.indexOf('REPEAT CRITICAL RULES'),
       summary: system.indexOf('ROLLING SUMMARY'),
-      tail: system.indexOf('VERBATIM TAIL'),
       selfCheck: system.indexOf('PRE-RESPONSE SELF-VERIFICATION'),
     };
 
-    // Every block present and in ascending order — AD-8 9-block preservation.
     Object.values(indices).forEach((idx) =>
       expect(idx).toBeGreaterThanOrEqual(0),
     );
@@ -163,8 +186,8 @@ describe('PromptAssembler ask-both-blended mode (post-sprint)', () => {
     expect(indices.refusal).toBeLessThan(indices.fewShots);
     expect(indices.fewShots).toBeLessThan(indices.reminder);
     expect(indices.reminder).toBeLessThan(indices.summary);
-    expect(indices.summary).toBeLessThan(indices.tail);
-    expect(indices.tail).toBeLessThan(indices.selfCheck);
+    expect(indices.summary).toBeLessThan(indices.selfCheck);
+    expect(system).not.toContain('VERBATIM TAIL');
   });
 
   it('AC-8: fusion identityBlock includes the SCRIPT rule and forbids Devanagari', () => {
@@ -206,12 +229,24 @@ describe('PromptAssembler ask-both-blended mode (post-sprint)', () => {
       msg('assistant', 'first blended reply', 2),
     ]);
     const out = assembler.compose('hitesh', thread, 'ask-both-blended');
-    const userMsg = out.messages[1]?.content ?? '';
-    expect(userMsg).toContain('Continue this Blended discussion');
-    expect(userMsg).toContain('fresh angle');
-    // Verbatim tail should now INCLUDE the prior assistant blended reply.
-    const system = out.messages[0]?.content ?? '';
-    expect(system).toContain('first blended reply');
+    const lastUser = out.messages[out.messages.length - 1];
+    expect(lastUser?.role).toBe('user');
+    expect(lastUser?.content).toContain('Continue this Blended discussion');
+    expect(lastUser?.content).toContain('fresh angle');
+    const assistantHistory = out.messages.find(
+      (m) => m.role === 'assistant' && m.content === 'first blended reply',
+    );
+    expect(assistantHistory).toBeDefined();
+  });
+
+  it('AC-5: keep-going path appends a synthetic user turn after native history', () => {
+    const thread = threadFrom([
+      msg('user', 'original question', 1),
+      msg('assistant', 'first blended reply', 2),
+    ]);
+    const out = assembler.compose('hitesh', thread, 'ask-both-keep-going');
+    const last = out.messages[out.messages.length - 1];
+    expect(last?.content).toContain('Respond with your additional take');
   });
 
   it('populates OutboundPrompt.meta.estimatedTokens for the blended composition', () => {

@@ -52,6 +52,16 @@ export type AnalyticsEvent =
       name: 'provider_429_surfaced';
       payload: { provider: ProviderId; retryAfterSec?: number };
     }
+  | {
+      name: 'provider_rate_limit_fallback';
+      payload: {
+        persona: PersonaId;
+        fromProvider: ProviderId;
+        fromModel: string;
+        toProvider: ProviderId;
+        toModel: string;
+      };
+    }
   | { name: 'parallel_fallback_triggered'; payload: Record<string, never> }
   | {
       name: 'stream_stall_detected';

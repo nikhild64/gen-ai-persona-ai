@@ -21,23 +21,12 @@
         [activePersona]="activePersona()"
         [disabled]="orchestrator.inFlightStream()"
       />
-      <app-key-status-badge
-        [persona]="activePersona()"
-        (clicked)="openSettings()"
-      />
       <app-mode-switcher
         activeMode="solo"
         [disabled]="orchestrator.inFlightStream()"
       />
     </div>
   </header>
-
-  <app-settings-modal
-    [(open)]="settingsOpen"
-    [(autoOpenMode)]="settingsAutoOpen"
-    (closedWithSave)="onSettingsSaved()"
-    (closedWithoutSave)="onSettingsDismissed()"
-  />
 
   <div class="message-list" #messageList>
     @for (msg of messages(); track msg.id) {
@@ -54,6 +43,20 @@
   </div>
 
   <form class="input-area" (ngSubmit)="onSend()">
+    @if (starterQuestions().length) {
+    <div class="starter-chips" role="group" [attr.aria-label]="'Suggested questions for ' + personaName()">
+      @for (q of starterQuestions(); track q) {
+      <button
+        type="button"
+        class="starter-chip"
+        [disabled]="inputDisabled()"
+        (click)="onStarterChip(q)"
+      >
+        {{ q }}
+      </button>
+      }
+    </div>
+    }
     <textarea
       #inputEl
       rows="2"

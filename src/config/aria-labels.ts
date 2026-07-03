@@ -36,6 +36,7 @@ export const chatInputLabel = (p: PersonaId | null): string =>
 
 export const sendButtonLabel = 'Send message';
 export const keepGoingButtonLabel = 'Keep going — one more round';
+export const brandHomeLabel = 'Live Personas AI — back to home';
 export const settingsGearLabel = 'Open settings';
 export const clearSessionButtonLabel = 'Clear all chat history';
 export const modalDismissLabel = 'Close';

@@ -1,9 +1,9 @@
-﻿import { Injectable, InjectionToken, inject, signal, computed, type Signal, type WritableSignal } from '@angular/core';
+import { Injectable, InjectionToken, inject, signal, computed, type Signal, type WritableSignal } from '@angular/core';
 import { Subject } from 'rxjs';
 
 import type { PersonaId } from '../../domain/types/persona';
 import type { ChatChunk, Message, Thread } from '../../domain/types/message';
-import type { ProviderPort, ProviderPortAdapterClass } from '../../domain/ports/provider.port';
+import type { ProviderPortAdapterClass } from '../../domain/ports/provider.port';
 import type { ProviderId } from '../../config/provider-registry';
 import { KEEP_GOING_ROUNDS } from '../../config/context-config';
 import type { AskBothMode } from '../../config/feature-flags';
@@ -16,7 +16,7 @@ import blendedComposition from '../../personas/blended.prompt';
 import { PromptAssembler } from '../../domain/prompts/prompt-assembler.service';
 import { KeyVaultService } from '../../domain/key-vault/key-vault.service';
 import { PersonaRoutingService } from '../../domain/key-vault/persona-routing.service';
-import { ModelSelectionService } from '../../domain/key-vault/model-selection.service';
+import { ProviderStreamRunnerService } from '../../domain/chat/provider-stream-runner.service';
 import { getProviderAdapter } from '../../infrastructure/providers/provider.registry';
 import {
   STORAGE_PORT,
@@ -93,7 +93,7 @@ export class AskBothSequencerService {
   private readonly assembler = inject(PromptAssembler);
   private readonly keyVault = inject(KeyVaultService);
   private readonly personaRouting = inject(PersonaRoutingService);
-  private readonly modelSelection = inject(ModelSelectionService);
+  private readonly streamRunner = inject(ProviderStreamRunnerService);
   private readonly modeService = inject(AskBothModeService);
   private readonly adapterFactory = inject(ASK_BOTH_ADAPTER_FACTORY);
   private controller: AbortController | null = null;
@@ -264,6 +264,7 @@ export class AskBothSequencerService {
     this.controller?.abort();
     this.controller = null;
     this.inFlight.set(false);
+    this.currentText.set('');
   }
 
   resetSessionState(): void {
@@ -323,45 +324,35 @@ export class AskBothSequencerService {
       return;
     }
 
-    const AdapterClass = this.adapterFactory(providerId);
-    const adapter: ProviderPort = new (
-      AdapterClass as unknown as new () => ProviderPort
-    )();
-
     const composed = this.assembler.compose(
       'hitesh',
       thread,
       'ask-both-blended',
     );
-    const prompt = {
-      ...composed,
-      model: this.modelSelection.getModelFor(providerId),
-    };
 
-    let accumulated = '';
     let errored = false;
     let doneChunk: ChatChunk | null = null;
+    let accumulated = '';
 
-    try {
-      for await (const chunk of adapter.streamChat(
-        prompt,
-        key,
-        this.controller!.signal,
-      )) {
-        if (chunk.type === 'delta' && chunk.text) {
-          accumulated += chunk.text;
-          this.currentText.set(accumulated);
-        } else if (chunk.type === 'done') {
-          doneChunk = chunk;
-          break;
-        } else if (chunk.type === 'error') {
-          errored = true;
-          break;
-        }
-      }
-    } catch {
-      errored = true;
-    }
+    const streamResult = await this.streamRunner.streamWithRateLimitFallback({
+      persona: 'hitesh',
+      composed,
+      initialProvider: providerId,
+      signal: this.controller!.signal,
+      adapterFactory: this.adapterFactory,
+      onDelta: (text) => {
+        accumulated = text;
+        this.currentText.set(text);
+      },
+      onRetryAttempt: () => {
+        accumulated = '';
+        this.currentText.set('');
+      },
+    });
+
+    accumulated = streamResult.accumulated;
+    doneChunk = streamResult.doneChunk;
+    errored = !!streamResult.errorChunk;
 
     if (!errored && doneChunk && accumulated.trim()) {
       const outputVerdict = await this.moderation.check(accumulated, 'output');
@@ -438,44 +429,27 @@ export class AskBothSequencerService {
       return { text: '', errored: true };
     }
 
-    const AdapterClass = this.adapterFactory(providerId);
-    const adapter: ProviderPort = new (
-      AdapterClass as unknown as new () => ProviderPort
-    )();
-
     const composed = this.assembler.compose(persona, thread, mode, {
       systemNote,
     });
-    // See ChatOrchestrator: pick the user-selected model for this provider
-    // (falls back to PROVIDER_DEFAULT_MODELS when the user hasn't chosen).
-    const prompt = {
-      ...composed,
-      model: this.modelSelection.getModelFor(providerId),
-    };
-    let accumulated = '';
-    let errored = false;
-    let doneChunk: ChatChunk | null = null;
 
-    try {
-      for await (const chunk of adapter.streamChat(
-        prompt,
-        key,
-        this.controller!.signal,
-      )) {
-        if (chunk.type === 'delta' && chunk.text) {
-          accumulated += chunk.text;
-          this.currentText.set(accumulated);
-        } else if (chunk.type === 'done') {
-          doneChunk = chunk;
-          break;
-        } else if (chunk.type === 'error') {
-          errored = true;
-          break;
-        }
-      }
-    } catch {
-      errored = true;
-    }
+    const streamResult = await this.streamRunner.streamWithRateLimitFallback({
+      persona,
+      composed,
+      initialProvider: providerId,
+      signal: this.controller!.signal,
+      adapterFactory: this.adapterFactory,
+      onDelta: (text) => {
+        this.currentText.set(text);
+      },
+      onRetryAttempt: () => {
+        this.currentText.set('');
+      },
+    });
+
+    const accumulated = streamResult.accumulated;
+    const doneChunk = streamResult.doneChunk;
+    const errored = !!streamResult.errorChunk;
 
     if (!errored && doneChunk && accumulated.trim()) {
       const outputVerdict = await this.moderation.check(accumulated, 'output');

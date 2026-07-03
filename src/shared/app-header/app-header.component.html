@@ -1,0 +1,21 @@
+<header class="app-header">
+  <div class="header-inner">
+    <a class="brand" routerLink="/" [attr.aria-label]="brandAriaLabel">
+      {{ brandName }}
+    </a>
+    <app-key-status-badge
+      [persona]="badgePersona()"
+      [askBoth]="badgeAskBoth()"
+      (clicked)="settings.openSettings()"
+    />
+  </div>
+</header>
+
+<app-settings-modal
+  [open]="settings.open()"
+  (openChange)="settings.open.set($event)"
+  [autoOpenMode]="settings.autoOpenMode()"
+  (autoOpenModeChange)="settings.autoOpenMode.set($event)"
+  (closedWithSave)="settings.notifySaved()"
+  (closedWithoutSave)="settings.notifyDismissed()"
+/>
