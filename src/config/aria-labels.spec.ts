@@ -17,8 +17,8 @@ import {
 
 describe('aria-labels (AD-20 per EXPERIENCE.md Accessibility Floor)', () => {
   it('produces informative persona switcher labels', () => {
-    expect(personaSwitcherLabel('hitesh')).toContain('Hitesh');
-    expect(personaSwitcherLabel('piyush')).toContain('Piyush');
+    expect(personaSwitcherLabel('musk')).toContain('Musk');
+    expect(personaSwitcherLabel('jobs')).toContain('Jobs');
   });
 
   it('produces informative mode switcher labels', () => {
@@ -28,7 +28,7 @@ describe('aria-labels (AD-20 per EXPERIENCE.md Accessibility Floor)', () => {
 
   it('adapts chat-input label to null (ask-both) vs a specific persona', () => {
     expect(chatInputLabel(null)).toContain('blended');
-    expect(chatInputLabel('hitesh')).toContain('Hitesh');
+    expect(chatInputLabel('musk')).toContain('Musk');
   });
 
   it('exposes static labels for every named interactive control', () => {
@@ -39,7 +39,7 @@ describe('aria-labels (AD-20 per EXPERIENCE.md Accessibility Floor)', () => {
       clearSessionButtonLabel,
       modalDismissLabel,
       disclaimerLinkLabel,
-      personaCardLabel('piyush'),
+      personaCardLabel('jobs'),
     ].forEach((s) => expect(s.length).toBeGreaterThan(0));
   });
 

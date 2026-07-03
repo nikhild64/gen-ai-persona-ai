@@ -27,7 +27,11 @@ export class KeyVaultService {
     signal<ProviderId | null>(null);
 
   readonly currentProvider: Signal<ProviderId | null> = this._current.asReadonly();
-  readonly hasKey = computed(() => this._current() !== null);
+  readonly hasKey = computed(
+    () =>
+      this.getKeyForProvider('gemini') !== null ||
+      this.getKeyForProvider('groq') !== null,
+  );
 
   constructor() {
     for (const p of ['gemini', 'groq'] as ProviderId[]) {
@@ -53,7 +57,13 @@ export class KeyVaultService {
 
   clearKey(provider: ProviderId): void {
     localStoreRemove(KeyVaultService.storageKey(provider));
-    if (this._current() === provider) this._current.set(null);
+    if (this._current() === provider) {
+      const fallback =
+        (['gemini', 'groq'] as ProviderId[]).find(
+          (p) => p !== provider && this.readRaw(p),
+        ) ?? null;
+      this._current.set(fallback);
+    }
   }
 
   clearKeyForProvider(provider: ProviderId): void {

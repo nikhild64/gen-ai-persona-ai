@@ -6,7 +6,7 @@ import { personaRouteGuard } from './persona-route.guard';
 import { FEATURE_ASK_BOTH_MODE } from '../../config/feature-flags';
 
 export const CHAT_ROUTES: Routes = [
-  { path: '', redirectTo: 'hitesh', pathMatch: 'full' },
+  { path: '', redirectTo: 'musk', pathMatch: 'full' },
   {
     path: 'ask-both',
     canActivate: [

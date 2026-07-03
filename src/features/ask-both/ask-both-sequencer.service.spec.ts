@@ -74,15 +74,17 @@ describe('AskBothSequencerService — blended-only Ask-Both', () => {
   it('persists exactly ONE assistant bubble with attributionLabel and no persona', async () => {
     const adapter = new MockAdapter().configure(
       [
-        { type: 'delta', text: 'Haanji, dekho — ' },
-        { type: 'delta', text: 'chalo baat karte hain kuch nahi hai yaar.' },
+        {
+          type: 'delta',
+          text: 'First principles — design must be insanely great.',
+        },
         { type: 'done', meta: { tokens: 5, model: 'mock' } },
       ],
       0,
     );
     const { sequencer } = build(adapter);
 
-    await sequencer.askBoth('React seekhna chahiye?');
+    await sequencer.askBoth('How should I build this product?');
 
     const storage = TestBed.inject(STORAGE_PORT);
     const thread = (await storage.get<Thread>('chat:ask-both:v1'))!;
@@ -91,23 +93,26 @@ describe('AskBothSequencerService — blended-only Ask-Both', () => {
     );
     expect(assistantMessages).toHaveLength(1);
     const bubble = assistantMessages[0]!;
-    expect(bubble.attributionLabel).toBe('Hitesh + Piyush');
+    expect(bubble.attributionLabel).toBe('Musk + Jobs');
     expect(bubble.persona).toBeUndefined();
     expect(bubble.status).toBe('complete');
-    expect(bubble.content).toContain('Haanji');
+    expect(bubble.content).toContain('First principles');
   });
 
   it('emits ask_both_blended_message_sent with sessionId, threadId, and tokenEstimate', async () => {
     const adapter = new MockAdapter().configure(
       [
-        { type: 'delta', text: 'Dekho yaar, kuch nahi hai.' },
+        {
+          type: 'delta',
+          text: 'Use first principles — elegant design is how it works.',
+        },
         { type: 'done', meta: { tokens: 3, model: 'mock' } },
       ],
       0,
     );
     const { sequencer, analytics } = build(adapter);
 
-    await sequencer.askBoth('Docker kya hai?');
+    await sequencer.askBoth('What matters in product design?');
 
     const blendedEvent = analytics.events.find(
       (e) => e.name === 'ask_both_blended_message_sent',
@@ -142,7 +147,10 @@ describe('AskBothSequencerService — blended-only Ask-Both', () => {
   it('does NOT emit regex-miss when a blended signature phrase is present', async () => {
     const adapter = new MockAdapter().configure(
       [
-        { type: 'delta', text: 'Haanji chai peeni hai — chalo baat karte hain.' },
+        {
+          type: 'delta',
+          text: 'First principles on Mars — insanely great engineering.',
+        },
         { type: 'done', meta: { tokens: 3, model: 'mock' } },
       ],
       0,
@@ -161,17 +169,23 @@ describe('AskBothSequencerService — blended-only Ask-Both', () => {
   it('Keep going adds one MORE blended bubble (single call, single bubble)', async () => {
     const adapter = new MockAdapter().configure(
       [
-        { type: 'delta', text: 'Haanji first take. Dekho.' },
+        {
+          type: 'delta',
+          text: 'First principles first — design is how it works.',
+        },
         { type: 'done', meta: { tokens: 3, model: 'mock' } },
       ],
       0,
     );
     const { sequencer } = build(adapter);
-    await sequencer.askBoth('React ya Next.js?');
+    await sequencer.askBoth('React or Next.js?');
 
     adapter.configure(
       [
-        { type: 'delta', text: 'Chai ke saath, dekho — ek aur angle.' },
+        {
+          type: 'delta',
+          text: 'Physics over analogy — stay hungry, stay foolish.',
+        },
         { type: 'done', meta: { tokens: 4, model: 'mock' } },
       ],
       0,
@@ -185,7 +199,7 @@ describe('AskBothSequencerService — blended-only Ask-Both', () => {
     );
     expect(assistantMessages).toHaveLength(2);
     expect(
-      assistantMessages.every((m) => m.attributionLabel === 'Hitesh + Piyush'),
+      assistantMessages.every((m) => m.attributionLabel === 'Musk + Jobs'),
     ).toBe(true);
     expect(assistantMessages.every((m) => m.persona === undefined)).toBe(true);
   });

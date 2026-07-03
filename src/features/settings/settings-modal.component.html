@@ -14,39 +14,11 @@
       }
       <h2>{{ title }}</h2>
       <p class="lead">
-        Route each persona to the provider whose key you want to use.
-        You can point both personas at the same provider if you only
-        have one key.
+        Paste your provider keys first, pick models, then route each persona
+        to the provider you want to use.
       </p>
     </div>
   </ng-template>
-
-  <section class="routing">
-    <h3 class="section-heading">Which provider answers as…</h3>
-    <div class="routing-grid">
-      @for (persona of personas; track persona) {
-      <label class="route-row">
-        <span class="lbl">{{ personaLabel(persona) }}</span>
-        <p-select
-          [options]="providerOptions"
-          [ngModel]="routing()[persona]"
-          (ngModelChange)="setRoute(persona, $event)"
-          [ngModelOptions]="{ standalone: true }"
-          optionLabel="label"
-          optionValue="value"
-          appendTo="body"
-        ></p-select>
-        <span
-          class="route-status"
-          [class.ok]="isSaved(routing()[persona])"
-        >
-          @if (isSaved(routing()[persona])) { Key ready } @else { Key
-          missing }
-        </span>
-      </label>
-      }
-    </div>
-  </section>
 
   <h3 class="section-heading">Provider keys</h3>
   @for (slot of slots; track slot.id) {
@@ -149,6 +121,33 @@
     </div>
   </section>
   }
+
+  <section class="routing">
+    <h3 class="section-heading">Which provider answers as…</h3>
+    <div class="routing-grid">
+      @for (persona of personas; track persona) {
+      <label class="route-row">
+        <span class="lbl">{{ personaLabel(persona) }}</span>
+        <p-select
+          [options]="providerOptions"
+          [ngModel]="routing()[persona]"
+          (ngModelChange)="setRoute(persona, $event)"
+          [ngModelOptions]="{ standalone: true }"
+          optionLabel="label"
+          optionValue="value"
+          appendTo="body"
+        ></p-select>
+        <span
+          class="route-status"
+          [class.ok]="isSaved(routing()[persona])"
+        >
+          @if (isSaved(routing()[persona])) { Key ready } @else { Key
+          missing }
+        </span>
+      </label>
+      }
+    </div>
+  </section>
 
   <ng-template pTemplate="footer">
     <div class="footer-actions">

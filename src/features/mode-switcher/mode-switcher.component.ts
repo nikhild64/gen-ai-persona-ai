@@ -13,6 +13,7 @@ import { PRODUCT_COPY } from '../../config/product-copy';
 import { ANALYTICS_PORT } from '../../domain/chat/di-tokens';
 import { FEATURE_ASK_BOTH_MODE } from '../../config/feature-flags';
 import { localStoreGet } from '../../domain/key-vault/browser-local-storage';
+import { PERSONA_IDS } from '../../domain/types/persona';
 
 export type ChatMode = 'solo' | 'ask-both';
 
@@ -70,7 +71,7 @@ export class ModeSwitcherComponent {
       void this.router.navigateByUrl('/chat/ask-both');
     } else {
       const last = localStoreGet('last-active-solo');
-      void this.router.navigateByUrl(`/chat/${last ?? 'hitesh'}`);
+      void this.router.navigateByUrl(`/chat/${last ?? PERSONA_IDS[0]}`);
     }
   }
 }

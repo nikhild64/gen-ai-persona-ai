@@ -142,6 +142,21 @@
 
   <form class="input-area" (ngSubmit)="onSend()">
 
+    @if (starterQuestions().length) {
+    <div class="starter-chips" role="group" [attr.aria-label]="'Suggested questions for ' + personaName()">
+      @for (q of starterQuestions(); track q) {
+      <button
+        type="button"
+        class="starter-chip"
+        [disabled]="inputDisabled()"
+        (click)="onStarterChip(q)"
+      >
+        {{ q }}
+      </button>
+      }
+    </div>
+    }
+
     <textarea
 
       #inputEl

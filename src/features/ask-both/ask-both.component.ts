@@ -31,6 +31,7 @@ import { PersonaPickerDialogComponent } from '../persona-picker/persona-picker-d
 import { AskBothSequencerService } from './ask-both-sequencer.service';
 import { AskBothModeService } from './ask-both-mode.service';
 import { BlendedPairService } from './blended-pair.service';
+import { PersonaRoutingService } from '../../domain/key-vault/persona-routing.service';
 
 @Component({
   selector: 'app-ask-both',
@@ -53,6 +54,7 @@ export class AskBothComponent implements OnDestroy {
   readonly sequencer = inject(AskBothSequencerService);
   readonly modeService = inject(AskBothModeService);
   readonly blendedPair = inject(BlendedPairService);
+  private readonly personaRouting = inject(PersonaRoutingService);
   private readonly storage = inject(STORAGE_PORT);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
@@ -62,7 +64,9 @@ export class AskBothComponent implements OnDestroy {
   readonly draft = signal('');
   readonly messages = signal<Message[]>([]);
   readonly settingsOpen = signal(false);
+  readonly settingsAutoOpen = signal(false);
   readonly pickerOpen = signal(false);
+  private queuedText: string | null = null;
   readonly bridgeMessage = this.sequencer.bridgeAnnouncement;
   readonly canKeepGoing = this.sequencer.canKeepGoing;
 
@@ -72,6 +76,7 @@ export class AskBothComponent implements OnDestroy {
   readonly askBothGreeting = PRODUCT_COPY.askBothGreeting;
   readonly askBothGreetingHint = PRODUCT_COPY.askBothGreetingHint;
   readonly inputPlaceholder = PRODUCT_COPY.askBothInputPlaceholder;
+  readonly starterQuestions = PRODUCT_COPY.askBothStarterQuestions;
   readonly keepGoingLabel = PRODUCT_COPY.keepGoingButtonLabel;
   readonly sendLabel = PRODUCT_COPY.askBothSendButtonLabel;
 
@@ -89,6 +94,13 @@ export class AskBothComponent implements OnDestroy {
     this.sequencer.threadUpdated$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => void this.reloadThread());
+
+    this.sequencer.keyMissing$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.settingsAutoOpen.set(true);
+        this.settingsOpen.set(true);
+      });
 
     effect(() => {
       this.messages();
@@ -131,6 +143,39 @@ export class AskBothComponent implements OnDestroy {
   onSend(): void {
     const text = this.draft().trim();
     if (!text || this.sequencer.inFlight()) return;
+
+    if (!this.personaRouting.hasAnyProviderKey()) {
+      this.queuedText = text;
+      this.settingsAutoOpen.set(true);
+      this.settingsOpen.set(true);
+      return;
+    }
+
+    this.dispatchSend(text);
+  }
+
+  onStarterChip(question: string): void {
+    if (this.sequencer.inFlight()) return;
+    this.draft.set(question);
+    this.onSend();
+  }
+
+  onSettingsSaved(): void {
+    const wasAuto = this.settingsAutoOpen();
+    this.settingsAutoOpen.set(false);
+    if (wasAuto && this.queuedText) {
+      const text = this.queuedText;
+      this.queuedText = null;
+      this.dispatchSend(text);
+    }
+  }
+
+  onSettingsDismissed(): void {
+    this.settingsAutoOpen.set(false);
+    this.queuedText = null;
+  }
+
+  private dispatchSend(text: string): void {
     this.messages.update((m) => [
       ...m,
       {

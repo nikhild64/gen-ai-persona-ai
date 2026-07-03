@@ -4,7 +4,7 @@ import { PERSONA_IDS } from '../domain/types/persona';
 import { personaChatDisclaimer } from './persona-disclaimers';
 
 describe('personaChatDisclaimer (V2 legal framing)', () => {
-  it('covers all seven personas with non-empty parody disclaimers', () => {
+  it('covers all active personas with non-empty parody disclaimers', () => {
     for (const id of PERSONA_IDS) {
       const text = personaChatDisclaimer(id);
       expect(text.length).toBeGreaterThan(40);
@@ -28,8 +28,4 @@ describe('personaChatDisclaimer (V2 legal framing)', () => {
     }
   });
 
-  it('preserves cohort framing for Hitesh and Piyush', () => {
-    expect(personaChatDisclaimer('hitesh')).toMatch(/ChaiCode cohort/i);
-    expect(personaChatDisclaimer('piyush')).toMatch(/ChaiCode cohort/i);
-  });
 });

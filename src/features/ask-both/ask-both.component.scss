@@ -163,6 +163,28 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+.starter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+.starter-chip {
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(255, 255, 255, 0.85);
+  color: #44403c;
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.35;
+  cursor: pointer;
+  text-align: left;
+  max-width: 100%;
+}
+.starter-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 .input-area {
   display: flex;
   flex-direction: column;

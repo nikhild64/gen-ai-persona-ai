@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { assertNever, type PersonaId } from './persona';
+import { assertNever, type PersonaId, PERSONA_IDS } from './persona';
 
 describe('assertNever', () => {
   it('throws when reached at runtime with an unknown variant', () => {
@@ -19,16 +19,23 @@ describe('assertNever', () => {
     const pickPersona = (which: PersonaId): PersonaId => which;
     const runSwitch = (persona: PersonaId): string => {
       switch (persona) {
-        case 'hitesh':
-          return 'hitesh';
-        case 'piyush':
-          return 'piyush';
+        case 'musk':
+          return 'musk';
+        case 'jobs':
+          return 'jobs';
+        case 'gandhi':
+          return 'gandhi';
+        case 'einstein':
+          return 'einstein';
+        case 'newton':
+          return 'newton';
         default:
           return assertNever(persona);
       }
     };
 
-    expect(runSwitch(pickPersona('hitesh'))).toBe('hitesh');
-    expect(runSwitch(pickPersona('piyush'))).toBe('piyush');
+    for (const id of PERSONA_IDS) {
+      expect(runSwitch(pickPersona(id))).toBe(id);
+    }
   });
 });

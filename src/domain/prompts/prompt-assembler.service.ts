@@ -76,7 +76,7 @@ export class PromptAssembler {
           options?.systemNote,
         );
       case 'ask-both-blended': {
-        const pair = options?.blendedPair ?? { a: 'hitesh' as PersonaId, b: 'piyush' as PersonaId };
+        const pair = options?.blendedPair ?? { a: 'musk' as PersonaId, b: 'jobs' as PersonaId };
         const blendedParams = this.blendedModelParams(pair.a, pair.b);
         return this.composeAskBothBlended(thread, blendedParams, pair);
       }
@@ -389,15 +389,15 @@ export class PromptAssembler {
   private voiceReminderFor(persona: PersonaId): string {
     switch (persona) {
       case 'musk':
-        return 'Reminder: English only. First-principles decomposition first, then engineering realism. Concise punchy sentences. NEVER give financial advice or political commentary.';
+        return 'Reminder: First principles first — physics over analogy, manufacturing realism. Refuse financial or political bait in Musk voice ("physics is the law"), never as a generic policy bot. Concise punchy English.';
       case 'jobs':
-        return 'Reminder: English only. Design-first storytelling — simplicity, taste, user experience. Short elegant paragraphs. NEVER recommend current Apple products or claim to be the real Steve Jobs.';
+        return 'Reminder: Minimalist eloquence — design is how it works, say no to clutter. Refuse product pitches with principles, not shopping lists. Stay hungry. Stay foolish.';
       case 'gandhi':
-        return 'Reminder: Philosophical humility and moral clarity. Sanskrit/Hindi terms in Latin transliteration ONLY — no Devanagari. NEVER engage modern political disputes.';
+        return 'Reminder: Humble moral tone — ahimsa, satyagraha, truth, service. Latin transliteration ONLY, zero Devanagari. Deflect modern politics to principles in prayerful voice.';
       case 'einstein':
-        return 'Reminder: Curious warmth with thought-experiment pedagogy. English reflective paragraphs. NEVER speculate on post-1955 physics or claim to be the real Einstein.';
+        return 'Reminder: Curious warmth — thought experiments, wonder before certainty. No post-1955 physics as your opinion. Refuse tricks with gentle humility, not assistant boilerplate.';
       case 'newton':
-        return 'Reminder: Formal but readable 17th-century English. Precise definitions and demonstrated truth. NEVER present apple-on-head as verified biography or claim to be the real Newton.';
+        return 'Reminder: Formal natural philosophy — define terms, demonstration over hypothesis. Distinguish myth from verified writing. Refuse modern engineering leaps in 17th-c voice.';
       default:
         return assertNever(persona);
     }

@@ -88,7 +88,7 @@ describe('ChatOrchestrator', () => {
     );
     const { orchestrator, analytics } = build(mock);
     await new Promise<void>((resolve, reject) => {
-      orchestrator.sendMessage('hitesh', 'hi bhai').subscribe({
+      orchestrator.sendMessage('musk', 'hi').subscribe({
         error: reject,
         complete: resolve,
       });
@@ -99,7 +99,7 @@ describe('ChatOrchestrator', () => {
     const messageSent = analytics.events.find((e) => e.name === 'message_sent');
     expect(messageSent).toBeTruthy();
     const storage = TestBed.inject(STORAGE_PORT);
-    const thread = (await storage.get<Thread>('chat:hitesh:v1'))!;
+    const thread = (await storage.get<Thread>('chat:musk:v1'))!;
     expect(thread.messages.at(-1)?.role).toBe('assistant');
     expect(thread.messages.at(-1)?.status).toBe('complete');
   });
@@ -114,7 +114,7 @@ describe('ChatOrchestrator', () => {
     );
     const { orchestrator, analytics } = build(mock);
     await new Promise<void>((resolve) =>
-      orchestrator.sendMessage('hitesh', 'plz').subscribe({ complete: resolve }),
+      orchestrator.sendMessage('musk', 'plz').subscribe({ complete: resolve }),
     );
     const miss = analytics.events.find((e) => e.name === 'persona_regex_miss');
     expect(miss).toBeTruthy();
@@ -125,7 +125,7 @@ describe('ChatOrchestrator', () => {
     const { orchestrator, analytics, moderation } = build(mock);
     moderation.input = { allowed: false, category: 'off_domain' };
     await new Promise<void>((resolve) =>
-      orchestrator.sendMessage('piyush', 'quantum physics').subscribe({
+      orchestrator.sendMessage('jobs', 'quantum physics').subscribe({
         complete: resolve,
       }),
     );
@@ -145,12 +145,12 @@ describe('ChatOrchestrator', () => {
     );
     const { orchestrator } = build(mock);
     const done = new Promise<void>((resolve) =>
-      orchestrator.sendMessage('hitesh', 'hi').subscribe({ complete: resolve }),
+      orchestrator.sendMessage('musk', 'hi').subscribe({ complete: resolve }),
     );
     setTimeout(() => orchestrator.cancelInFlight(), 10);
     await done;
     const storage = TestBed.inject(STORAGE_PORT);
-    const thread = (await storage.get<Thread>('chat:hitesh:v1'))!;
+    const thread = (await storage.get<Thread>('chat:musk:v1'))!;
     const last = thread.messages.at(-1);
     expect(last?.status).toBe('cancelled');
   });

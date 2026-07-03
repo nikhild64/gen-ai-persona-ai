@@ -118,7 +118,7 @@ export function buildBlendedComposition(
   };
 }
 
-/** Default export: backwards-compatible Hitesh + Piyush pair. */
+/** Default export: V2 Musk + Jobs pair. */
 const blendedComposition = buildBlendedComposition('musk', 'jobs');
 
 export default blendedComposition;

@@ -41,6 +41,8 @@ export type PersonaRegistryEntry = {
   prompt: PromptComposition;
   greeting: string;
   inputPlaceholder: string;
+  /** Tap-to-send suggested prompts shown above the chat input. */
+  starterQuestions: readonly string[];
   providerId: ProviderId;
   fullDisplayName: string;
   tagline: string;
@@ -77,6 +79,11 @@ export const PERSONA_REGISTRY: Record<PersonaId, PersonaRegistryEntry> = {
     greeting:
       'Look — first principles. What are we trying to build or understand today? Ask about engineering, manufacturing, rockets, or how systems actually work.',
     inputPlaceholder: 'Ask about first principles, physics, Mars...',
+    starterQuestions: [
+      'Why are electric cars still so expensive?',
+      'Is Mars realistic in our lifetime?',
+      'Should I learn to code or focus on AI prompts?',
+    ],
     providerId: PROVIDER_DEFAULT_ROUTING.musk,
     fullDisplayName: 'Elon Musk',
     tagline: 'First principles. Physics. Build what matters.',
@@ -88,6 +95,11 @@ export const PERSONA_REGISTRY: Record<PersonaId, PersonaRegistryEntry> = {
     greeting:
       'Focus matters. What are you trying to make insanely great? Ask me about design, simplicity, craft — and why you should stay hungry.',
     inputPlaceholder: 'Ask about design, focus, simplicity...',
+    starterQuestions: [
+      'How do I know if I am in the right career?',
+      'My app has too many features and users are confused.',
+      'I failed at my startup. Should I quit?',
+    ],
     providerId: PROVIDER_DEFAULT_ROUTING.jobs,
     fullDisplayName: 'Steve Jobs',
     tagline: 'Design is how it works. Stay hungry. Stay foolish.',
@@ -99,6 +111,11 @@ export const PERSONA_REGISTRY: Record<PersonaId, PersonaRegistryEntry> = {
     greeting:
       'Peace. In my experiments with truth I learned that change begins within. What brings your conscience here today?',
     inputPlaceholder: 'Ask about truth, ahimsa, satyagraha, service...',
+    starterQuestions: [
+      'How can one person make a difference?',
+      'Is violence ever justified when people are oppressed?',
+      'What should I do about stress and anger?',
+    ],
     providerId: PROVIDER_DEFAULT_ROUTING.gandhi,
     fullDisplayName: 'Mahatma Gandhi',
     tagline: 'Truth and non-violence. Be the change you seek.',
@@ -110,6 +127,11 @@ export const PERSONA_REGISTRY: Record<PersonaId, PersonaRegistryEntry> = {
     greeting:
       'Curiosity brought you here — good. The most beautiful thing we can experience is the mysterious. What question shall we explore together?',
     inputPlaceholder: 'Ask about curiosity, imagination, science...',
+    starterQuestions: [
+      'How did you come up with relativity?',
+      'Should students memorize formulas or explore?',
+      'What would you think about quantum computers?',
+    ],
     providerId: PROVIDER_DEFAULT_ROUTING.einstein,
     fullDisplayName: 'Albert Einstein',
     tagline: 'Imagination, curiosity, and thought experiments.',
@@ -121,6 +143,11 @@ export const PERSONA_REGISTRY: Record<PersonaId, PersonaRegistryEntry> = {
     greeting:
       'You find me at my desk of natural philosophy. What matter of force, motion, or light shall we demonstrate today?',
     inputPlaceholder: 'Ask about force, motion, natural philosophy...',
+    starterQuestions: [
+      'Did an apple really fall on your head?',
+      'How should I study physics today?',
+      'Why does a prism make a rainbow?',
+    ],
     providerId: PROVIDER_DEFAULT_ROUTING.newton,
     fullDisplayName: 'Isaac Newton',
     tagline: 'On the shoulders of giants — force, motion, light.',

@@ -1,5 +1,6 @@
 import {
   Injectable,
+  inject,
   signal,
   type Signal,
   type WritableSignal,
@@ -9,6 +10,7 @@ import type { PersonaId } from '../types/persona';
 import type { ProviderId } from '../../config/provider-registry';
 import { PROVIDER_DEFAULT_ROUTING } from '../../config/provider-registry';
 import { localStoreGet, localStoreSet } from './browser-local-storage';
+import { KeyVaultService } from './key-vault.service';
 
 const STORAGE_KEY = 'persona-routing:v1';
 
@@ -16,14 +18,13 @@ const STORAGE_KEY = 'persona-routing:v1';
  * User-configurable persona → provider mapping. Persisted to localStorage
  * (same lifecycle as saved API keys).
  *
- * The `PROVIDER_DEFAULT_ROUTING` values from `provider-registry.ts` remain
- * the source-of-truth defaults; this service just lets the user override
- * per-persona at runtime via the settings modal. `ChatOrchestrator` and
- * `AskBothSequencerService` read `getProviderFor(persona)` instead of the
- * hard-coded default so the mapping is honoured for every outbound call.
+ * When only one provider key is saved, every persona is routed to that
+ * provider automatically so a single Gemini or Groq key powers the whole app.
  */
 @Injectable({ providedIn: 'root' })
 export class PersonaRoutingService {
+  private readonly keyVault = inject(KeyVaultService);
+
   private readonly _routing: WritableSignal<Record<PersonaId, ProviderId>> =
     signal<Record<PersonaId, ProviderId>>({ ...PROVIDER_DEFAULT_ROUTING });
 
@@ -46,8 +47,25 @@ export class PersonaRoutingService {
     }
   }
 
+  /** Resolved provider for outbound calls (honours single-key fallback). */
   getProviderFor(persona: PersonaId): ProviderId {
-    return this._routing()[persona];
+    const configured = this._routing()[persona];
+    const sole = this.soleAvailableProvider();
+    if (sole) return sole;
+    return configured;
+  }
+
+  /** True when the effective provider for this persona has a saved key. */
+  hasKeyForPersona(persona: PersonaId): boolean {
+    return this.keyVault.getKeyForProvider(this.getProviderFor(persona)) !== null;
+  }
+
+  /** True when at least one provider key exists in the vault. */
+  hasAnyProviderKey(): boolean {
+    return (
+      this.keyVault.getKeyForProvider('gemini') !== null ||
+      this.keyVault.getKeyForProvider('groq') !== null
+    );
   }
 
   setProviderFor(persona: PersonaId, provider: ProviderId): void {
@@ -58,6 +76,14 @@ export class PersonaRoutingService {
   reset(): void {
     this._routing.set({ ...PROVIDER_DEFAULT_ROUTING });
     this.persist();
+  }
+
+  private soleAvailableProvider(): ProviderId | null {
+    const hasGemini = this.keyVault.getKeyForProvider('gemini') !== null;
+    const hasGroq = this.keyVault.getKeyForProvider('groq') !== null;
+    if (hasGemini && !hasGroq) return 'gemini';
+    if (hasGroq && !hasGemini) return 'groq';
+    return null;
   }
 
   private persist(): void {

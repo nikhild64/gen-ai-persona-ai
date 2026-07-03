@@ -75,6 +75,8 @@ export class AskBothSequencerService {
    *  can incrementally refresh its `messages()` signal instead of waiting
    *  for the full `askBoth()` promise to resolve. */
   readonly threadUpdated$: Subject<void> = new Subject<void>();
+  /** Fired when ask-both is invoked without any saved provider key. */
+  readonly keyMissing$ = new Subject<void>();
 
   readonly canKeepGoing: Signal<boolean> = computed(
     () =>
@@ -132,6 +134,11 @@ export class AskBothSequencerService {
         name: 'moderation_blocked',
         payload: { direction: 'input', category: inputVerdict.category },
       });
+      return;
+    }
+
+    if (!this.personaRouting.hasAnyProviderKey()) {
+      this.keyMissing$.next();
       return;
     }
 

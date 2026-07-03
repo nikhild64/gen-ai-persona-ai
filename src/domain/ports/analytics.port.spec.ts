@@ -11,12 +11,12 @@ class InMemoryAnalytics implements AnalyticsPort {
 }
 
 const EVERY_EVENT: AnalyticsEvent[] = [
-  { name: 'persona_selected', payload: { persona: 'hitesh' } },
-  { name: 'persona_switched', payload: { from: 'hitesh', to: 'piyush' } },
+  { name: 'persona_selected', payload: { persona: 'musk' } },
+  { name: 'persona_switched', payload: { from: 'musk', to: 'jobs' } },
   { name: 'mode_switched', payload: { from: 'solo', to: 'ask-both' } },
   {
     name: 'message_sent',
-    payload: { persona: 'hitesh', mode: 'solo', charCount: 12 },
+    payload: { persona: 'musk', mode: 'solo', charCount: 12 },
   },
   { name: 'ask_both_message_sent', payload: { charCount: 20 } },
   {
@@ -33,7 +33,7 @@ const EVERY_EVENT: AnalyticsEvent[] = [
     name: 'moderation_blocked',
     payload: { direction: 'input', category: 'off_domain' },
   },
-  { name: 'persona_regex_miss', payload: { persona: 'piyush' } },
+  { name: 'persona_regex_miss', payload: { persona: 'jobs' } },
   { name: 'persona_regex_miss', payload: { persona: 'blended' } },
   {
     name: 'summary_failed',
@@ -46,7 +46,7 @@ const EVERY_EVENT: AnalyticsEvent[] = [
   { name: 'parallel_fallback_triggered', payload: {} },
   {
     name: 'stream_stall_detected',
-    payload: { persona: 'hitesh', elapsedMs: 6000 },
+    payload: { persona: 'musk', elapsedMs: 6000 },
   },
   {
     name: 'spike_zero_gemini_cors_result',

@@ -60,13 +60,13 @@ describe('regex-patterns (AD-19)', () => {
 
 describe('hasBlendedSignature (V2 pair-aware)', () => {
   it('matches when persona A signature is present', () => {
-    expect(hasBlendedSignature('Haanji chalo baat karte hain', 'hitesh', 'musk')).toBe(
+    expect(hasBlendedSignature('first principles on Mars', 'musk', 'jobs')).toBe(
       true,
     );
   });
 
   it('matches when persona B signature is present', () => {
-    expect(hasBlendedSignature('first principles on Mars', 'hitesh', 'musk')).toBe(
+    expect(hasBlendedSignature('insanely great design', 'musk', 'jobs')).toBe(
       true,
     );
   });
@@ -84,7 +84,7 @@ describe('hasBlendedSignature (V2 pair-aware)', () => {
     ).toBe(false);
   });
 
-  it('legacy helper defaults to Hitesh + Piyush', () => {
-    expect(hasBlendedSignatureLegacy('Dekho, ek kaam karte hain')).toBe(true);
+  it('legacy helper defaults to Musk + Jobs', () => {
+    expect(hasBlendedSignatureLegacy('first principles on Mars')).toBe(true);
   });
 });

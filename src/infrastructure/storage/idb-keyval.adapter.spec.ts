@@ -27,15 +27,15 @@ describe('IdbKeyvalStorageAdapter', () => {
   it('round-trips a Thread through set/get', async () => {
     const thread: Thread = {
       id: 't',
-      scope: 'hitesh',
+      scope: 'musk',
       messages: [],
       rollingSummary: null,
       turnsSinceLastSummary: 0,
       createdAt: 1,
       updatedAt: 1,
     };
-    await adapter.set<Thread>('chat:hitesh:v1', thread);
-    const back = await adapter.get<Thread>('chat:hitesh:v1');
+    await adapter.set<Thread>('chat:musk:v1', thread);
+    const back = await adapter.get<Thread>('chat:musk:v1');
     expect(back).toEqual(thread);
   });
 

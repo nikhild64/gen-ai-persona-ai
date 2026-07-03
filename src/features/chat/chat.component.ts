@@ -17,6 +17,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 
 import { ChatOrchestrator } from '../../domain/chat/chat-orchestrator.service';
+import { PersonaRoutingService } from '../../domain/key-vault/persona-routing.service';
 import { STORAGE_PORT, ANALYTICS_PORT } from '../../domain/chat/di-tokens';
 import type { PersonaId } from '../../domain/types/persona';
 import { isPersonaId } from '../../domain/types/persona';
@@ -44,7 +45,7 @@ import { SettingsModalComponent } from '../settings/settings-modal.component';
 import { KeyStatusBadgeComponent } from '../settings/key-status-badge.component';
 import { ModeSwitcherComponent } from '../mode-switcher/mode-switcher.component';
 import { Router } from '@angular/router';
-import { localStoreGet, localStoreSet } from '../../domain/key-vault/browser-local-storage';
+import { localStoreSet } from '../../domain/key-vault/browser-local-storage';
 
 /**
  * Solo-mode chat surface. `activePersona` is currently hard-wired via route
@@ -71,6 +72,7 @@ import { localStoreGet, localStoreSet } from '../../domain/key-vault/browser-loc
 })
 export class ChatComponent {
   readonly orchestrator = inject(ChatOrchestrator);
+  private readonly personaRouting = inject(PersonaRoutingService);
   private readonly announcer = inject(AriaAnnouncerService);
   private readonly storage = inject(STORAGE_PORT);
   private readonly route = inject(ActivatedRoute);
@@ -124,6 +126,9 @@ export class ChatComponent {
 
   readonly inputPlaceholder = computed(
     () => PERSONA_REGISTRY[this.activePersona()].inputPlaceholder,
+  );
+  readonly starterQuestions = computed(
+    () => PERSONA_REGISTRY[this.activePersona()].starterQuestions,
   );
   readonly inputAriaLabel = computed(() => chatInputLabel(this.activePersona()));
 
@@ -240,9 +245,7 @@ export class ChatComponent {
       onCleanup(() => clearInterval(intervalId));
     });
 
-    // E6-S3 auto-open — the orchestrator fires this Subject whenever the
-    // active provider has no saved key. Open the modal in auto-open mode and
-    // queue the pending user message for re-dispatch on save.
+    // E6-S3 auto-open — backup if send reaches the orchestrator without a key.
     this.orchestrator.keyMissing$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => {
@@ -282,30 +285,37 @@ export class ChatComponent {
     if (wasAuto && this.queuedText) {
       const text = this.queuedText;
       this.queuedText = null;
-      this.orchestrator
-        .sendMessage(this.activePersona(), text)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          complete: () => void this.reloadThread(),
-          error: () => void this.reloadThread(),
-        });
+      this.dispatchSend(text);
     }
   }
 
   onSettingsDismissed(): void {
-    const wasAuto = this.settingsAutoOpen();
     this.settingsAutoOpen.set(false);
-    if (wasAuto) {
-      this.queuedText = null;
-      void this.router.navigateByUrl('/');
-    }
+    this.queuedText = null;
+  }
+
+  onStarterChip(question: string): void {
+    if (this.inputDisabled()) return;
+    this.draft.set(question);
+    this.onSend();
   }
 
   onSend(): void {
     const text = this.draft().trim();
     if (!text || this.orchestrator.inFlightStream()) return;
 
-    this.queuedText = text; // E6-S3 auto-open flow re-dispatches after save
+    if (!this.personaRouting.hasKeyForPersona(this.activePersona())) {
+      this.queuedText = text;
+      this.settingsAutoOpen.set(true);
+      this.settingsOpen.set(true);
+      return;
+    }
+
+    this.dispatchSend(text);
+  }
+
+  private dispatchSend(text: string): void {
+    this.queuedText = text;
 
     this.messages.update((m) => [
       ...m,

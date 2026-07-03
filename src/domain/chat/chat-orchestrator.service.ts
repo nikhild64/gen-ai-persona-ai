@@ -174,6 +174,15 @@ export class ChatOrchestrator {
       return;
     }
 
+    // Key lookup before persisting the user turn — avoids orphan messages
+    // when no provider key is configured (UI opens settings instead).
+    const providerId = this.personaRouting.getProviderFor(persona);
+    const key = this.keyVault.getKeyForProvider(providerId);
+    if (!key) {
+      this.keyMissing$.next(persona);
+      return;
+    }
+
     const userMsg: Message = {
       id: this.uuid(),
       role: 'user',
@@ -186,14 +195,6 @@ export class ChatOrchestrator {
 
     // Step 3 — compose prompt
     const composed = this.assembler.compose(persona, thread, 'solo');
-
-    // Step 4 — key lookup (respect user's persona → provider override)
-    const providerId = this.personaRouting.getProviderFor(persona);
-    const key = this.keyVault.getKeyForProvider(providerId);
-    if (!key) {
-      this.keyMissing$.next(persona);
-      return;
-    }
 
     // Persona params carry a persona-tied default model that assumes the
     // persona's default provider. Override with the user-selected model for

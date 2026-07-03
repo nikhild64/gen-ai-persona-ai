@@ -7,7 +7,7 @@ import type { Thread, Message } from '../types/message';
 function threadFrom(messages: Message[]): Thread {
   return {
     id: 't-test',
-    scope: 'hitesh',
+    scope: 'musk',
     messages,
     rollingSummary: null,
     turnsSinceLastSummary: 0,
@@ -22,7 +22,7 @@ function msg(role: 'user' | 'assistant', text: string, n: number): Message {
     role,
     content: text,
     timestamp: n,
-    ...(role === 'assistant' ? { status: 'complete', persona: 'hitesh' } : {}),
+    ...(role === 'assistant' ? { status: 'complete', persona: 'musk' } : {}),
   } as Message;
 }
 
@@ -31,7 +31,7 @@ describe('PromptAssembler solo mode', () => {
 
   it('returns 2 messages (system + user) and wraps current user message in XML delimiters', () => {
     const thread = threadFrom([msg('user', 'hello', 1)]);
-    const out = assembler.compose('hitesh', thread, 'solo');
+    const out = assembler.compose('musk', thread, 'solo');
     expect(out.messages).toHaveLength(2);
     expect(out.messages[0]?.role).toBe('system');
     expect(out.messages[1]?.role).toBe('user');
@@ -40,26 +40,26 @@ describe('PromptAssembler solo mode', () => {
     );
   });
 
-  it('sources model + params from PERSONA_MODEL_PARAMS (Hitesh → gemini)', () => {
-    const out = assembler.compose('hitesh', threadFrom([]), 'solo');
-    expect(out.model).toBe('gemini-2.5-flash');
-    expect(out.temperature).toBe(0.75);
-    expect(out.topP).toBe(0.95);
+  it('sources model + params from PERSONA_MODEL_PARAMS (Musk → groq)', () => {
+    const out = assembler.compose('musk', threadFrom([]), 'solo');
+    expect(out.model).toBe('openai/gpt-oss-120b');
+    expect(out.temperature).toBe(0.7);
+    expect(out.topP).toBe(0.9);
     expect(out.maxOutputTokens).toBe(500);
-    expect(out.frequencyPenalty).toBe(0.2);
-    expect(out.presencePenalty).toBe(0.3);
+    expect(out.frequencyPenalty).toBe(0.1);
+    expect(out.presencePenalty).toBe(0.15);
   });
 
-  it('sources model + params from PERSONA_MODEL_PARAMS (Piyush → groq)', () => {
-    const out = assembler.compose('piyush', threadFrom([]), 'solo');
-    expect(out.model).toBe('openai/gpt-oss-120b');
+  it('sources model + params from PERSONA_MODEL_PARAMS (Jobs → gemini)', () => {
+    const out = assembler.compose('jobs', threadFrom([]), 'solo');
+    expect(out.model).toBe('gemini-2.5-flash');
     expect(out.temperature).toBe(0.55);
-    expect(out.topP).toBe(0.9);
+    expect(out.topP).toBe(0.92);
     expect(out.maxOutputTokens).toBe(500);
   });
 
   it('populates OutboundPrompt.meta correctly for a fresh thread', () => {
-    const out = assembler.compose('hitesh', threadFrom([]), 'solo');
+    const out = assembler.compose('musk', threadFrom([]), 'solo');
     expect(out.meta.mode).toBe('solo');
     expect(out.meta.hasSummary).toBe(false);
     expect(out.meta.hasDriftRefresh).toBe(false);
@@ -75,20 +75,19 @@ describe('PromptAssembler solo mode', () => {
       ...threadFrom(messages),
       rollingSummary: 'PRIOR SUMMARY OF 12 TURNS',
     };
-    const out = assembler.compose('hitesh', thread, 'solo');
+    const out = assembler.compose('musk', thread, 'solo');
     const system = out.messages[0]?.content ?? '';
     expect(system).toContain('PRIOR SUMMARY OF 12 TURNS');
-    // Tail is last 8 messages excluding the current user (which is message index 19)
     expect(system).toContain('m-11');
     expect(system).toContain('m-18');
     expect(system).not.toContain('m-10');
   });
 
   it('embeds fewShots block from persona registry', () => {
-    const out = assembler.compose('hitesh', threadFrom([]), 'solo');
+    const out = assembler.compose('musk', threadFrom([]), 'solo');
     const system = out.messages[0]?.content ?? '';
     expect(system).toContain('FEW-SHOT EXAMPLES');
-    expect(system).toContain('Haanji, achhi baat hai ki soch rahe ho');
+    expect(system).toContain('electric cars still so expensive');
   });
 
   it('reports hasSummary=true when thread.rollingSummary is set', () => {
@@ -96,13 +95,13 @@ describe('PromptAssembler solo mode', () => {
       ...threadFrom([msg('user', 'q', 1)]),
       rollingSummary: 'summary',
     };
-    const out = assembler.compose('hitesh', thread, 'solo');
+    const out = assembler.compose('musk', thread, 'solo');
     expect(out.meta.hasSummary).toBe(true);
   });
 
   it('composes a valid summarize prompt (E5-S2 real impl)', () => {
     const thread = threadFrom([msg('user', 'first', 1), msg('assistant', 'reply', 2)]);
-    const out = assembler.compose('hitesh', thread, 'summarize');
+    const out = assembler.compose('musk', thread, 'summarize');
     expect(out.meta.mode).toBe('summarize');
     expect(out.messages[0]?.role).toBe('system');
     expect(out.messages[0]?.content).toContain('Compress');
@@ -111,14 +110,14 @@ describe('PromptAssembler solo mode', () => {
 
   it('composes a valid ask-both-a prompt (E9-S2 real impl)', () => {
     const thread = threadFrom([msg('user', 'q', 1)]);
-    const out = assembler.compose('hitesh', thread, 'ask-both-a');
+    const out = assembler.compose('musk', thread, 'ask-both-a');
     expect(out.meta.mode).toBe('ask-both-a');
   });
 
   it('assertNever fires runtime on an invented mode', () => {
     const thread = threadFrom([]);
     expect(() =>
-      assembler.compose('hitesh', thread, 'foo' as unknown as PromptMode),
+      assembler.compose('musk', thread, 'foo' as unknown as PromptMode),
     ).toThrowError(/Unhandled variant/);
   });
 });
@@ -127,20 +126,20 @@ describe('PromptAssembler ask-both-blended mode (post-sprint)', () => {
   const assembler = new PromptAssembler();
 
   it('AC-3: returns exactly one system + one user message; user wrapped in <user_message>', () => {
-    const thread = threadFrom([msg('user', 'system design kaise start karun?', 1)]);
-    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    const thread = threadFrom([msg('user', 'how do rockets work?', 1)]);
+    const out = assembler.compose('musk', thread, 'ask-both-blended');
     expect(out.messages).toHaveLength(2);
     expect(out.messages[0]?.role).toBe('system');
     expect(out.messages[1]?.role).toBe('user');
     expect(out.messages[1]?.content).toBe(
-      '<user_message>system design kaise start karun?</user_message>',
+      '<user_message>how do rockets work?</user_message>',
     );
     expect(out.meta.mode).toBe('ask-both-blended');
   });
 
   it('AC-3: system block preserves AD-8 9-block order sourced from blended composition', () => {
     const thread = threadFrom([msg('user', 'hi', 1)]);
-    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    const out = assembler.compose('musk', thread, 'ask-both-blended');
     const system = out.messages[0]?.content ?? '';
 
     const indices = {
@@ -154,7 +153,6 @@ describe('PromptAssembler ask-both-blended mode (post-sprint)', () => {
       selfCheck: system.indexOf('PRE-RESPONSE SELF-VERIFICATION'),
     };
 
-    // Every block present and in ascending order — AD-8 9-block preservation.
     Object.values(indices).forEach((idx) =>
       expect(idx).toBeGreaterThanOrEqual(0),
     );
@@ -167,17 +165,14 @@ describe('PromptAssembler ask-both-blended mode (post-sprint)', () => {
     expect(indices.tail).toBeLessThan(indices.selfCheck);
   });
 
-  it('AC-8: fusion identityBlock includes the SCRIPT rule and forbids Devanagari', () => {
+  it('AC-8: fusion identityBlock includes the SCRIPT rule when Gandhi is in pair', () => {
     const thread = threadFrom([msg('user', 'q', 1)]);
-    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    const out = assembler.compose('musk', thread, 'ask-both-blended', {
+      blendedPair: { a: 'musk', b: 'gandhi' },
+    });
     const system = out.messages[0]?.content ?? '';
     expect(system).toContain('SCRIPT: Roman/Latin transliteration');
     expect(system).toContain('NEVER emit Devanagari');
-    // Pedagogical Devanagari (in the "write X not Y" clause) is allowed
-    // inside the identityBlock and the identity block only — same policy
-    // as the Piyush persona post-mid-sprint-fix. The instruction
-    // "NEVER emit Devanagari" makes the examples anti-patterns, not seeds.
-    // Everything OUTSIDE that identity block should be Latin-only.
     const identityStart = system.indexOf('FUSED VOICE');
     const identityEnd = system.indexOf('VOICE RULES');
     const beforeIdentity = system.slice(0, identityStart);
@@ -187,16 +182,14 @@ describe('PromptAssembler ask-both-blended mode (post-sprint)', () => {
     expect(devanagari.test(afterIdentity)).toBe(false);
   });
 
-  it('AC-3: few-shots are the AC-3 subset — Hitesh Q1+Q3 + Piyush Q2+Q4', () => {
+  it('AC-3: few-shots are Musk Q1+Q2 + Jobs Q1+Q2 (default musk+jobs pair)', () => {
     const thread = threadFrom([msg('user', 'q', 1)]);
-    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    const out = assembler.compose('musk', thread, 'ask-both-blended');
     const system = out.messages[0]?.content ?? '';
-    // Hitesh Q1 (React vs Next.js opener) + Q3 (job market)
-    expect(system).toContain('React seekhna chahiye ya directly Next.js pe jaana chahiye');
-    expect(system).toContain('Job market bahut kharaab hai');
-    // Piyush Q2 (system design) + Q4 (Docker)
-    expect(system).toContain('System design kaise start karun');
-    expect(system).toContain('Docker seekhna hai, kahaan se start karun');
+    expect(system).toContain('electric cars still so expensive');
+    expect(system).toContain('learn to code or just focus on AI prompts');
+    expect(system).toContain('right career');
+    expect(system).toContain('too many features and users are confused');
   });
 
   it('AC-5: keep-going path synthesises a "continue" user message when last thread msg is assistant', () => {
@@ -204,18 +197,17 @@ describe('PromptAssembler ask-both-blended mode (post-sprint)', () => {
       msg('user', 'original question', 1),
       msg('assistant', 'first blended reply', 2),
     ]);
-    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    const out = assembler.compose('musk', thread, 'ask-both-blended');
     const userMsg = out.messages[1]?.content ?? '';
     expect(userMsg).toContain('Continue this Blended discussion');
     expect(userMsg).toContain('fresh angle');
-    // Verbatim tail should now INCLUDE the prior assistant blended reply.
     const system = out.messages[0]?.content ?? '';
     expect(system).toContain('first blended reply');
   });
 
   it('populates OutboundPrompt.meta.estimatedTokens for the blended composition', () => {
     const thread = threadFrom([msg('user', 'q', 1)]);
-    const out = assembler.compose('hitesh', thread, 'ask-both-blended');
+    const out = assembler.compose('musk', thread, 'ask-both-blended');
     expect(out.meta.estimatedTokens).toBeGreaterThan(0);
     expect(out.meta.hasSummary).toBe(false);
     expect(out.meta.hasDriftRefresh).toBe(false);

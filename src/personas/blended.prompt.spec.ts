@@ -3,12 +3,12 @@ import { describe, it, expect } from 'vitest';
 import blendedComposition, {
   buildBlendedComposition,
 } from './blended.prompt';
-import hiteshPromptComposition from './hitesh.prompt';
-import piyushPromptComposition from './piyush.prompt';
+import muskPromptComposition from './musk.prompt';
+import jobsPromptComposition from './jobs.prompt';
 
 describe('blended.prompt (V2 pair-aware fusion)', () => {
-  it('default export is Hitesh + Piyush pair', () => {
-    expect(blendedComposition.attributionLabel).toBe('Hitesh + Piyush');
+  it('default export is Musk + Jobs pair', () => {
+    expect(blendedComposition.attributionLabel).toBe('Musk + Jobs');
     expect(blendedComposition.fewShots.length).toBe(4);
   });
 
@@ -18,16 +18,16 @@ describe('blended.prompt (V2 pair-aware fusion)', () => {
     expect(muskJobs.fewShots.length).toBe(4);
   });
 
-  it('Hitesh+Piyush few-shots match legacy subset', () => {
-    const pair = buildBlendedComposition('hitesh', 'piyush');
-    expect(pair.fewShots[0]).toBe(hiteshPromptComposition.fewShots[0]);
-    expect(pair.fewShots[1]).toBe(hiteshPromptComposition.fewShots[1]);
-    expect(pair.fewShots[2]).toBe(piyushPromptComposition.fewShots[0]);
-    expect(pair.fewShots[3]).toBe(piyushPromptComposition.fewShots[1]);
+  it('Musk+Jobs few-shots match V2 subset', () => {
+    const pair = buildBlendedComposition('musk', 'jobs');
+    expect(pair.fewShots[0]).toBe(muskPromptComposition.fewShots[0]);
+    expect(pair.fewShots[1]).toBe(muskPromptComposition.fewShots[1]);
+    expect(pair.fewShots[2]).toBe(jobsPromptComposition.fewShots[0]);
+    expect(pair.fewShots[3]).toBe(jobsPromptComposition.fewShots[1]);
   });
 
-  it('Hinglish pairs include SCRIPT rule', () => {
-    expect(buildBlendedComposition('hitesh', 'piyush').identityBlock).toContain(
+  it('Gandhi pairs include SCRIPT rule', () => {
+    expect(buildBlendedComposition('gandhi', 'einstein').identityBlock).toContain(
       'NEVER emit Devanagari',
     );
   });

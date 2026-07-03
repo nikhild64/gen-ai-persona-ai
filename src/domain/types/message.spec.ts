@@ -65,7 +65,7 @@ describe('Message + Thread structural shape', () => {
     const m: Message = {
       id: 'y',
       role: 'assistant',
-      persona: 'hitesh',
+      persona: 'musk',
       content: 'hello',
       timestamp: 2,
       status: 'complete',
@@ -76,7 +76,7 @@ describe('Message + Thread structural shape', () => {
   it('allows a Thread with rollingSummary=null', () => {
     const t: Thread = {
       id: 't',
-      scope: 'hitesh',
+      scope: 'musk',
       messages: [],
       rollingSummary: null,
       turnsSinceLastSummary: 0,

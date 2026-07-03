@@ -55,7 +55,12 @@
     (pairConfirmed)="onBlendPairConfirmed($event)"
   />
 
-  <app-settings-modal [(open)]="settingsOpen" />
+  <app-settings-modal
+    [(open)]="settingsOpen"
+    [(autoOpenMode)]="settingsAutoOpen"
+    (closedWithSave)="onSettingsSaved()"
+    (closedWithoutSave)="onSettingsDismissed()"
+  />
 
   <div class="message-list" #messageList>
     @if (messages().length === 0) {
@@ -85,6 +90,20 @@
   </div>
 
   <form class="input-area" (ngSubmit)="onSend()">
+    @if (starterQuestions.length) {
+    <div class="starter-chips" role="group" aria-label="Suggested blend questions">
+      @for (q of starterQuestions; track q) {
+      <button
+        type="button"
+        class="starter-chip"
+        [disabled]="sequencer.inFlight()"
+        (click)="onStarterChip(q)"
+      >
+        {{ q }}
+      </button>
+      }
+    </div>
+    }
     <textarea
       rows="2"
       [placeholder]="inputPlaceholder"

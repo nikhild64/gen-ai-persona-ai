@@ -115,6 +115,11 @@ export const PRODUCT_COPY = {
   askBothBridgeAnnouncement:
     'The second persona is now responding.',
   askBothInputPlaceholder: 'Type your question for the blended pair…',
+  askBothStarterQuestions: [
+    'How should I approach a hard technical decision?',
+    'What matters more — speed or craft?',
+    'How do I stay focused when everything feels urgent?',
+  ],
   askBothSendButtonLabel: 'Blend',
   askBothPairLabelA: 'Persona A',
   askBothPairLabelB: 'Persona B',

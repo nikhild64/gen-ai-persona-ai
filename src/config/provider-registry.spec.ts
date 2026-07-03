@@ -6,9 +6,9 @@ import {
 } from './provider-registry';
 
 describe('provider-registry (AD-5, AD-9)', () => {
-  it('routes Hitesh → gemini and Piyush → groq per AD-5 default', () => {
-    expect(PROVIDER_DEFAULT_ROUTING.hitesh).toBe('gemini');
-    expect(PROVIDER_DEFAULT_ROUTING.piyush).toBe('groq');
+  it('routes Musk → groq and Jobs → gemini per AD-5 default', () => {
+    expect(PROVIDER_DEFAULT_ROUTING.musk).toBe('groq');
+    expect(PROVIDER_DEFAULT_ROUTING.jobs).toBe('gemini');
   });
 
   it('uses gemini for the Ask-Both rolling summary provider (AD-9)', () => {

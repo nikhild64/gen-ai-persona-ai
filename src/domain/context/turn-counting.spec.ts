@@ -10,7 +10,7 @@ import type { PromptMode } from '../prompts/types';
 function thread(messages: Message[]): Thread {
   return {
     id: 't',
-    scope: 'hitesh',
+    scope: 'musk',
     messages,
     rollingSummary: null,
     turnsSinceLastSummary: 0,
@@ -25,7 +25,7 @@ function a(id: string, text = 'a'): Message {
   return {
     id,
     role: 'assistant',
-    persona: 'hitesh',
+    persona: 'musk',
     content: text,
     timestamp: 0,
     status: 'complete',
