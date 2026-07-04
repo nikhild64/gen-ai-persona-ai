@@ -15,7 +15,7 @@ import type { ProviderId } from '../domain/ports/provider.port';
  */
 export const PROVIDER_DEFAULT_ROUTING: Record<PersonaId, ProviderId> = {
   hitesh: 'gemini',
-  piyush: 'groq',
+  piyush: 'gemini',
 };
 
 /**
@@ -34,7 +34,7 @@ export const ASK_BOTH_SUMMARY_PROVIDER_ID: ProviderId = 'gemini';
  */
 export const PROVIDER_DEFAULT_MODELS: Record<ProviderId, string> = {
   gemini: 'gemini-3.1-flash-lite',
-  groq: 'openai/gpt-oss-120b',
+  groq: 'openai/gpt-oss-20b',
 };
 
 /**
